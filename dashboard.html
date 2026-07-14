@@ -1,55 +1,904 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | SoufStock ERP</title>
-    <link rel="stylesheet" href="assets/css/dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <div class="dashboard-wrapper">
-        <aside class="sidebar">
-            <div class="logo">SoufStock</div>
-            <nav id="nav-menu">
-                <a href="#" class="active">Dashboard</a>
-                <a href="#">Stock</a>
-                <a href="#">Commandes</a>
-            </nav>
-        </aside>
 
-        <main class="content">
-            <header class="topbar">
-                <div class="user-info">
-                    <span id="user-display">Chargement...</span>
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>SoufStock Enterprise ERP</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="assets/css/dashboard.css">
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- ===================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ===================================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar">
+
+        <div class="sidebar-header">
+
+            <img
+                src="assets/img/logo.png"
+                class="sidebar-logo"
+                alt="SoufStock">
+
+            <div class="sidebar-brand">
+
+                <h2>SoufStock</h2>
+
+                <span>Enterprise ERP</span>
+
+            </div>
+
+        </div>
+
+<button
+    id="sidebarToggle"
+    class="sidebar-toggle">
+
+    ☰
+
+</button>
+
+<nav
+    id="sidebarNav"
+    class="sidebar-nav">
+
+    <!-- DASHBOARD -->
+
+    <a
+        href="#"
+        class="nav-item active"
+        data-page="dashboard"
+        data-permission="dashboard.view">
+
+        <i class="fas fa-chart-line"></i>
+
+        <span>Dashboard</span>
+
+    </a>
+
+    <!-- STOCK -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="stock"
+        data-permission="stock.view">
+
+        <i class="fas fa-boxes"></i>
+
+        <span>Stock</span>
+
+    </a>
+
+    <!-- PRODUCTION -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="production"
+        data-permission="production.view">
+
+        <i class="fas fa-industry"></i>
+
+        <span>Production</span>
+
+    </a>
+
+    <!-- COMMANDES -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="commandes"
+        data-permission="commandes.view">
+
+        <i class="fas fa-shopping-cart"></i>
+
+        <span>Commandes</span>
+
+    </a>
+
+    <!-- PREPARATION -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="picking"
+        data-permission="picking.view">
+
+        <i class="fas fa-dolly"></i>
+
+        <span>Préparation</span>
+
+    </a>
+
+    <!-- TUNNELS -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="tunnels"
+        data-permission="tunnels.view">
+
+        <i class="fas fa-snowflake"></i>
+
+        <span>Tunnels</span>
+
+    </a>
+
+    <!-- CHAMBRES -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="chambres"
+        data-permission="chambres.view">
+
+        <i class="fas fa-warehouse"></i>
+
+        <span>Chambres</span>
+
+    </a>
+
+    <!-- INVENTAIRE -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="inventaire"
+        data-permission="inventaire.view">
+
+        <i class="fas fa-clipboard-check"></i>
+
+        <span>Inventaire</span>
+
+    </a>
+
+    <!-- UTILISATEURS -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="utilisateurs"
+        data-permission="users.view">
+
+        <i class="fas fa-users"></i>
+
+        <span>Utilisateurs</span>
+
+    </a>
+
+    <!-- PARAMÈTRES -->
+
+    <a
+        href="#"
+        class="nav-item"
+        data-page="parametres"
+        data-permission="settings.view">
+
+        <i class="fas fa-cogs"></i>
+
+        <span>Paramètres</span>
+
+    </a>
+
+</nav>
+
+<div class="sidebar-footer">
+
+    <div
+        id="sidebarUser"
+        class="sidebar-user">
+
+        <img
+            id="sidebarAvatar"
+            src="assets/img/avatar.png"
+            alt="Avatar">
+
+        <div>
+
+            <h4 id="sidebarUserName">
+
+                Chargement...
+
+            </h4>
+
+            <span id="sidebarUserRole">
+
+                ...
+
+            </span>
+
+        </div>
+
+    </div>
+
+    <button
+        id="logoutBtn"
+        class="logout-btn">
+
+        Déconnexion
+
+    </button>
+
+</div>
+
+</aside>
+        <!-- ===================================================== -->
+    <!-- MAIN -->
+    <!-- ===================================================== -->
+
+    <main class="main">
+
+        <!-- ================= TOPBAR ================= -->
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <h1 id="pageTitle">
+
+                    Dashboard
+
+                </h1>
+
+                <span id="pageSubtitle">
+
+                    SoufStock Enterprise ERP
+
+                </span>
+
+            </div>
+
+            <div class="topbar-center">
+
+                <div class="search-box">
+
+                    <i class="fas fa-search"></i>
+
+                    <input
+                        type="text"
+                        id="globalSearch"
+                        placeholder="Rechercher...">
+
                 </div>
-            </header>
+
+            </div>
+
+            <div class="topbar-right">
+
+                <!-- DATE -->
+
+                <div class="topbar-item">
+
+                    <i class="fas fa-calendar"></i>
+
+                    <span id="currentDate">
+
+                        --/--/----
+
+                    </span>
+
+                </div>
+
+                <!-- TIME -->
+
+                <div class="topbar-item">
+
+                    <i class="fas fa-clock"></i>
+
+                    <span id="currentTime">
+
+                        --:--:--
+
+                    </span>
+
+                </div>
+
+                <!-- THEME -->
+
+                <button
+                    id="themeToggle"
+                    class="icon-btn">
+
+                    <i class="fas fa-moon"></i>
+
+                </button>
+
+                <!-- LANGUAGE -->
+
+                <button
+                    id="languageToggle"
+                    class="icon-btn">
+
+                    <i class="fas fa-language"></i>
+
+                </button>
+
+                <!-- FULLSCREEN -->
+
+                <button
+                    id="fullscreenBtn"
+                    class="icon-btn">
+
+                    <i class="fas fa-expand"></i>
+
+                </button>
+
+                <!-- NOTIFICATIONS -->
+
+                <div class="notification-box">
+
+                    <button
+                        id="notifBtn"
+                        class="icon-btn">
+
+                        <i class="fas fa-bell"></i>
+
+                        <span
+                            id="notifCount"
+                            class="badge">
+
+                            0
+
+                        </span>
+
+                    </button>
+
+                    <div
+                        id="notifPanel"
+                        class="notification-panel">
+
+                        <div class="panel-header">
+
+                            <h3>
+
+                                Notifications
+
+                            </h3>
+
+                        </div>
+
+                        <div
+                            id="notifList"
+                            class="panel-body">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- USER -->
+
+                <div
+                    id="userMenu"
+                    class="user-menu">
+
+                    <img
+                        id="topbarAvatar"
+                        src="assets/img/avatar.png">
+
+                    <div>
+
+                        <h4 id="topbarUserName">
+
+                            Chargement...
+
+                        </h4>
+
+                        <span id="topbarUserRole">
+
+                            ...
+
+                        </span>
+
+                    </div>
+
+                    <i class="fas fa-chevron-down"></i>
+
+                    <div
+                        id="userDropdown"
+                        class="dropdown-menu">
+
+                        <a href="#">
+
+                            <i class="fas fa-user"></i>
+
+                            Profil
+
+                        </a>
+
+                        <a href="#">
+
+                            <i class="fas fa-cog"></i>
+
+                            Paramètres
+
+                        </a>
+
+                        <hr>
+
+                        <a
+                            href="#"
+                            id="menuLogout">
+
+                            <i class="fas fa-sign-out-alt"></i>
+
+                            Déconnexion
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- ================= CONTENT ================= -->
+
+        <section
+            class="content"
+            id="dashboardContent">
+                    <!-- ===================================================== -->
+        <!-- DASHBOARD -->
+        <!-- ===================================================== -->
+
+        <div id="dashboardView">
+
+            <div class="page-header">
+
+                <div>
+
+                    <h2>
+
+                        Tableau de bord
+
+                    </h2>
+
+                    <p>
+
+                        Bienvenue
+                        <strong id="welcomeName">
+
+                            ...
+
+                        </strong>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- ================= KPI ================= -->
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <div class="stat-icon success">
+
+                        <i class="fas fa-boxes"></i>
+
+                    </div>
+
+                    <div class="stat-content">
+
+                        <span>
+
+                            Stock Total
+
+                        </span>
+
+                        <h2 id="stockTotal">
+
+                            0
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div class="stat-icon primary">
+
+                        <i class="fas fa-arrow-right-arrow-left"></i>
+
+                    </div>
+
+                    <div class="stat-content">
+
+                        <span>
+
+                            Mouvements
+
+                        </span>
+
+                        <h2 id="movementCount">
+
+                            0
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div class="stat-icon warning">
+
+                        <i class="fas fa-file-invoice"></i>
+
+                    </div>
+
+                    <div class="stat-content">
+
+                        <span>
+
+                            Commandes
+
+                        </span>
+
+                        <h2 id="ordersCount">
+
+                            0
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div class="stat-icon danger">
+
+                        <i class="fas fa-exclamation-circle"></i>
+
+                    </div>
+
+                    <div class="stat-content">
+
+                        <span>
+
+                            Alertes
+
+                        </span>
+
+                        <h2 id="alertCount">
+
+                            0
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ================= CHARTS ================= -->
 
             <div class="dashboard-grid">
-                <section class="stats-cards" id="stats-container">
-                    <div class="card"><h3>Total Stock</h3><p id="total-stock">0 KG</p></div>
-                    <div class="card"><h3>Commandes</h3><p id="pending-orders">0</p></div>
-                    <div class="card"><h3>Expéditions</h3><p id="today-shipments">0</p></div>
-                </section>
 
-                <section class="charts-row">
-                    <div class="card chart-container">
-                        <canvas id="stockEvolutionChart"></canvas>
-                    </div>
-                </section>
+                <!-- Evolution -->
 
-                <section class="tables-row">
-                    <div class="card">
-                        <h3>Commandes Récentes</h3>
-                        <table id="recent-orders">
-                            <thead><tr><th>ID</th><th>Client</th><th>Statut</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
+                <div class="card large">
+
+                    <div class="card-header">
+
+                        <h3>
+
+                            Evolution du Stock
+
+                        </h3>
+
                     </div>
-                </section>
+
+                    <div class="card-body">
+
+                        <canvas
+                            id="stockChart">
+
+                        </canvas>
+
+                    </div>
+
+                </div>
+
+                <!-- Pie -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+
+                            Stock par Chambre
+
+                        </h3>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <canvas
+                            id="chambreChart">
+
+                        </canvas>
+
+                    </div>
+
+                </div>
+
+                <!-- Production -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+
+                            Production
+
+                        </h3>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <canvas
+                            id="productionChart">
+
+                        </canvas>
+
+                    </div>
+
+                </div>
+
             </div>
-        </main>
+
+            <!-- ================= TABLES ================= -->
+
+            <div class="dashboard-grid">
+
+                <!-- Derniers mouvements -->
+
+                <div class="card large">
+
+                    <div class="card-header">
+
+                        <h3>
+
+                            Derniers Mouvements
+
+                        </h3>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <table
+                            class="table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Date</th>
+
+                                    <th>Article</th>
+
+                                    <th>Lot</th>
+
+                                    <th>Quantité</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody
+                                id="movementsTableBody">
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <!-- Alertes -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+
+                            Alertes
+
+                        </h3>
+
+                    </div>
+
+                    <div
+                        class="card-body"
+                        id="alertsContainer">
+
+                    </div>
+
+                </div>
+
+            </div>
+                        <!-- ===================================================== -->
+            <!-- QUICK ACTIONS -->
+            <!-- ===================================================== -->
+
+            <div class="dashboard-grid">
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+
+                            Actions Rapides
+
+                        </h3>
+
+                    </div>
+
+                    <div class="card-body quick-actions">
+
+                        <button class="action-btn" id="btnStock">
+
+                            <i class="fas fa-boxes"></i>
+
+                            <span>Stock</span>
+
+                        </button>
+
+                        <button class="action-btn" id="btnProduction">
+
+                            <i class="fas fa-industry"></i>
+
+                            <span>Production</span>
+
+                        </button>
+
+                        <button class="action-btn" id="btnCommande">
+
+                            <i class="fas fa-file-invoice"></i>
+
+                            <span>Commandes</span>
+
+                        </button>
+
+                        <button class="action-btn" id="btnPreparation">
+
+                            <i class="fas fa-dolly"></i>
+
+                            <span>Préparation</span>
+
+                        </button>
+
+                        <button class="action-btn" id="btnUsers">
+
+                            <i class="fas fa-users"></i>
+
+                            <span>Utilisateurs</span>
+
+                        </button>
+
+                        <button class="action-btn" id="btnSettings">
+
+                            <i class="fas fa-cogs"></i>
+
+                            <span>Paramètres</span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+</div>
+
+<!-- =============================== -->
+<!-- Loader -->
+<!-- =============================== -->
+
+<div
+    id="fullscreenLoader"
+    class="fullscreen-loader">
+
+    <div class="loader-content">
+
+        <div class="spinner"></div>
+
+        <h3 id="loaderTitle">
+
+            Chargement...
+
+        </h3>
+
+        <p id="loaderMessage">
+
+            Veuillez patienter...
+
+        </p>
+
     </div>
-    <script type="module" src="./assets/js/dashboard.js"></script>
+
+</div>
+
+<!-- =============================== -->
+<!-- Toast -->
+<!-- =============================== -->
+
+<div
+    id="toastContainer"
+    class="toast-container">
+
+</div>
+
+<!-- =============================== -->
+<!-- Libraries -->
+<!-- =============================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js"></script>
+
+<!-- =============================== -->
+<!-- Dashboard -->
+<!-- =============================== -->
+
+<script type="module"
+        src="assets/js/dashboard.js">
+
+</script>
+
 </body>
+
 </html>
+            
