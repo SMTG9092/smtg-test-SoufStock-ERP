@@ -1,28 +1,19 @@
-
 /**
- * ============================================================
- * SoufStock Enterprise ERP
- * dashboard.js
- * ============================================================
+ * ==========================================================================
+ * SoufStock Enterprise ERP/WMS
+ * File: assets/js/dashboard.js
+ * Central Dashboard Controller
+ * ==========================================================================
  */
 
 import APP_CONFIG from "./core/config.js";
-
 import AuthManager from "./core/auth.js";
 import SessionManager from "./core/session.js";
-
 import ThemeManager from "./core/theme.js";
 import LanguageManager from "./core/language.js";
-
-import {
-
-    Loader,
-    Toast
-
-} from "./core/utils.js";
-
-import Profile from "./core/profile.js";
 import Permissions from "./core/permissions.js";
+import { Loader, Toast } from "./core/utils.js";
+import Profile from "./core/profile.js";
 import Sidebar from "./core/sidebar.js";
 import DashboardData from "./core/dashboard-data.js";
 import Charts from "./core/charts.js";
@@ -31,377 +22,115 @@ import Navigation from "./core/navigation.js";
 import Realtime from "./core/realtime.js";
 
 class Dashboard {
-
     constructor() {
-
         this.initialized = false;
-
-        this.profile = null;
-
+        this.refreshInterval = null;
+        this.clockInterval = null;
     }
 
-    /* ============================================================
-     * INIT
-     * ============================================================ */
-
+    /**
+     * Initialisation globale du Dashboard
+     */
     async init() {
-
         try {
+            Loader.show("Chargement...", "Initialisation système...");
 
-            Loader.show(
-
-                "Chargement...",
-
-                "Initialisation du Dashboard"
-
-            );
-
+            // 1. Initialisation Core
             ThemeManager.init();
-
             LanguageManager.init();
-
             SessionManager.init();
 
-            if (
-
-                !SessionManager.isAuthenticated()
-
-            ) {
-
-                window.location.href =
-
-                    APP_CONFIG.ROUTES.LOGIN;
-
+            // 2. Vérification Auth
+            if (!SessionManager.isAuthenticated()) {
+                window.location.href = APP_CONFIG.ROUTES.LOGIN;
                 return;
-
             }
 
-            this.profile =
+            // 3. Parallélisation du chargement des modules critiques
+            await Promise.all([
+                Permissions.initPermissions(),
+                Profile.loadProfile(),
+                DashboardData.load()
+            ]);
 
-                await Profile.load();
-
-            if (!this.profile) {
-
-                throw new Error(
-
-                    "Impossible de charger le profil."
-
-                );
-
-            }
-
-            await Permissions.load();
-
-            Permissions.apply();
-
-            Sidebar.init();
-
-            Navigation.init();
-
-            Notifications.init();
-
-            Notifications.loadDefaults();
-
-            await DashboardData.load();
-
-            await Charts.init();
-
-            Realtime.init();
-
-            this.bindEvents();
-
+            // 4. Setup UI et services
+            this.setupUI();
             this.startClock();
+            Realtime.init();
+            this.startAutoRefresh();
 
             this.initialized = true;
-
-            Toast.success(
-
-                "Bienvenue",
-
-                Profile.getName()
-
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(error);
-
-            Toast.error(
-
-                "Dashboard",
-
-                error.message
-
-            );
-
-        }
-
-        finally {
-
             Loader.hide();
-
+        } catch (error) {
+            console.error("[Dashboard Controller] Init Error:", error);
+            Toast.error("Système", "Erreur lors du chargement du Dashboard.");
+            Loader.hide();
         }
-
     }
 
-    /* ============================================================
-     * EVENTS
-     * ============================================================ */
+    /**
+     * Configuration des composants UI et écouteurs d'événements
+     */
+    setupUI() {
+        Sidebar.init();
+        Navigation.init();
+        Notifications.init();
+        Charts.renderAll();
 
-    bindEvents() {
-
-        document
-
-            .getElementById("logoutBtn")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => this.logout()
-
-            );
-
-        document
-
-            .getElementById("themeToggle")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => ThemeManager.toggle()
-
-            );
-
-        document
-
-            .getElementById("languageToggle")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => LanguageManager.toggle()
-
-            );
-
-        document
-
-            .getElementById("fullscreenBtn")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => this.fullscreen()
-
-            );
-
+        // Raccourcis clavier (Ctrl+R)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                this.refresh();
+            }
+        });
     }
 
-    /* ============================================================
-     * CLOCK
-     * ============================================================ */
-
+    /**
+     * Horloge temps réel
+     */
     startClock() {
-
         const update = () => {
-
-            const now = new Date();
-
-            const date =
-
-                document.getElementById(
-
-                    "currentDate"
-
-                );
-
-            const time =
-
-                document.getElementById(
-
-                    "currentTime"
-
-                );
-
-            if (date) {
-
-                date.textContent =
-
-                    now.toLocaleDateString(
-
-                        "fr-FR"
-
-                    );
-
-            }
-
-            if (time) {
-
-                time.textContent =
-
-                    now.toLocaleTimeString(
-
-                        "fr-FR"
-
-                    );
-
-            }
-
+            const timeEl = document.getElementById('live-time');
+            const dateEl = document.getElementById('live-date');
+            if (timeEl) timeEl.textContent = new Date().toLocaleTimeString();
+            if (dateEl) dateEl.textContent = new Date().toLocaleDateString();
         };
-
         update();
-
-        this.clock =
-
-            setInterval(
-
-                update,
-
-                1000
-
-            );
-
+        this.clockInterval = setInterval(update, 1000);
     }
 
-    /* ============================================================
-     * FULLSCREEN
-     * ============================================================ */
-
-    fullscreen() {
-
-        if (
-
-            !document.fullscreenElement
-
-        ) {
-
-            document.documentElement
-
-                .requestFullscreen();
-
-        }
-
-        else {
-
-            document.exitFullscreen();
-
-        }
-
-    }
-        /* ============================================================
-     * LOGOUT
-     * ============================================================
+    /**
+     * Rafraîchissement périodique (60s)
      */
+    startAutoRefresh() {
+        this.refreshInterval = setInterval(() => this.refresh(), 60000);
+    }
 
-    async logout() {
-
-        const confirmLogout = confirm(
-
-            "Voulez-vous vous déconnecter ?"
-
-        );
-
-        if (!confirmLogout) return;
-
+    async refresh() {
         try {
-
-            Loader.show(
-
-                "Déconnexion...",
-
-                "Veuillez patienter"
-
-            );
-
-            Realtime.destroy();
-
-            await AuthManager.logout();
-
-            SessionManager.logout();
-
+            await DashboardData.load();
+            Charts.renderAll();
+        } catch (err) {
+            console.error("[Dashboard] Refresh Failed:", err);
         }
-
-        catch (error) {
-
-            console.error(error);
-
-            Toast.error(
-
-                "Déconnexion",
-
-                error.message
-
-            );
-
-        }
-
-        finally {
-
-            Loader.hide();
-
-        }
-
     }
 
-    /* ============================================================
-     * DESTROY
-     * ============================================================
+    /**
+     * Libération des ressources (Prevent Memory Leaks)
      */
-
     destroy() {
-
-        try {
-
-            if (this.clock) {
-
-                clearInterval(this.clock);
-
-            }
-
-            Realtime.destroy();
-
-            Notifications.clear();
-
-        }
-
-        catch (error) {
-
-            console.error(error);
-
-        }
-
+        clearInterval(this.refreshInterval);
+        clearInterval(this.clockInterval);
+        Realtime.destroy();
+        Charts.destroyAll();
+        Notifications.clear();
     }
-
 }
-
-/* ============================================================
- * INSTANCE
- * ============================================================
- */
 
 const dashboard = new Dashboard();
 
-/* ============================================================
- * START
- * ============================================================
- */
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    () => dashboard.init()
-
-);
-
-/* ============================================================
- * EXPORT
- * ============================================================
- */
+document.addEventListener("DOMContentLoaded", () => dashboard.init());
+window.addEventListener("beforeunload", () => dashboard.destroy());
 
 export default dashboard;
