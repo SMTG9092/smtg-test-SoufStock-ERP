@@ -7,7 +7,7 @@
 
 "use strict";
 
-import Auth from "./auth.js";
+import * as Auth from "./auth.js";
 
 // Définition des chemins absolus vers les pages clés de l'ERP
 const PATHS = {
