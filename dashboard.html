@@ -3,48 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | SoufStock Enterprise</title>
+    <title>Dashboard | SoufStock ERP</title>
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <aside class="sidebar" id="sidebar"></aside>
-        <main class="main-content">
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="logo">SoufStock</div>
+            <nav id="nav-menu">
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">Stock</a>
+                <a href="#">Commandes</a>
+            </nav>
+        </aside>
+
+        <main class="content">
             <header class="topbar">
-                <button id="menuToggle">☰</button>
-                <div class="search-box"><input type="text" data-i18n="search_placeholder" placeholder="Rechercher..."></div>
-                <div class="controls">
-                    <select id="langSelect"></select>
-                    <button id="themeToggleBtn">🌓</button>
-                    <div id="userProfile" class="user-dropdown"></div>
+                <div class="user-info">
+                    <span id="user-display">Chargement...</span>
                 </div>
             </header>
 
-            <section class="dashboard-grid">
-                <div class="welcome-section">
-                    <h1 id="welcomeMsg"></h1>
-                    <div id="quickActions" class="actions"></div>
-                </div>
+            <div class="dashboard-grid">
+                <section class="stats-cards" id="stats-container">
+                    <div class="card"><h3>Total Stock</h3><p id="total-stock">0 KG</p></div>
+                    <div class="card"><h3>Commandes</h3><p id="pending-orders">0</p></div>
+                    <div class="card"><h3>Expéditions</h3><p id="today-shipments">0</p></div>
+                </section>
 
-                <div class="stats-grid" id="statsContainer"></div>
+                <section class="charts-row">
+                    <div class="card chart-container">
+                        <canvas id="stockEvolutionChart"></canvas>
+                    </div>
+                </section>
 
-                <div class="charts-grid">
-                    <canvas id="stockChart"></canvas>
-                    <canvas id="ordersChart"></canvas>
-                </div>
-
-                <div class="tables-grid">
-                    <div class="data-card" id="ordersTableContainer"></div>
-                    <div class="data-card" id="alertsTableContainer"></div>
-                </div>
-            </section>
+                <section class="tables-row">
+                    <div class="card">
+                        <h3>Commandes Récentes</h3>
+                        <table id="recent-orders">
+                            <thead><tr><th>ID</th><th>Client</th><th>Statut</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
         </main>
-        <aside class="right-panel">
-            <div id="notificationsPanel"></div>
-            <div id="systemStatus"></div>
-        </aside>
     </div>
-    <script type="module" src="assets/js/dashboard.js"></script>
+    <script type="module" src="./assets/js/dashboard.js"></script>
 </body>
 </html>
