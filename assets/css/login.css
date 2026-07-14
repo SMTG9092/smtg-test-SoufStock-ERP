@@ -1,6 +1,10 @@
-/* ============================================================
-   Variables & General Layout
-   ============================================================ */
+/**
+ * ============================================================
+ * SoufStock Enterprise ERP/WMS
+ * File : assets/css/login.css
+ * ============================================================
+ */
+
 :root {
     --primary-color: #00703c;
     --primary-hover: #00562e;
@@ -12,6 +16,9 @@
     --font-sans: 'Inter', sans-serif;
 }
 
+/* ============================================================
+   Resets & Base Styles
+   ============================================================ */
 * {
     margin: 0;
     padding: 0;
@@ -28,6 +35,7 @@ body {
     overflow-x: hidden;
 }
 
+/* Structure principale */
 .login-wrapper {
     display: flex;
     flex: 1;
@@ -35,7 +43,7 @@ body {
 }
 
 /* ============================================================
-   Panneau de Gauche (Brand)
+   Panneau de Gauche (Brand & Marketing)
    ============================================================ */
 .brand-panel {
     flex: 1;
@@ -49,7 +57,7 @@ body {
     overflow: hidden;
 }
 
-/* Effet d'arrière-plan esthétique en vague */
+/* Motif en arrière-plan (vague esthétique) */
 .brand-panel::after {
     content: '';
     position: absolute;
@@ -60,6 +68,7 @@ body {
     background: rgba(255, 255, 255, 0.03);
     border-radius: 50%;
     transform: rotate(-5deg);
+    pointer-events: none;
 }
 
 .brand-header {
@@ -117,6 +126,7 @@ body {
     line-height: 1.6;
 }
 
+/* Grille des fonctionnalités */
 .features-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -155,6 +165,7 @@ body {
     font-size: 12px;
     opacity: 0.7;
     text-align: left;
+    line-height: 1.4;
 }
 
 .brand-footer {
@@ -177,6 +188,7 @@ body {
     position: relative;
 }
 
+/* Sélecteur de langue */
 .language-selector-container {
     position: absolute;
     top: 32px;
@@ -207,8 +219,13 @@ body {
     color: var(--text-main);
     cursor: pointer;
     outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 4px;
 }
 
+/* Conteneur principal du formulaire */
 .form-container {
     width: 100%;
     max-width: 400px;
@@ -240,7 +257,7 @@ body {
     font-size: 28px;
     font-weight: 700;
     text-align: center;
-    color: #000000;
+    color: #111827;
     margin-bottom: 8px;
 }
 
@@ -251,6 +268,7 @@ body {
     margin-bottom: 32px;
 }
 
+/* Groupes de saisie */
 .input-group {
     margin-bottom: 20px;
 }
@@ -306,11 +324,16 @@ body {
     align-items: center;
 }
 
+.password-toggle:hover {
+    color: var(--text-main);
+}
+
 .password-toggle svg {
     width: 18px;
     height: 18px;
 }
 
+/* Actions secondaires */
 .form-actions {
     display: flex;
     justify-content: space-between;
@@ -325,6 +348,7 @@ body {
     font-size: 13px;
     color: var(--text-main);
     cursor: pointer;
+    user-select: none;
 }
 
 .remember-me input {
@@ -339,6 +363,7 @@ body {
     display: inline-block;
     position: relative;
     transition: all 0.2s;
+    background: #ffffff;
 }
 
 .remember-me input:checked + .checkbox-custom {
@@ -399,6 +424,7 @@ body {
     cursor: not-allowed;
 }
 
+/* Séparateur alternatif */
 .divider {
     display: flex;
     align-items: center;
@@ -415,11 +441,11 @@ body {
 }
 
 .divider:not(:empty)::before {
-    margin-right: .5em;
+    margin-right: .75em;
 }
 
 .divider:not(:empty)::after {
-    margin-left: .5em;
+    margin-left: .75em;
 }
 
 .btn-google {
@@ -454,6 +480,7 @@ body {
     margin-top: 14px;
     font-size: 13px;
     font-weight: 600;
+    min-height: 20px;
 }
 
 /* ============================================================
@@ -479,6 +506,7 @@ body {
     width: 24px;
     height: 24px;
     color: var(--primary-color);
+    flex-shrink: 0;
 }
 
 .badge-item h4 {
@@ -492,16 +520,23 @@ body {
     text-align: left;
 }
 
+/* Animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* ============================================================
-   Gestion du Responsive (Mobile & Tablettes)
+   Media Queries (Responsive)
    ============================================================ */
 @media (max-width: 1024px) {
     .brand-panel {
-        display: none; /* Cache la colonne de gauche sur tablette/mobile */
+        display: none; /* Masque la colonne de gauche sur tablette/mobile */
     }
     .form-panel {
         flex: 1;
         width: 100%;
+        padding: 32px 24px;
     }
     .system-badges {
         display: grid;
@@ -509,5 +544,16 @@ body {
         height: auto;
         padding: 24px;
         gap: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .system-badges {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
+    .language-selector-container {
+        top: 16px;
+        right: 16px;
     }
 }
