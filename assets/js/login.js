@@ -10,12 +10,13 @@
 import { login, loginWithGoogle, isAuthenticated } from "./core/auth.js";
 import Router from "./core/router.js";
 import { initPermissions } from "./core/permissions.js";
+import Language from "./core/language.js"; // Importation du nouveau moteur i18n scindé
 
 /* ============================================================
    ELEMENTS SELECTORS
 ============================================================ */
 const form = document.getElementById("loginForm");
-const email = document.getElementById("email"); // Reçoit l'e-mail ou l'identifiant (type="text")
+const email = document.getElementById("email"); 
 const password = document.getElementById("password");
 
 const togglePassword = document.getElementById("togglePassword");
@@ -29,13 +30,16 @@ const loginButton = document.getElementById("loginBtn");
    INITIALIZATION
 ============================================================ */
 document.addEventListener("DOMContentLoaded", async () => {
-    // Si l'utilisateur est déjà authentifié, redirection immédiate vers le dashboard
+    // 1. Initialiser le multilingue (Français/Arabe/Anglais)
+    Language.init();
+
+    // 2. Si déjà authentifié, redirection immédiate vers le dashboard
     if (await isAuthenticated()) {
         Router.dashboard();
         return;
     }
 
-    // Récupération du dernier e-mail ou identifiant mémorisé
+    // 3. Récupération de l'identifiant mémorisé par "Se souvenir de moi"
     const savedEmail = localStorage.getItem("soufstock_email");
     if (savedEmail && email) {
         email.value = savedEmail;
@@ -53,7 +57,7 @@ if (togglePassword) {
         const isPassword = password.type === "password";
         password.type = isPassword ? "text" : "password";
         
-        // Changement dynamique de l'icône SVG (Oeil ouvert / Oeil barré)
+        // Bascule de l'icône de visibilité (Œil ouvert / Œil barré)
         togglePassword.innerHTML = isPassword 
             ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
                 <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
@@ -78,7 +82,7 @@ form?.addEventListener("submit", async (e) => {
     }
 
     loading(true);
-    // Appel de la méthode login (qui gère à la fois l'e-mail ou l'username)
+    // Appel de la méthode login (qui gère l'e-mail ou le username)
     const result = await login(email.value.trim(), password.value);
     loading(false);
 
@@ -94,10 +98,10 @@ form?.addEventListener("submit", async (e) => {
         localStorage.removeItem("soufstock_email");
     }
 
-    // Initialisation des rôles et permissions de l'utilisateur
+    // Initialisation des droits et permissions de l'utilisateur
     await initPermissions();
 
-    showSuccess("Connexion réussie. Redirection...");
+    showSuccess(Language.t("msg_success")); // Message traduit "Connexion réussie..."
 
     setTimeout(() => {
         Router.dashboard();
@@ -111,7 +115,7 @@ googleLoginBtn?.addEventListener("click", async (e) => {
     e.preventDefault();
     clearMessage();
     
-    showSuccess("Redirection vers Google...");
+    showSuccess(Language.t("msg_connecting")); // Traduction "Redirection vers Google..."
     
     const result = await loginWithGoogle();
     if (!result.success) {
@@ -124,13 +128,13 @@ googleLoginBtn?.addEventListener("click", async (e) => {
 ============================================================ */
 function validate() {
     if (!email.value.trim()) {
-        showError("Nom d'utilisateur ou e-mail obligatoire.");
+        showError(Language.t("err_username_required")); // Traduction "Nom d'utilisateur requis"
         email.focus();
         return false;
     }
 
     if (!password.value) {
-        showError("Mot de passe obligatoire.");
+        showError(Language.t("err_password_required")); // Traduction "Mot de passe requis"
         password.focus();
         return false;
     }
@@ -146,15 +150,14 @@ function loading(state) {
     
     loginButton.disabled = state;
     
-    // Ajoute un indicateur visuel de chargement en conservant la structure esthétique
     loginButton.innerHTML = state 
         ? `<svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 8px; animation: spin 1s linear infinite;">
             <circle cx="12" cy="12" r="10" stroke-dasharray="31.4 31.4" stroke-dashoffset="0"></circle>
-           </svg> Connexion en cours...` 
+           </svg> ${Language.t("btn_connecting")}` 
         : `<svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; display: inline; vertical-align: middle; margin-right: 6px;">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-           </svg> Se connecter`;
+           </svg> ${Language.t("btn_connect")}`;
 }
 
 /* ============================================================
