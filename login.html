@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Connexion | SoufStock Enterprise ERP</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/login.css">
 </head>
@@ -16,24 +15,23 @@
 
 <form id="loginForm">
 <label>Email</label>
-<input id="email" type="email" placeholder="admin@soufstock.com" required>
+<input id="email" type="email" required>
 
 <label>Mot de passe</label>
 <div class="password-box">
-<input id="password" type="password" placeholder="********" required>
+<input id="password" type="password" required>
 <button type="button" id="togglePassword">👁</button>
 </div>
 
 <div class="options">
-<label><input type="checkbox"> Se souvenir</label>
+<label><input id="rememberMe" type="checkbox"> Se souvenir</label>
 <a href="#">Mot de passe oublié ?</a>
 </div>
 
-<button class="btn" type="submit">Se connecter</button>
+<button id="loginBtn" class="btn" type="submit">Se connecter</button>
 <div id="message"></div>
 </form>
 </div>
-
 <script type="module" src="assets/js/login.js"></script>
 </body>
 </html>
