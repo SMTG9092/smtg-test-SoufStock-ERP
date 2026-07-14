@@ -15,7 +15,7 @@ import { Loader, Toast } from "./core/utils.js";
 import Profile from "./core/profile.js";
 import Sidebar from "./core/sidebar.js";
 import DashboardData from "./core/dashboard-data.js";
-import Charts from "./core/charts.js";
+import Charts from "./core/Charts.js";
 import Notifications from "./core/notifications.js";
 import Navigation from "./core/navigation.js";
 import Realtime from "./core/realtime.js";
