@@ -1,559 +1,189 @@
-/**
- * ============================================================
- * SoufStock Enterprise ERP/WMS
- * File : assets/css/login.css
- * ============================================================
- */
-
-:root {
-    --primary-color: #00703c;
-    --primary-hover: #00562e;
-    --primary-light: #e6f4ea;
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
-    --border-color: #e5e7eb;
-    --bg-light: #f9fafb;
-    --font-sans: 'Inter', sans-serif;
-}
-
-/* ============================================================
-   Resets & Base Styles
-   ============================================================ */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: var(--font-sans);
-    background-color: #f8fafc;
-    color: var(--text-main);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-}
-
-/* Structure principale */
-.login-wrapper {
-    display: flex;
-    flex: 1;
-    min-height: calc(100vh - 80px);
-}
-
-/* ============================================================
-   Panneau de Gauche (Brand & Marketing)
-   ============================================================ */
-.brand-panel {
-    flex: 1;
-    background: linear-gradient(135deg, #022c16 0%, #052e16 30%, #00703c 100%);
-    color: #ffffff;
-    padding: 48px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Motif en arrière-plan (vague esthétique) */
-.brand-panel::after {
-    content: '';
-    position: absolute;
-    bottom: -10%;
-    left: -10%;
-    width: 120%;
-    height: 40%;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 50%;
-    transform: rotate(-5deg);
-    pointer-events: none;
-}
-
-.brand-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 2;
-}
-
-.brand-logo {
-    width: 40px;
-    height: 40px;
-    color: #22c55e;
-}
-
-.brand-names {
-    display: flex;
-    flex-direction: column;
-}
-
-.brand-title {
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-}
-
-.brand-subtitle {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    opacity: 0.7;
-}
-
-.brand-content {
-    max-width: 520px;
-    margin: auto 0;
-    z-index: 2;
-}
-
-.brand-content h2 {
-    font-size: 38px;
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 24px;
-}
-
-.brand-content .highlight {
-    color: #22c55e;
-}
-
-.brand-pitch {
-    font-size: 16px;
-    opacity: 0.85;
-    margin-bottom: 40px;
-    line-height: 1.6;
-}
-
-/* Grille des fonctionnalités */
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-}
-
-.feature-item {
-    display: flex;
-    gap: 12px;
-}
-
-.feature-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #22c55e;
-    flex-shrink: 0;
-}
-
-.feature-icon svg {
-    width: 20px;
-    height: 20px;
-}
-
-.feature-text h3 {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.feature-text p {
-    font-size: 12px;
-    opacity: 0.7;
-    text-align: left;
-    line-height: 1.4;
-}
-
-.brand-footer {
-    font-size: 12px;
-    opacity: 0.5;
-    z-index: 2;
-}
-
-/* ============================================================
-   Panneau de Droite (Formulaire)
-   ============================================================ */
-.form-panel {
-    width: 550px;
-    background: #ffffff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 48px;
-    position: relative;
-}
-
-/* Sélecteur de langue */
-.language-selector-container {
-    position: absolute;
-    top: 32px;
-    right: 48px;
-}
-
-.language-dropdown {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid var(--border-color);
-    padding: 6px 12px;
-    border-radius: 8px;
-    background: #ffffff;
-}
-
-.lang-icon {
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted);
-}
-
-.language-dropdown select {
-    border: none;
-    background: transparent;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-main);
-    cursor: pointer;
-    outline: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    padding-right: 4px;
-}
-
-/* Conteneur principal du formulaire */
-.form-container {
-    width: 100%;
-    max-width: 400px;
-}
-
-.avatar-header {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 24px;
-}
-
-.user-avatar-circle {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background-color: var(--primary-light);
-    color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.user-avatar-circle svg {
-    width: 28px;
-    height: 28px;
-}
-
-.form-container h1 {
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-    color: #111827;
-    margin-bottom: 8px;
-}
-
-.form-container .subtitle {
-    font-size: 14px;
-    color: var(--text-muted);
-    text-align: center;
-    margin-bottom: 32px;
-}
-
-/* Groupes de saisie */
-.input-group {
-    margin-bottom: 20px;
-}
-
-.input-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 8px;
-}
-
-.input-wrapper-inner {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.input-icon {
-    position: absolute;
-    left: 14px;
-    width: 18px;
-    height: 18px;
-    color: var(--text-muted);
-    pointer-events: none;
-}
-
-.input-wrapper-inner input {
-    width: 100%;
-    padding: 12px 14px 12px 42px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    font-size: 14px;
-    color: var(--text-main);
-    outline: none;
-    transition: all 0.2s ease;
-    background: #ffffff;
-}
-
-.input-wrapper-inner input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 112, 60, 0.12);
-}
-
-.password-toggle {
-    position: absolute;
-    right: 14px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-}
-
-.password-toggle:hover {
-    color: var(--text-main);
-}
-
-.password-toggle svg {
-    width: 18px;
-    height: 18px;
-}
-
-/* Actions secondaires */
-.form-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.remember-me {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--text-main);
-    cursor: pointer;
-    user-select: none;
-}
-
-.remember-me input {
-    display: none;
-}
-
-.checkbox-custom {
-    width: 16px;
-    height: 16px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    display: inline-block;
-    position: relative;
-    transition: all 0.2s;
-    background: #ffffff;
-}
-
-.remember-me input:checked + .checkbox-custom {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.remember-me input:checked + .checkbox-custom::after {
-    content: '';
-    position: absolute;
-    left: 5px;
-    top: 2px;
-    width: 4px;
-    height: 8px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.forgot-link {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--primary-color);
-    text-decoration: none;
-}
-
-.forgot-link:hover {
-    text-decoration: underline;
-}
-
-/* Boutons */
-.btn {
-    width: 100%;
-    padding: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-submit {
-    background-color: var(--primary-color);
-    color: #ffffff;
-}
-
-.btn-submit:hover {
-    background-color: var(--primary-hover);
-}
-
-.btn-submit:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-/* Séparateur alternatif */
-.divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 24px 0;
-    color: var(--text-muted);
-    font-size: 12px;
-}
-
-.divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.divider:not(:empty)::before {
-    margin-right: .75em;
-}
-
-.divider:not(:empty)::after {
-    margin-left: .75em;
-}
-
-.btn-google {
-    background-color: #ffffff;
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-}
-
-.btn-google:hover {
-    background-color: var(--bg-light);
-}
-
-.signup-prompt {
-    text-align: center;
-    font-size: 13px;
-    margin-top: 32px;
-    color: var(--text-muted);
-}
-
-.signup-prompt a {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.signup-prompt a:hover {
-    text-decoration: underline;
-}
-
-#message {
-    text-align: center;
-    margin-top: 14px;
-    font-size: 13px;
-    font-weight: 600;
-    min-height: 20px;
-}
-
-/* ============================================================
-   Pied de Page Technique
-   ============================================================ */
-.system-badges {
-    height: 80px;
-    background-color: #ffffff;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    padding: 0 48px;
-}
-
-.badge-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.badge-item svg {
-    width: 24px;
-    height: 24px;
-    color: var(--primary-color);
-    flex-shrink: 0;
-}
-
-.badge-item h4 {
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.badge-item p {
-    font-size: 11px;
-    color: var(--text-muted);
-    text-align: left;
-}
-
-/* Animations */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* ============================================================
-   Media Queries (Responsive)
-   ============================================================ */
-@media (max-width: 1024px) {
-    .brand-panel {
-        display: none; /* Masque la colonne de gauche sur tablette/mobile */
-    }
-    .form-panel {
-        flex: 1;
-        width: 100%;
-        padding: 32px 24px;
-    }
-    .system-badges {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        height: auto;
-        padding: 24px;
-        gap: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .system-badges {
-        grid-template-columns: 1fr;
-        padding: 20px;
-    }
-    .language-selector-container {
-        top: 16px;
-        right: 16px;
-    }
-}
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion | SoufStock Enterprise ERP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/login.css">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="brand-panel">
+            <div class="brand-header">
+                <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points=\"3.27 6.96 12 12.01 20.73 6.96\"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+                <span class="brand-name" data-i18n="app_name">SoufStock ERP</span>
+            </div>
+            
+            <div class="brand-content">
+                <h1 class="brand-title" data-i18n="brand_title">Optimisez votre chaîne logistique & vos stocks en temps réel</h1>
+                <p class="brand-subtitle" data-i18n="brand_subtitle">Une plateforme intégrée et ultra-performante pour piloter vos flux de marchandises d'entreprise.</p>
+                
+                <div class="feature-bullets">
+                    <div class="feature-bullet">
+                        <span class="bullet-icon">⚡</span>
+                        <div>
+                            <strong data-i18n="bullet_realtime">Mises à jour instantanées</strong>
+                            <p data-i18n="bullet_realtime_desc">Synchronisation temps réel via la puissance de Supabase.</p>
+                        </div>
+                    </div>
+                    <div class="feature-bullet">
+                        <span class="bullet-icon">🛡️</span>
+                        <div>
+                            <strong data-i18n="bullet_security">Sécurité d'entreprise</strong>
+                            <p data-i18n="bullet_security_desc">Gestion fine des permissions d'utilisateurs et traçabilité.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand-footer">
+                <span data-i18n="footer_rights">© 2026 SoufStock. Tous droits réservés.</span>
+            </div>
+        </div>
+
+        <div class="form-panel">
+            <div class="form-header-actions">
+                <div class="control-wrapper">
+                    <select id="langSelect" class="lang-select">
+                        <option value="fr">Français</option>
+                        <option value="en">English</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                </div>
+                <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Changer de thème">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.07" x2="5.64" y2="17.64"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="form-container">
+                <div class="form-intro">
+                    <h2 data-i18n="login_title">Ravi de vous revoir</h2>
+                    <p data-i18n="login_subtitle">Veuillez entrer vos identifiants d'accès d'entreprise.</p>
+                </div>
+
+                <div id="offlineBanner" class="offline-banner" style="display: none;">
+                    <span data-i18n="offline_text">Mode hors-ligne détecté. Reconnexion en cours...</span>
+                </div>
+                <div id="message" class="message-area" style="display: none;"></div>
+
+                <form id="loginForm" novalidate>
+                    <div class="input-group">
+                        <label for="email" data-i18n="label_identifier">Adresse E-mail ou Nom d'utilisateur</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <input type="text" id="email" required autocomplete="username" placeholder="v.nom ou email@entreprise.com">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="label-header">
+                            <label for="password" data-i18n="label_password">Mot de passe</label>
+                            <a href="forgot-password.html" class="forgot-link" id="forgotPasswordLink" data-i18n="forgot_password">Mot de passe oublié ?</a>
+                        </div>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
+                            <button type="button" id="togglePassword" class="password-toggle" aria-label="Afficher le mot de passe">
+                                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-actions-row">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text" data-i18n="remember_me">Se souvenir de moi</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="loginBtn" class="submit-btn">
+                        <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <span data-i18n="btn_connect">Se connecter</span>
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span data-i18n="divider_or">ou continuer avec</span>
+                </div>
+
+                <button id="googleLoginBtn" class="google-btn">
+                    <svg class="google-logo" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69c-.29 1.5-.14 3.01-1.12 4L21 21.05c2.32-2.13 3.75-5.27 3.75-8.78z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.69-2.86c-1.03.69-2.35 1.11-4.27 1.11-3.28 0-6.06-2.21-7.05-5.18L1.13 17.27C3.17 21.32 7.33 24 12 24z"/>
+                        <path fill="#FBBC05" d="M4.95 14.16c-.25-.76-.39-1.56-.39-2.4s.14-1.64.39-2.4l-3.82-2.96C.41 7.82 0 9.88 0 12s.41 4.18 1.13 5.6l3.82-2.96z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.17 2.68 1.13 6.73L4.95 9.69c.99-2.97 3.77-5.18 7.05-5.18z"/>
+                    </svg>
+                    <span data-i18n="btn_google_connect">Compte Entreprise Google</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="system-badges">
+        <div class="badge-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <div>
+                <h4 data-i18n="badge_secure">Sécurité SSL</h4>
+                <p data-i18n="badge_secure_desc">Chiffrement AES-256</p>
+            </div>
+        </div>
+        <div class="badge-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+            </svg>
+            <div>
+                <h4 data-i18n="badge_backup">Auto-Sauvegarde</h4>
+                <p data-i18n="badge_backup_desc">Incrémentation continue</p>
+            </div>
+        </div>
+        <div class="badge-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <div>
+                <h4 data-i18n="badge_perf">Performance</h4>
+                <p data-i18n="badge_perf_desc">CDN global & Cache optimisé</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/login.js"></script>
+</body>
+</html>
