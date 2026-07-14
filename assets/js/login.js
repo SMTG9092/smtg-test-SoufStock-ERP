@@ -7,278 +7,219 @@
 
 "use strict";
 
-import { login, loginWithGoogle, isAuthenticated } from "./core/auth.js";
+import { login, isAuthenticated, loginWithGoogle } from "./core/auth.js";
 import Router from "./core/router.js";
 import { initPermissions } from "./core/permissions.js";
 import Language from "./core/language.js";
 import Theme from "./core/theme.js";
 
 /* ============================================================
-   ELEMENTS SELECTORS
+   ELEMENTS
 ============================================================ */
 const form = document.getElementById("loginForm");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+
 const togglePassword = document.getElementById("togglePassword");
 const rememberMe = document.getElementById("rememberMe");
 const googleLoginBtn = document.getElementById("googleLoginBtn");
+
 const message = document.getElementById("message");
 const loginButton = document.getElementById("loginBtn");
 const offlineBanner = document.getElementById("offlineBanner");
 
 /* ============================================================
-   INITIALIZATION
+   INIT
 ============================================================ */
 document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        // 1. Initialiser le thème utilisateur
-        Theme.init();
+    Theme.init();
+    Language.init();
 
-        // 2. Initialiser le moteur de langues (i18n)
-        Language.init();
-
-        // 3. Restaurer le champ d'identifiant si "Se souvenir de moi" est actif
-        restoreRememberedUser();
-
-        // 4. Ecoute de l'état de la connexion réseau
-        initNetworkMonitoring();
-
-        // 5. Redirection immédiate si déjà authentifié
-        if (await isAuthenticated()) {
-            displayStatus(Language.translate("success_redirecting") || "Déjà connecté. Redirection...", "success");
-            setTimeout(() => {
-                Router.dashboard();
-            }, 800);
-            return;
+    const handleConnectivity = () => {
+        if (offlineBanner) {
+            offlineBanner.style.display = navigator.onLine ? "none" : "block";
         }
+    };
+    window.addEventListener("online", handleConnectivity);
+    window.addEventListener("offline", handleConnectivity);
+    handleConnectivity();
 
-        // 6. Configurer les écouteurs d'événements
-        setupEventListeners();
+    if (await isAuthenticated()) {
+        Router.dashboard();
+        return;
+    }
 
-    } catch (err) {
-        console.error("[Login Init Error]", err);
-        displayStatus("Erreur d'initialisation de la page de connexion.", "error");
+    const savedEmail = localStorage.getItem("soufstock_email");
+    if (savedEmail && email) {
+        email.value = savedEmail;
+        if (rememberMe) rememberMe.checked = true;
     }
 });
 
 /* ============================================================
-   EVENT LISTENERS SETUP
+   AFFICHER / MASQUER LE MOT DE PASSE
 ============================================================ */
-function setupEventListeners() {
-    // Form submission event
-    if (form) {
-        form.addEventListener("submit", handleStandardLogin);
-    }
-
-    // Toggle showing password text
-    if (togglePassword) {
-        togglePassword.addEventListener("click", handleTogglePasswordVisibility);
-    }
-
-    // Google Single Sign-On (SSO) OAuth integration
-    if (googleLoginBtn) {
-        googleLoginBtn.addEventListener("click", handleGoogleLogin);
-    }
+if (togglePassword) {
+    togglePassword.addEventListener("click", () => {
+        const isPassword = password.type === "password";
+        password.type = isPassword ? "text" : "password";
+        
+        togglePassword.innerHTML = isPassword 
+            ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    });
 }
 
 /* ============================================================
-   EVENT HANDLERS
+   SOUMISSION DU FORMULAIRE
 ============================================================ */
-
-/**
- * Handle form submission for Standard Login (Username or Email)
- */
-async function handleStandardLogin(e) {
+form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearMessage();
 
-    if (!navigator.onLine) {
-        displayStatus(Language.translate("err_offline") || "Vous êtes actuellement hors-ligne. Connexion impossible.", "error");
-        return;
-    }
+    if (!validate()) return;
 
-    const identifier = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    if (!identifier || !password) {
-        displayStatus(Language.translate("err_missing_credentials") || "Veuillez remplir tous les champs obligatoires.", "error");
-        return;
-    }
+    loading(true);
 
     try {
-        setLoading(true);
 
-        // Connexion unifiée du Core (détecte automatiquement email ou nom d'utilisateur)
-        await login(identifier, password);
+        const result = await login(
+            email.value.trim(),
+            password.value
+        );
 
-        // Gérer l'état de mémorisation de l'utilisateur
-        handleRememberMe(identifier);
+        if (!result.success) {
+            showError(result.message);
+            return;
+        }
 
-        // Initialiser la session et charger la matrice des permissions
+        // Remember Me
+        if (rememberMe?.checked) {
+            localStorage.setItem(
+                "soufstock_email",
+                email.value.trim()
+            );
+        } else {
+            localStorage.removeItem(
+                "soufstock_email"
+            );
+        }
+
+        // Charger les permissions
         await initPermissions();
 
-        // Afficher le message de succès et rediriger
-        displayStatus(Language.translate("success_connected") || "Connexion réussie ! Redirection en cours...", "success");
+        showSuccess(
+            Language.t("msg_success")
+        );
 
         setTimeout(() => {
             Router.dashboard();
-        }, 1200);
+        }, 500);
 
     } catch (error) {
-        console.error("[Login Process Error]", error);
-        
-        let errorMsg = error.message;
-        
-        // Traduction de messages d'erreur courants de Supabase Auth
-        if (errorMsg.includes("Invalid login credentials") || errorMsg.includes("Nom d'utilisateur introuvable")) {
-            errorMsg = Language.translate("err_invalid_credentials") || "Identifiants invalides. Veuillez réessayer.";
-        } else if (errorMsg.includes("Failed to fetch")) {
-            errorMsg = Language.translate("err_network") || "Erreur réseau : Connexion au serveur impossible.";
-        }
 
-        displayStatus(errorMsg, "error");
-        setLoading(false);
+        console.error("[LOGIN ERROR]", error);
+
+        showError(
+            error?.message ||
+            "Une erreur est survenue."
+        );
+
+    } finally {
+
+        loading(false);
+
     }
-}
+});
 
-/**
- * Handle Google SSO OAuth sign-in flow
- */
-async function handleGoogleLogin(e) {
+/* ============================================================
+   AUTHENTIFICATION GOOGLE
+============================================================ */
+googleLoginBtn?.addEventListener("click", async (e) => {
     e.preventDefault();
+
     clearMessage();
 
     if (!navigator.onLine) {
-        displayStatus(Language.translate("err_offline") || "Vous êtes actuellement hors-ligne. Connexion impossible.", "error");
+        showError(
+            Language.t("err_offline") ||
+            "Connexion Internet indisponible."
+        );
         return;
     }
 
+    loading(true);
+
     try {
-        setLoading(true);
-        await loginWithGoogle();
+
+        const result = await loginWithGoogle();
+
+        if (!result.success) {
+            showError(result.message);
+            return;
+        }
+
     } catch (error) {
-        console.error("[Google OAuth Login Error]", error);
-        displayStatus(error.message || "Impossible de démarrer la connexion Google.", "error");
-        setLoading(false);
+
+        console.error("[GOOGLE LOGIN ERROR]", error);
+
+        showError(
+            error?.message ||
+            "Erreur lors de la connexion Google."
+        );
+
+    } finally {
+
+        loading(false);
+
     }
-}
+});
 
-/**
- * Toggle visibility (show/hide) of the password text field
- */
-function handleTogglePasswordVisibility() {
-    if (!passwordInput) return;
-
-    const eyeIcon = togglePassword.querySelector(".eye-icon");
-    const eyeOffIcon = togglePassword.querySelector(".eye-off-icon");
-
-    if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        if (eyeIcon) eyeIcon.style.display = "none";
-        if (eyeOffIcon) eyeOffIcon.style.display = "block";
-    } else {
-        passwordInput.type = "password";
-        if (eyeIcon) eyeIcon.style.display = "block";
-        if (eyeOffIcon) eyeOffIcon.style.display = "none";
+/* ============================================================
+   VALIDATION
+============================================================ */
+function validate() {
+    if (!email.value.trim()) {
+        showError(Language.t("err_username_required"));
+        email.focus();
+        return false;
     }
+
+    if (!password.value) {
+        showError(Language.t("err_password_required"));
+        password.focus();
+        return false;
+    }
+
+    return true;
 }
 
 /* ============================================================
-   UTILITY HELPER FUNCTIONS
+   ÉTAT DE CHARGEMENT
 ============================================================ */
-
-/**
- * Updates loading visual state of the primary connection button
- */
-function setLoading(state) {
+function loading(state) {
     if (!loginButton) return;
-
     loginButton.disabled = state;
-
-    if (state) {
-        const loadingText = Language.translate("btn_connecting") || "Connexion...";
-        loginButton.innerHTML = `
-            <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 8px; animation: spin 1s linear infinite;">
-                <circle cx="12" cy="12" r="10" stroke-dasharray="31.4 31.4" stroke-dashoffset="0"></circle>
-            </svg> ${loadingText}
-        `;
-    } else {
-        const defaultText = Language.translate("btn_connect") || "Se connecter";
-        loginButton.innerHTML = `
-            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; display: inline; vertical-align: middle; margin-right: 6px;">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg> ${defaultText}
-        `;
-    }
+    loginButton.innerHTML = state 
+        ? `<svg class="spinner" viewBox="0 0 50 50" style="width: 16px; height: 16px; animation: rotate 2s linear infinite; margin-right: 6px;"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke="currentColor"></circle></svg> ${Language.t("btn_connecting")}` 
+        : Language.t("btn_connect");
 }
 
-/**
- * Output customized warning, success or error feedback messages
- */
-function displayStatus(text, type = "error") {
+/* ============================================================
+   FEEDBACK UTILISATEUR
+============================================================ */
+function showError(text) {
     if (!message) return;
-
-    message.innerHTML = text;
-    message.className = `message-area ${type}`;
-    message.style.display = "block";
+    message.style.color = "#ef4444";
+    message.textContent = text;
 }
 
-/**
- * Hide feedback box
- */
+function showSuccess(text) {
+    if (!message) return;
+    message.style.color = "#22c55e";
+    message.textContent = text;
+}
+
 function clearMessage() {
-    if (!message) return;
-    message.style.display = "none";
-    message.innerHTML = "";
-}
-
-/**
- * Saves or deletes the user's login identifier from storage according to checkbox state
- */
-function handleRememberMe(identifier) {
-    if (!rememberMe) return;
-
-    const storageKey = "soufstock_remembered_username";
-
-    if (rememberMe.checked) {
-        localStorage.setItem(storageKey, identifier);
-    } else {
-        localStorage.removeItem(storageKey);
-    }
-}
-
-/**
- * Automatically restores identifier from localStorage to input field if remembered
- */
-function restoreRememberedUser() {
-    const remembered = localStorage.getItem("soufstock_remembered_username");
-    if (remembered && emailInput && rememberMe) {
-        emailInput.value = remembered;
-        rememberMe.checked = true;
-    }
-}
-
-/**
- * Configures network online/offline listeners to show localized overlay banner
- */
-function initNetworkMonitoring() {
-    const updateNetworkStatus = () => {
-        if (!offlineBanner) return;
-
-        if (navigator.onLine) {
-            offlineBanner.style.display = "none";
-        } else {
-            const warningText = Language.translate("err_offline") || "Mode hors-ligne détecté. Reconnexion en cours...";
-            const textSpan = offlineBanner.querySelector("span");
-            if (textSpan) textSpan.innerHTML = warningText;
-            offlineBanner.style.display = "block";
-        }
-    };
-
-    window.addEventListener("online", updateNetworkStatus);
-    window.addEventListener("offline", updateNetworkStatus);
-
-    // Run initial state verify
-    updateNetworkStatus();
+    if (message) message.textContent = "";
 }
