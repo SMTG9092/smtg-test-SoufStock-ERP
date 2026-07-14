@@ -1,250 +1,75 @@
 /**
  * ============================================================
  * SoufStock Enterprise ERP/WMS
- * File : assets/js/core/session.js
+ * File : assets/js/core/supabase.js
  * ============================================================
  */
 
 "use strict";
 
+// Importation de la configuration de l'application (contenant les clés d'API)
 import APP_CONFIG from "./config.js";
 
-import {
-
-    currentSession,
-
-    logout,
-
-    refreshProfile,
-
-    isAuthenticated
-
-} from "./auth.js";
+// Importation du client Supabase depuis le CDN officiel (si vous n'utilisez pas de bundler type Vite/Webpack)
+// Si vous utilisez un bundler npm, remplacez cette ligne par : import { createClient } from '@supabase/supabase-js'
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 /* ============================================================
-   REQUIRE AUTH
+   INITIALISATION DU CLIENT SUPABASE
 ============================================================ */
 
-export async function requireAuth() {
-
-    try {
-
-        const session = await currentSession();
-
-        if (!session) {
-
-            redirectLogin();
-
-            return false;
-
-        }
-
-        await refreshProfile();
-
-        return true;
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        redirectLogin();
-
-        return false;
-
-    }
-
-}
-
-/* ============================================================
-   REQUIRE GUEST
-============================================================ */
-
-export async function requireGuest() {
-
-    const session = await currentSession();
-
-    if (session) {
-
-        window.location.replace(
-
-            APP_CONFIG.ROUTES.DASHBOARD
-
-        );
-
-        return false;
-
-    }
-
-    return true;
-
-}
-
-/* ============================================================
-   REDIRECT LOGIN
-============================================================ */
-
-export function redirectLogin() {
-
-    window.location.replace(
-
-        APP_CONFIG.ROUTES.LOGIN
-
+if (!APP_CONFIG.SUPABASE_URL || !APP_CONFIG.SUPABASE_ANON_KEY) {
+    console.error(
+        "Erreur d'initialisation : Les clés SUPABASE_URL ou SUPABASE_ANON_KEY sont manquantes dans votre fichier de configuration (config.js)."
     );
-
 }
 
-/* ============================================================
-   REDIRECT DASHBOARD
-============================================================ */
-
-export function redirectDashboard() {
-
-    window.location.replace(
-
-        APP_CONFIG.ROUTES.DASHBOARD
-
-    );
-
-}
-
-/* ============================================================
-   CHECK SESSION
-============================================================ */
-
-export async function checkSession() {
-
-    const authenticated = await isAuthenticated();
-
-    if (!authenticated) {
-
-        redirectLogin();
-
-        return false;
-
-    }
-
-    return true;
-
-}
-
-/* ============================================================
-   AUTO REFRESH PROFILE
-============================================================ */
-
-export async function refreshSession() {
-
-    try {
-
-        await refreshProfile();
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-    }
-
-}
-
-/* ============================================================
-   AUTO CHECK
-============================================================ */
-
-let sessionInterval = null;
-
-export function startSessionWatcher() {
-
-    if (sessionInterval) {
-
-        clearInterval(sessionInterval);
-
-    }
-
-    sessionInterval = setInterval(async () => {
-
-        const ok = await checkSession();
-
-        if (!ok) {
-
-            clearInterval(sessionInterval);
-
+// Création de l'instance unique (Singleton) du client Supabase
+const supabase = createClient(
+    APP_CONFIG.SUPABASE_URL, 
+    APP_CONFIG.SUPABASE_ANON_KEY,
+    {
+        auth: {
+            persistSession: true, // Persiste la session dans le localStorage automatiquement
+            autoRefreshToken: true, // Rafraîchit automatiquement le token d'accès expiré
+            detectSessionInUrl: true // Nécessaire pour la gestion des redirections de connexion Google (SSO)
         }
-
-    }, 60000); // كل دقيقة
-
-}
-
-/* ============================================================
-   STOP WATCHER
-============================================================ */
-
-export function stopSessionWatcher() {
-
-    if (sessionInterval) {
-
-        clearInterval(sessionInterval);
-
-        sessionInterval = null;
-
     }
-
-}
-
-/* ============================================================
-   LOGOUT
-============================================================ */
-
-export async function destroySession() {
-
-    stopSessionWatcher();
-
-    await logout();
-
-    redirectLogin();
-
-}
+);
 
 /* ============================================================
-   SESSION INFOS
+   FONCTIONS UTILITAIRES (Importées dans auth.js)
 ============================================================ */
 
-export async function getSessionInfo() {
-
-    const session = await currentSession();
-
-    if (!session) {
-
+/**
+ * Récupère la session active actuelle
+ * @returns {Promise<Object|null>} La session active ou null s'il n'y en a pas
+ */
+export async function getSession() {
+    try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        return data.session;
+    } catch (error) {
+        console.error("Erreur lors de la récupération de la session :", error.message);
         return null;
-
     }
-
-    return {
-
-        userId: session.user.id,
-
-        email: session.user.email,
-
-        expiresAt: session.expires_at,
-
-        accessToken: session.access_token
-
-    };
-
 }
 
-/* ============================================================
-   INIT SESSION
-============================================================ */
-
-export async function initSession() {
-
-    const ok = await requireAuth();
-
-    if (!ok) return;
-
-    startSessionWatcher();
-
+/**
+ * Récupère l'utilisateur actuellement connecté de manière sécurisée auprès du serveur Supabase
+ * @returns {Promise<Object|null>} L'objet utilisateur ou null s'il n'est pas connecté
+ */
+export async function getUser() {
+    try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        return data.user;
+    } catch (error) {
+        console.error("Erreur lors de la récupération de l'utilisateur :", error.message);
+        return null;
+    }
 }
+
+// Export par défaut du client pour effectuer toutes les autres requêtes de base de données (select, insert, etc.)
+export default supabase;
