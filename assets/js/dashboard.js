@@ -6,29 +6,29 @@
  * ============================================================
  */
 
-import APP_CONFIG from "./config.js";
+import APP_CONFIG from "./core/config.js";
 
-import AuthManager from "./auth.js";
-import SessionManager from "./session.js";
+import AuthManager from "./core/auth.js";
+import SessionManager from "./core/session.js";
 
-import ThemeManager from "./theme.js";
-import LanguageManager from "./language.js";
+import ThemeManager from "./core/theme.js";
+import LanguageManager from "./core/language.js";
 
 import {
 
     Loader,
     Toast
 
-} from "./utils.js";
+} from "./core/utils.js";
 
-import Profile from "./profile.js";
-import Permissions from "./permissions.js";
-import Sidebar from "./sidebar.js";
-import DashboardData from "./dashboard-data.js";
-import Charts from "./charts.js";
-import Notifications from "./notifications.js";
-import Navigation from "./navigation.js";
-import Realtime from "./realtime.js";
+import Profile from "./core/profile.js";
+import Permissions from "./core/permissions.js";
+import Sidebar from "./core/sidebar.js";
+import DashboardData from "./core/dashboard-data.js";
+import Charts from "./core/charts.js";
+import Notifications from "./core/notifications.js";
+import Navigation from "./core/navigation.js";
+import Realtime from "./core/realtime.js";
 
 class Dashboard {
 
