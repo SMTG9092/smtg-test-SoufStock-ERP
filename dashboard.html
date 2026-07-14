@@ -1,1 +1,43 @@
-<!-- Placeholder: dashboard.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard | SoufStock ERP</title>
+<link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+<aside class="sidebar">
+<h2>SoufStock</h2>
+<nav>
+<a class="active">Dashboard</a>
+<a>Produits</a>
+<a>Stock</a>
+<a>Commandes</a>
+<a>Emplacements</a>
+<a>Utilisateurs</a>
+</nav>
+</aside>
+
+<main class="content">
+<header class="topbar">
+<input placeholder="Rechercher...">
+<div class="user">Admin</div>
+</header>
+
+<section class="cards">
+<div class="card"><h3>Produits</h3><span id="p1">0</span></div>
+<div class="card"><h3>Stock</h3><span id="p2">0</span></div>
+<div class="card"><h3>Commandes</h3><span id="p3">0</span></div>
+<div class="card"><h3>Emplacements</h3><span id="p4">0</span></div>
+</section>
+
+<section class="grid">
+<div class="panel"><h3>Dernières Commandes</h3><table id="orders"></table></div>
+<div class="panel"><h3>Derniers Mouvements</h3><table id="moves"></table></div>
+</section>
+</main>
+
+<script type="module" src="assets/js/dashboard.js"></script>
+</body>
+</html>
