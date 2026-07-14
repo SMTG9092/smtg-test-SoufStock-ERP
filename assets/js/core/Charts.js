@@ -5,7 +5,7 @@
  * ============================================================
  */
 
-import Api from "../api.js"; // تأكد من صحة مسار الاستيراد
+import Api from "./api.js"; // تأكد من صحة مسار الاستيراد
 import { Toast } from "./utils.js";
 
 class ChartsManager {
