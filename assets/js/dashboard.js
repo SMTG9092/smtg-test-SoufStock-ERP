@@ -35,18 +35,18 @@ class Dashboard {
         try {
             Loader.show("Chargement...", "Initialisation système...");
 
-            // 1. Initialisation Core
+            // 1. Initialisation Core (Thème, Langue, Session)
             ThemeManager.init();
             LanguageManager.init();
             SessionManager.init();
 
-            // 2. Vérification Auth
+            // 2. Vérification Auth (Protection de route)
             if (!SessionManager.isAuthenticated()) {
                 window.location.href = APP_CONFIG.ROUTES.LOGIN;
                 return;
             }
 
-            // 3. Parallélisation du chargement des modules critiques
+            // 3. Parallélisation du chargement (Performance optimisée)
             await Promise.all([
                 Permissions.initPermissions(),
                 Profile.loadProfile(),
@@ -87,7 +87,7 @@ class Dashboard {
     }
 
     /**
-     * Horloge temps réel
+     * Horloge temps réel (Update 1s)
      */
     startClock() {
         const update = () => {
@@ -117,7 +117,7 @@ class Dashboard {
     }
 
     /**
-     * Libération des ressources (Prevent Memory Leaks)
+     * Libération des ressources pour éviter les Memory Leaks
      */
     destroy() {
         clearInterval(this.refreshInterval);
@@ -128,6 +128,7 @@ class Dashboard {
     }
 }
 
+// Singleton Pattern
 const dashboard = new Dashboard();
 
 document.addEventListener("DOMContentLoaded", () => dashboard.init());
