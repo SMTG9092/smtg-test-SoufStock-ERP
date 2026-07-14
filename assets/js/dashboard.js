@@ -15,7 +15,7 @@ import { Loader, Toast } from "./core/utils.js";
 import Profile from "./core/profile.js";
 import Sidebar from "./core/sidebar.js";
 import DashboardData from "./core/dashboard-data.js";
-import Charts from "./core/Charts.js";
+import Charts from "./core/charts.js";
 import Notifications from "./core/notifications.js";
 import Navigation from "./core/navigation.js";
 import Realtime from "./core/realtime.js";
@@ -74,7 +74,7 @@ class Dashboard {
         Navigation.init();
         Notifications.init();
         
-        // Rendu initial des graphiques (Charts.js)
+        // Rendu initial des graphiques (charts.js)
         Charts.renderAll();
 
         // Raccourcis clavier : Ctrl+R pour rafraîchir
