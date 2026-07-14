@@ -7,7 +7,6 @@
  */
 
 import APP_CONFIG from "./core/config.js";
-import AuthManager from "./core/auth.js";
 import SessionManager from "./core/session.js";
 import ThemeManager from "./core/theme.js";
 import LanguageManager from "./core/language.js";
@@ -35,18 +34,18 @@ class Dashboard {
         try {
             Loader.show("Chargement...", "Initialisation système...");
 
-            // 1. Initialisation Core (Thème, Langue, Session)
+            // 1. Initialisation Core
             ThemeManager.init();
             LanguageManager.init();
             SessionManager.init();
 
-            // 2. Vérification Auth (Protection de route)
+            // 2. Vérification Auth
             if (!SessionManager.isAuthenticated()) {
                 window.location.href = APP_CONFIG.ROUTES.LOGIN;
                 return;
             }
 
-            // 3. Parallélisation du chargement (Performance optimisée)
+            // 3. Chargement parallèle des données critiques
             await Promise.all([
                 Permissions.initPermissions(),
                 Profile.loadProfile(),
@@ -61,23 +60,24 @@ class Dashboard {
 
             this.initialized = true;
             Loader.hide();
+            console.log("[Dashboard] Initialisé avec succès.");
+            
         } catch (error) {
-            console.error("[Dashboard Controller] Init Error:", error);
+            console.error("[Dashboard] Erreur d'initialisation:", error);
             Toast.error("Système", "Erreur lors du chargement du Dashboard.");
             Loader.hide();
         }
     }
 
-    /**
-     * Configuration des composants UI et écouteurs d'événements
-     */
     setupUI() {
         Sidebar.init();
         Navigation.init();
         Notifications.init();
+        
+        // Rendu initial des graphiques
         Charts.renderAll();
 
-        // Raccourcis clavier (Ctrl+R)
+        // Raccourcis clavier : Ctrl+R pour rafraîchir
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'r') {
                 e.preventDefault();
@@ -86,9 +86,6 @@ class Dashboard {
         });
     }
 
-    /**
-     * Horloge temps réel (Update 1s)
-     */
     startClock() {
         const update = () => {
             const timeEl = document.getElementById('live-time');
@@ -100,38 +97,39 @@ class Dashboard {
         this.clockInterval = setInterval(update, 1000);
     }
 
-    /**
-     * Rafraîchissement périodique (60s)
-     */
     startAutoRefresh() {
+        // Rafraîchissement automatique toutes les 60 secondes
         this.refreshInterval = setInterval(() => this.refresh(), 60000);
     }
 
     async refresh() {
         try {
+            console.log("[Dashboard] Rafraîchissement automatique...");
             await DashboardData.load();
             Charts.renderAll();
+            Toast.info("Mise à jour", "Données rafraîchies");
         } catch (err) {
-            console.error("[Dashboard] Refresh Failed:", err);
+            console.error("[Dashboard] Échec du rafraîchissement:", err);
         }
     }
 
-    /**
-     * Libération des ressources pour éviter les Memory Leaks
-     */
     destroy() {
         clearInterval(this.refreshInterval);
         clearInterval(this.clockInterval);
         Realtime.destroy();
         Charts.destroyAll();
         Notifications.clear();
+        console.log("[Dashboard] Ressources libérées.");
     }
 }
 
-// Singleton Pattern
+// Singleton pour garantir une instance unique
 const dashboard = new Dashboard();
 
+// Point d'entrée
 document.addEventListener("DOMContentLoaded", () => dashboard.init());
+
+// Nettoyage avant fermeture pour éviter les fuites de mémoire
 window.addEventListener("beforeunload", () => dashboard.destroy());
 
 export default dashboard;
