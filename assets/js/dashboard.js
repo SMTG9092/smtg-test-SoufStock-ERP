@@ -34,7 +34,7 @@ class Dashboard {
         try {
             Loader.show("Chargement...", "Initialisation système...");
 
-            // 1. Initialisation Core
+            // 1. Initialisation Core (Thème, Langue, Session)
             ThemeManager.init();
             LanguageManager.init();
             SessionManager.init();
@@ -45,14 +45,14 @@ class Dashboard {
                 return;
             }
 
-            // 3. Chargement parallèle des données critiques
+            // 3. Chargement parallèle pour optimiser la performance
             await Promise.all([
                 Permissions.initPermissions(),
                 Profile.loadProfile(),
                 DashboardData.load()
             ]);
 
-            // 4. Setup UI et services
+            // 4. Initialisation UI et Services
             this.setupUI();
             this.startClock();
             Realtime.init();
@@ -60,10 +60,10 @@ class Dashboard {
 
             this.initialized = true;
             Loader.hide();
-            console.log("[Dashboard] Initialisé avec succès.");
+            console.log("[Dashboard] Système opérationnel.");
             
         } catch (error) {
-            console.error("[Dashboard] Erreur d'initialisation:", error);
+            console.error("[Dashboard] Init Error:", error);
             Toast.error("Système", "Erreur lors du chargement du Dashboard.");
             Loader.hide();
         }
@@ -74,7 +74,7 @@ class Dashboard {
         Navigation.init();
         Notifications.init();
         
-        // Rendu initial des graphiques
+        // Rendu initial des graphiques (Charts.js)
         Charts.renderAll();
 
         // Raccourcis clavier : Ctrl+R pour rafraîchir
@@ -104,12 +104,12 @@ class Dashboard {
 
     async refresh() {
         try {
-            console.log("[Dashboard] Rafraîchissement automatique...");
+            console.log("[Dashboard] Mise à jour des données...");
             await DashboardData.load();
-            Charts.renderAll();
+            await Charts.renderAll();
             Toast.info("Mise à jour", "Données rafraîchies");
         } catch (err) {
-            console.error("[Dashboard] Échec du rafraîchissement:", err);
+            console.error("[Dashboard] Refresh Failed:", err);
         }
     }
 
@@ -126,10 +126,10 @@ class Dashboard {
 // Singleton pour garantir une instance unique
 const dashboard = new Dashboard();
 
-// Point d'entrée
+// Point d'entrée sécurisé
 document.addEventListener("DOMContentLoaded", () => dashboard.init());
 
-// Nettoyage avant fermeture pour éviter les fuites de mémoire
+// Nettoyage avant fermeture pour éviter les Memory Leaks
 window.addEventListener("beforeunload", () => dashboard.destroy());
 
 export default dashboard;
