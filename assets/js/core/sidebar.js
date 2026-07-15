@@ -5,7 +5,7 @@
  * ============================================================
  */
 
-import Permissions from "./permissions.js";
+import * as Permissions from "./permissions.js";
 
 class SidebarManager {
 
