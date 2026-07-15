@@ -17,225 +17,227 @@ class ProfileManager {
 
     }
 
-    /* ============================================================
-     * LOAD
-     * ============================================================ */
+/* ============================================================
+ * LOAD
+ * ============================================================ */
 
-    async load() {
+async load() {
 
-        try {
+    try {
 
-            const session = SessionManager.getProfile();
+        const session = await SessionManager.getProfile();
 
-            if (!session?.id) {
+        if (!session || !session.id) {
 
-                throw new Error("Utilisateur non connecté.");
-
-            }
-
-            this.profile = await Api.getProfile(session.id);
-
-            this.render();
-
-            return this.profile;
+            throw new Error("Utilisateur non connecté.");
 
         }
 
-        catch (error) {
+        this.profile = await Api.getProfile(session.id);
 
-            console.error(error);
-
-            Toast.error(
-
-                "Profil",
-
-                error.message
-
-            );
-
-            return null;
-
-        }
-
-    }
-
-    /* ============================================================
-     * RENDER
-     * ============================================================ */
-
-    render() {
-
-        if (!this.profile) return;
-
-        const fullName =
-
-            this.profile.nom_complet ||
-
-            `${this.profile.prenom || ""} ${this.profile.nom || ""}`.trim() ||
-
-            this.profile.username ||
-
-            "Utilisateur";
-
-        const role =
-
-            this.profile.roles?.nom ||
-
-            this.profile.poste ||
-
-            "Utilisateur";
-
-        this.text("sidebarUserName", fullName);
-        this.text("topbarUserName", fullName);
-        this.text("welcomeName", fullName);
-
-        this.text("sidebarUserRole", role);
-        this.text("topbarUserRole", role);
-
-        this.text("profileEmail", this.profile.email);
-        this.text("profileService", this.profile.service);
-        this.text("profilePoste", this.profile.poste);
-
-        this.image("sidebarAvatar", this.profile.photo);
-        this.image("topbarAvatar", this.profile.photo);
-
-    }
-
-    /* ============================================================
-     * HELPERS
-     * ============================================================ */
-
-    text(id, value = "") {
-
-        const element = document.getElementById(id);
-
-        if (element) {
-
-            element.textContent = value;
-
-        }
-
-    }
-
-    image(id, src) {
-
-        if (!src) return;
-
-        const element = document.getElementById(id);
-
-        if (element) {
-
-            element.src = src;
-
-        }
-
-    }
-
-    /* ============================================================
-     * REFRESH
-     * ============================================================ */
-
-    async refresh() {
-
-        return await this.load();
-
-    }
-
-    /* ============================================================
-     * GETTERS
-     * ============================================================ */
-
-    get() {
+        this.render();
 
         return this.profile;
 
     }
 
-    getId() {
+    catch (error) {
 
-        return this.profile?.id ?? null;
+        console.error("[PROFILE]", error);
 
-    }
+        Toast.error(
 
-    getName() {
+            "Profil",
 
-        return (
-
-            this.profile?.nom_complet ||
-
-            this.profile?.username ||
-
-            ""
+            error.message
 
         );
 
-    }
-
-    getUsername() {
-
-        return this.profile?.username ?? "";
+        return null;
 
     }
 
-    getRole() {
+}
 
-        return (
+/* ============================================================
+ * RENDER
+ * ============================================================ */
 
-            this.profile?.roles?.nom ||
+render() {
 
-            this.profile?.poste ||
+    if (!this.profile) return;
 
-            ""
+    const fullName =
 
-        );
+        this.profile.nom_complet ||
+
+        `${this.profile.prenom || ""} ${this.profile.nom || ""}`.trim() ||
+
+        this.profile.username ||
+
+        "Utilisateur";
+
+    const role =
+
+        this.profile.roles?.nom ||
+
+        this.profile.poste ||
+
+        "Utilisateur";
+
+    this.text("sidebarUserName", fullName);
+    this.text("topbarUserName", fullName);
+    this.text("welcomeName", fullName);
+
+    this.text("sidebarUserRole", role);
+    this.text("topbarUserRole", role);
+
+    this.text("profileEmail", this.profile.email || "");
+    this.text("profileService", this.profile.service || "");
+    this.text("profilePoste", this.profile.poste || "");
+
+    this.image("sidebarAvatar", this.profile.photo);
+    this.image("topbarAvatar", this.profile.photo);
+
+}
+    
+/* ============================================================
+ * HELPERS
+ * ============================================================ */
+
+text(id, value = "") {
+
+    const element = document.getElementById(id);
+
+    if (element) {
+
+        element.textContent = value ?? "";
+
+    }
+
+}
+
+image(id, src) {
+
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    if (src) {
+
+        element.src = src;
 
     }
 
-    getRoleCode() {
+}
 
-        return this.profile?.roles?.code ?? "";
+/* ============================================================
+ * REFRESH
+ * ============================================================ */
 
-    }
+async refresh() {
 
-    getEmail() {
+    return await this.load();
 
-        return this.profile?.email ?? "";
+}
 
-    }
+/* ============================================================
+ * GETTERS
+ * ============================================================ */
 
-    getService() {
+get() {
 
-        return this.profile?.service ?? "";
+    return this.profile;
 
-    }
+}
 
-    getPhoto() {
+getId() {
 
-        return this.profile?.photo ?? "";
+    return this.profile?.id ?? null;
 
-    }
+}
 
-    isActive() {
+getName() {
 
-        return this.profile?.actif === true;
+    return (
 
-    }
+        this.profile?.nom_complet ||
 
-    isLoaded() {
+        `${this.profile?.prenom || ""} ${this.profile?.nom || ""}`.trim() ||
 
-        return this.profile !== null;
+        this.profile?.username ||
 
-    }
+        ""
 
-    /* ============================================================
-     * CLEAR
-     * ============================================================ */
+    );
 
-    clear() {
+}
 
-        this.profile = null;
+getUsername() {
 
-    }
+    return this.profile?.username ?? "";
+
+}
+
+getRole() {
+
+    return (
+
+        this.profile?.roles?.nom ||
+
+        this.profile?.poste ||
+
+        ""
+
+    );
+
+}
+
+getRoleCode() {
+
+    return this.profile?.roles?.code ?? "";
+
+}
+
+getEmail() {
+
+    return this.profile?.email ?? "";
+
+}
+
+getService() {
+
+    return this.profile?.service ?? "";
+
+}
+
+getPhoto() {
+
+    return this.profile?.photo ?? "";
+
+}
+
+isActive() {
+
+    return this.profile?.actif === true;
+
+}
+
+isLoaded() {
+
+    return this.profile !== null;
+
+}
+
+/* ============================================================
+ * CLEAR
+ * ============================================================ */
+
+clear() {
+
+    this.profile = null;
+
+}
 
 }
 
