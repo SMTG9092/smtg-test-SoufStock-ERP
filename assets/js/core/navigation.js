@@ -18,8 +18,6 @@ class NavigationManager {
 
             dashboard: "dashboard.html",
 
-            import stock: "import_stock.html",
-
             stock: "stock.html",
 
             mouvements: "mouvements.html",
