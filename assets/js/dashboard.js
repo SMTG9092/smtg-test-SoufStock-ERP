@@ -10,7 +10,7 @@ import APP_CONFIG from "./core/config.js";
 import SessionManager from "./core/session.js";
 import ThemeManager from "./core/theme.js";
 import LanguageManager from "./core/language.js";
-import Permissions from "./core/permissions.js";
+import * as Permissions from "./core/permissions.js";
 import { Loader, Toast } from "./core/utils.js";
 import Profile from "./core/profile.js";
 import Sidebar from "./core/sidebar.js";
