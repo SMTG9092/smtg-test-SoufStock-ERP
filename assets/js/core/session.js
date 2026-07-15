@@ -1,150 +1,328 @@
 /**
  * ============================================================
  * SoufStock Enterprise ERP/WMS
- * File : assets/js/core/supabase.js
+ * assets/js/session.js
+ * ============================================================
+ * Enterprise Session Manager
+ * ES2023
+ * ES Modules
+ * Production Ready
  * ============================================================
  */
 
 "use strict";
 
 import APP_CONFIG from "./config.js";
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import AuthManager from "./auth.js";
 
-/* ============================================================
-   CONFIGURATION
-============================================================ */
+const SessionManager = {
 
-const SUPABASE_URL = APP_CONFIG.SUPABASE?.URL;
-const SUPABASE_ANON_KEY = APP_CONFIG.SUPABASE?.ANON_KEY;
+    /**
+     * ============================================================
+     * INIT
+     * ============================================================
+     */
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error(
-        "Configuration Supabase invalide : APP_CONFIG.SUPABASE.URL ou APP_CONFIG.SUPABASE.ANON_KEY est manquant."
-    );
-}
+    async init() {
 
-/* ============================================================
-   CLIENT
-============================================================ */
+        const session = await AuthManager.getSession();
 
-const supabase = createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            flowType: "pkce"
-        },
-        realtime: {
-            params: {
-                eventsPerSecond: 10
-            }
-        },
-        db: {
-            schema: "public"
-        },
-        global: {
-            headers: {
-                "X-Client-Info": APP_CONFIG.APP.NAME,
-                "X-App-Version": APP_CONFIG.APP.VERSION
-            }
-        }
-    }
-);
+        if (!session) {
 
-/* ============================================================
-   TEST CONNECTION
-============================================================ */
+            this.clearLocalSession();
 
-export async function testConnection() {
-    try {
-
-        const { error } = await supabase
-            .from(APP_CONFIG.DATABASE.ROLES_TABLE)
-            .select("id")
-            .limit(1);
-
-        if (error) {
-            console.error("❌ Supabase:", error.message);
             return false;
-        }
 
-        console.log("✅ Supabase connecté");
+        }
 
         return true;
 
-    } catch (err) {
+    },
 
-        console.error(err);
+    /**
+     * ============================================================
+     * CREATE LOCAL SESSION
+     * ============================================================
+     */
 
-        return false;
+    createSession(profile, remember = false) {
+
+        const duration = remember
+            ? APP_CONFIG.AUTH.REMEMBER_DURATION
+            : APP_CONFIG.AUTH.SESSION_DURATION;
+
+        const session = {
+
+            profile,
+
+            created: Date.now(),
+
+            expires: Date.now() + duration,
+
+            remember
+
+        };
+
+        const storage = remember
+            ? localStorage
+            : sessionStorage;
+
+        storage.setItem(
+
+            APP_CONFIG.AUTH.SESSION_KEY,
+
+            JSON.stringify(session)
+
+        );
+
+        window.dispatchEvent(
+
+            new CustomEvent(
+
+                "sessioncreated",
+
+                {
+
+                    detail: session
+
+                }
+
+            )
+
+        );
+
+    },
+
+    /**
+     * ============================================================
+     * GET LOCAL SESSION
+     * ============================================================
+     */
+
+    getLocalSession() {
+
+        let session = sessionStorage.getItem(
+
+            APP_CONFIG.AUTH.SESSION_KEY
+
+        );
+
+        if (!session) {
+
+            session = localStorage.getItem(
+
+                APP_CONFIG.AUTH.SESSION_KEY
+
+            );
+
+        }
+
+        if (!session) {
+
+            return null;
+
+        }
+
+        try {
+
+            return JSON.parse(session);
+
+        }
+
+        catch {
+
+            return null;
+
+        }
+
+    },
+
+    /**
+     * ============================================================
+     * GET PROFILE
+     * ============================================================
+     */
+
+    async getProfile() {
+
+        const profile = await AuthManager.getProfile();
+
+        if (profile) {
+
+            return profile;
+
+        }
+
+        const local = this.getLocalSession();
+
+        return local?.profile ?? null;
+
+    },
+
+    /**
+     * ============================================================
+     * IS AUTHENTICATED
+     * ============================================================
+     */
+
+    async isAuthenticated() {
+
+        const supabaseSession = await AuthManager.getSession();
+
+        if (!supabaseSession) {
+
+            this.clearLocalSession();
+
+            return false;
+
+        }
+
+        const local = this.getLocalSession();
+
+        if (!local) {
+
+            return true;
+
+        }
+
+        if (local.expires <= Date.now()) {
+
+            this.clearLocalSession();
+
+            await AuthManager.logout();
+
+            window.dispatchEvent(
+
+                new Event("sessionexpired")
+
+            );
+
+            return false;
+
+        }
+
+        return true;
+
+    },
+
+    /**
+     * ============================================================
+     * REFRESH PROFILE
+     * ============================================================
+     */
+
+    async refreshProfile() {
+
+        const profile = await AuthManager.getProfile();
+
+        if (!profile) {
+
+            return null;
+
+        }
+
+        const session = this.getLocalSession();
+
+        if (!session) {
+
+            return profile;
+
+        }
+
+        session.profile = profile;
+
+        const storage = session.remember
+
+            ? localStorage
+
+            : sessionStorage;
+
+        storage.setItem(
+
+            APP_CONFIG.AUTH.SESSION_KEY,
+
+            JSON.stringify(session)
+
+        );
+
+        return profile;
+
+    },
+
+    /**
+     * ============================================================
+     * CLEAR LOCAL SESSION
+     * ============================================================
+     */
+
+    clearLocalSession() {
+
+        sessionStorage.removeItem(
+
+            APP_CONFIG.AUTH.SESSION_KEY
+
+        );
+
+        localStorage.removeItem(
+
+            APP_CONFIG.AUTH.SESSION_KEY
+
+        );
+
+        window.dispatchEvent(
+
+            new Event("sessioncleared")
+
+        );
+
+    },
+
+    /**
+     * ============================================================
+     * LOGOUT
+     * ============================================================
+     */
+
+    async logout() {
+
+        this.clearLocalSession();
+
+        await AuthManager.logout();
+
+        window.location.replace(
+
+            APP_CONFIG.ROUTES.LOGIN
+
+        );
+
+    },
+
+    /**
+     * ============================================================
+     * REQUIRE AUTH
+     * ============================================================
+     */
+
+    async requireAuth() {
+
+        const authenticated = await this.isAuthenticated();
+
+        if (!authenticated) {
+
+            window.location.replace(
+
+                APP_CONFIG.ROUTES.LOGIN
+
+            );
+
+            return false;
+
+        }
+
+        return true;
+
     }
-}
 
-/* ============================================================
-   SESSION
-============================================================ */
+};
 
-export async function getSession() {
-
-    try {
-
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error) throw error;
-
-        return data.session;
-
-    } catch (err) {
-
-        console.error(err);
-
-        return null;
-
-    }
-
-}
-
-/* ============================================================
-   USER
-============================================================ */
-
-export async function getUser() {
-
-    try {
-
-        const { data, error } = await supabase.auth.getUser();
-
-        if (error) throw error;
-
-        return data.user;
-
-    } catch (err) {
-
-        console.error(err);
-
-        return null;
-
-    }
-
-}
-
-/* ============================================================
-   AUTH
-============================================================ */
-
-export async function isAuthenticated() {
-
-    const session = await getSession();
-
-    return session !== null;
-
-}
-
-/* ============================================================
-   EXPORT
-============================================================ */
-
-export default supabase;
+export default SessionManager;
