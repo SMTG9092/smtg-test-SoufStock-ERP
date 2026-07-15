@@ -188,9 +188,9 @@ class Dashboard {
 
             const now = new Date();
 
-               const timeEl = document.getElementById("currentTime");
+               const timeEl = document.getElementById("live-time");
 
-               const dateEl = document.getElementById("currentDate");
+               const dateEl = document.getElementById("live-date");
 
             if (timeEl) {
 
