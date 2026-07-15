@@ -5,7 +5,7 @@
  * ============================================================
  */
 
-import AuthManager from "./auth.js";
+import supabase from "./supabase.js";
 import DashboardData from "./dashboard-data.js";
 import Charts from "./charts.js";
 import Notifications from "./notifications.js";
