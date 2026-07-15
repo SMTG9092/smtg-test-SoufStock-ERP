@@ -142,41 +142,74 @@ class Dashboard {
 
     }
     
-    /**
-     * ============================================================
-     * SETUP UI
-     * ============================================================
-     */
+/**
+ * ============================================================
+ * SETUP UI
+ * ============================================================
+ */
 
-    setupUI() {
+setupUI() {
 
-        Sidebar.init();
+    Sidebar.init();
 
-        Navigation.init();
+    Navigation.init();
 
-        Notifications.init();
+    Notifications.init();
 
-        if (typeof Charts.renderAll === "function") {
+    /* ======================================================
+       LOGOUT
+    ====================================================== */
 
-            Charts.renderAll();
+    const logout = async (e) => {
 
-        }
+        e?.preventDefault();
 
-        document.addEventListener("keydown", (e) => {
+        try {
 
-            if (e.ctrlKey && e.key.toLowerCase() === "r") {
+            if (typeof SessionManager.logout === "function") {
 
-                e.preventDefault();
-
-                this.refresh();
+                await SessionManager.logout();
 
             }
 
-        });
+        } catch (error) {
+
+            console.warn(error);
+
+        }
+
+        window.location.replace(APP_CONFIG.ROUTES.LOGIN);
+
+    };
+
+    document
+        .getElementById("logoutBtn")
+        ?.addEventListener("click", logout);
+
+    document
+        .getElementById("menuLogout")
+        ?.addEventListener("click", logout);
+
+    if (typeof Charts.renderAll === "function") {
+
+        Charts.renderAll();
 
     }
 
-    /**
+    document.addEventListener("keydown", (e) => {
+
+        if (e.ctrlKey && e.key.toLowerCase() === "r") {
+
+            e.preventDefault();
+
+            this.refresh();
+
+        }
+
+    });
+
+}
+    
      * ============================================================
      * CLOCK
      * ============================================================
