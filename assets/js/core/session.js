@@ -17,311 +17,330 @@ import AuthManager from "./auth.js";
 
 const SessionManager = {
 
-    /**
-     * ============================================================
-     * INIT
-     * ============================================================
-     */
+/**
+ * ============================================================
+ * INIT
+ * ============================================================
+ */
 
-    async init() {
+async init() {
 
-        const session = await AuthManager.getSession();
+    const authenticated = await AuthManager.isAuthenticated();
 
-        if (!session) {
+    if (!authenticated) {
 
-            this.clearLocalSession();
+        this.clearLocalSession();
 
-            return false;
+        return false;
 
-        }
+    }
 
-        return true;
+    await this.refreshProfile();
 
-    },
+    return true;
 
-    /**
-     * ============================================================
-     * CREATE LOCAL SESSION
-     * ============================================================
-     */
+},
 
-    createSession(profile, remember = false) {
+/**
+ * ============================================================
+ * CREATE LOCAL SESSION
+ * ============================================================
+ */
 
-        const duration = remember
-            ? APP_CONFIG.AUTH.REMEMBER_DURATION
-            : APP_CONFIG.AUTH.SESSION_DURATION;
+createSession(profile, remember = false) {
 
-        const session = {
+    const duration = remember
+        ? APP_CONFIG.AUTH.REMEMBER_DURATION
+        : APP_CONFIG.AUTH.SESSION_DURATION;
 
-            profile,
+    const session = {
 
-            created: Date.now(),
+        profile,
 
-            expires: Date.now() + duration,
+        created: Date.now(),
 
-            remember
+        expires: Date.now() + duration,
 
-        };
+        remember
 
-        const storage = remember
-            ? localStorage
-            : sessionStorage;
+    };
 
-        storage.setItem(
+    const storage = remember
+        ? localStorage
+        : sessionStorage;
 
-            APP_CONFIG.AUTH.SESSION_KEY,
+    storage.setItem(
 
-            JSON.stringify(session)
+        APP_CONFIG.AUTH.SESSION_KEY,
 
-        );
+        JSON.stringify(session)
 
-        window.dispatchEvent(
+    );
 
-            new CustomEvent(
+    window.dispatchEvent(
 
-                "sessioncreated",
+        new CustomEvent(
 
-                {
+            "sessioncreated",
 
-                    detail: session
+            {
 
-                }
+                detail: session
 
-            )
+            }
 
-        );
+        )
 
-    },
+    );
 
-    /**
-     * ============================================================
-     * GET LOCAL SESSION
-     * ============================================================
-     */
+    return session;
 
-    getLocalSession() {
+},
 
-        let session = sessionStorage.getItem(
+/**
+ * ============================================================
+ * GET LOCAL SESSION
+ * ============================================================
+ */
 
+getLocalSession() {
+
+    let session = sessionStorage.getItem(
+        APP_CONFIG.AUTH.SESSION_KEY
+    );
+
+    if (!session) {
+
+        session = localStorage.getItem(
             APP_CONFIG.AUTH.SESSION_KEY
-
         );
 
-        if (!session) {
+    }
 
-            session = localStorage.getItem(
+    if (!session) {
 
-                APP_CONFIG.AUTH.SESSION_KEY
+        return null;
 
-            );
+    }
 
-        }
+    try {
 
-        if (!session) {
+        return JSON.parse(session);
 
-            return null;
+    }
 
-        }
+    catch {
 
-        try {
+        this.clearLocalSession();
 
-            return JSON.parse(session);
+        return null;
 
-        }
+    }
 
-        catch {
+},
 
-            return null;
+/**
+ * ============================================================
+ * GET PROFILE
+ * ============================================================
+ */
 
-        }
+async getProfile() {
 
-    },
+    const profile = await AuthManager.getProfile();
 
-    /**
-     * ============================================================
-     * GET PROFILE
-     * ============================================================
-     */
-
-    async getProfile() {
-
-        const profile = await AuthManager.getProfile();
-
-        if (profile) {
-
-            return profile;
-
-        }
-
-        const local = this.getLocalSession();
-
-        return local?.profile ?? null;
-
-    },
-
-    /**
-     * ============================================================
-     * IS AUTHENTICATED
-     * ============================================================
-     */
-
-    async isAuthenticated() {
-
-        const supabaseSession = await AuthManager.getSession();
-
-        if (!supabaseSession) {
-
-            this.clearLocalSession();
-
-            return false;
-
-        }
-
-        const local = this.getLocalSession();
-
-        if (!local) {
-
-            return true;
-
-        }
-
-        if (local.expires <= Date.now()) {
-
-            this.clearLocalSession();
-
-            await AuthManager.logout();
-
-            window.dispatchEvent(
-
-                new Event("sessionexpired")
-
-            );
-
-            return false;
-
-        }
-
-        return true;
-
-    },
-
-    /**
-     * ============================================================
-     * REFRESH PROFILE
-     * ============================================================
-     */
-
-    async refreshProfile() {
-
-        const profile = await AuthManager.getProfile();
-
-        if (!profile) {
-
-            return null;
-
-        }
-
-        const session = this.getLocalSession();
-
-        if (!session) {
-
-            return profile;
-
-        }
-
-        session.profile = profile;
-
-        const storage = session.remember
-
-            ? localStorage
-
-            : sessionStorage;
-
-        storage.setItem(
-
-            APP_CONFIG.AUTH.SESSION_KEY,
-
-            JSON.stringify(session)
-
-        );
+    if (profile) {
 
         return profile;
 
-    },
+    }
 
-    /**
-     * ============================================================
-     * CLEAR LOCAL SESSION
-     * ============================================================
-     */
+    const local = this.getLocalSession();
 
-    clearLocalSession() {
+    return local?.profile ?? null;
 
-        sessionStorage.removeItem(
+},
 
-            APP_CONFIG.AUTH.SESSION_KEY
+/**
+ * ============================================================
+ * GET USER
+ * ============================================================
+ */
 
-        );
+async getUser() {
 
-        localStorage.removeItem(
+    return await AuthManager.currentUser();
 
-            APP_CONFIG.AUTH.SESSION_KEY
+},
 
-        );
+/**
+ * ============================================================
+ * IS AUTHENTICATED
+ * ============================================================
+ */
 
-        window.dispatchEvent(
+async isAuthenticated() {
 
-            new Event("sessioncleared")
+    const authenticated = await AuthManager.isAuthenticated();
 
-        );
+    if (!authenticated) {
 
-    },
+        this.clearLocalSession();
 
-    /**
-     * ============================================================
-     * LOGOUT
-     * ============================================================
-     */
+        return false;
 
-    async logout() {
+    }
+
+    const local = this.getLocalSession();
+
+    if (!local) {
+
+        return true;
+
+    }
+
+    if (
+        local.expires &&
+        local.expires <= Date.now()
+    ) {
 
         this.clearLocalSession();
 
         await AuthManager.logout();
 
-        window.location.replace(
-
-            APP_CONFIG.ROUTES.LOGIN
-
+        window.dispatchEvent(
+            new Event("sessionexpired")
         );
 
-    },
-
-    /**
-     * ============================================================
-     * REQUIRE AUTH
-     * ============================================================
-     */
-
-    async requireAuth() {
-
-        const authenticated = await this.isAuthenticated();
-
-        if (!authenticated) {
-
-            window.location.replace(
-
-                APP_CONFIG.ROUTES.LOGIN
-
-            );
-
-            return false;
-
-        }
-
-        return true;
+        return false;
 
     }
+
+    return true;
+
+},
+
+/**
+ * ============================================================
+ * REFRESH PROFILE
+ * ============================================================
+ */
+
+async refreshProfile() {
+
+    const profile = await AuthManager.getProfile();
+
+    if (!profile) {
+
+        return null;
+
+    }
+
+    const session = this.getLocalSession();
+
+    if (!session) {
+
+        return profile;
+
+    }
+
+    session.profile = profile;
+
+    const storage = session.remember
+        ? localStorage
+        : sessionStorage;
+
+    storage.setItem(
+
+        APP_CONFIG.AUTH.SESSION_KEY,
+
+        JSON.stringify(session)
+
+    );
+
+    window.dispatchEvent(
+
+        new CustomEvent(
+
+            "profilerefreshed",
+
+            {
+
+                detail: profile
+
+            }
+
+        )
+
+    );
+
+    return profile;
+
+},
+
+/**
+ * ============================================================
+ * CLEAR LOCAL SESSION
+ * ============================================================
+ */
+
+clearLocalSession() {
+
+    sessionStorage.removeItem(
+        APP_CONFIG.AUTH.SESSION_KEY
+    );
+
+    localStorage.removeItem(
+        APP_CONFIG.AUTH.SESSION_KEY
+    );
+
+    window.dispatchEvent(
+        new Event("sessioncleared")
+    );
+
+},
+
+/**
+ * ============================================================
+ * LOGOUT
+ * ============================================================
+ */
+
+async logout() {
+
+    this.clearLocalSession();
+
+    await AuthManager.logout();
+
+    window.location.replace(
+        APP_CONFIG.ROUTES.LOGIN
+    );
+
+},
+
+/**
+ * ============================================================
+ * REQUIRE AUTH
+ * ============================================================
+ */
+
+async requireAuth() {
+
+    const authenticated = await this.isAuthenticated();
+
+    if (!authenticated) {
+
+        window.location.replace(
+            APP_CONFIG.ROUTES.LOGIN
+        );
+
+        return false;
+
+    }
+
+    return true;
+
+}
 
 };
 
