@@ -251,6 +251,57 @@ async renderChambreChart() {
     );
 
 }
+/**
+ * ============================================================
+ * PRODUCTION CHART
+ * ============================================================
+ */
+
+async renderProductionChart() {
+
+    this.destroy("production");
+
+    const canvas = document.getElementById("productionChart");
+
+    if (!canvas) return;
+
+    this.charts.production = new Chart(canvas, {
+
+        type: "line",
+
+        data: {
+
+            labels: [],
+
+            datasets: [{
+
+                label: "Production",
+
+                data: [],
+
+                borderColor: "#16a34a",
+
+                backgroundColor: "rgba(22,163,74,.15)",
+
+                fill: true,
+
+                tension: 0.3
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false
+
+        }
+
+    });
+
+}
 destroyAll() {
 
     Object.keys(this.charts)
