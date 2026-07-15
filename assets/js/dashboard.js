@@ -45,12 +45,12 @@ class Dashboard {
                 return;
             }
 
-            // 3. Chargement parallèle pour optimiser la performance
-            await Promise.all([
-                Permissions.initPermissions(),
-                Profile.loadProfile(),
-                DashboardData.load()
-            ]);
+// 3. Chargement parallèle pour optimiser la performance
+await Promise.all([
+    Permissions.initPermissions(),
+    Profile.load(),
+    DashboardData.load()
+]);
 
             // 4. Initialisation UI et Services
             this.setupUI();
