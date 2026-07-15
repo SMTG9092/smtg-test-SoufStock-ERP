@@ -168,7 +168,7 @@ async renderChambreChart() {
 
         "stock",
 
-        "chambre,quantite"
+        "emplacement,quantite"
 
     );
 
@@ -182,7 +182,7 @@ async renderChambreChart() {
 
     const dataMap = rows.reduce((acc, row) => {
 
-        const key = row.chambre || "N/A";
+        const key = row.emplacement || "N/A";
 
         acc[key] =
 
