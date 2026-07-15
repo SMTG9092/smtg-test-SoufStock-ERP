@@ -430,3 +430,78 @@ export default {
     logStockMovement
 
 };
+/* ============================================================
+   IMPORT STOCK
+============================================================ */
+
+async function importStock(payload) {
+
+    return await insert(
+
+        "stock",
+
+        payload.rows
+
+    );
+
+}
+
+/* ============================================================
+   IMPORT HISTORY
+============================================================ */
+
+async function getImportHistory() {
+
+    return await select(
+
+        "historique_imports",
+
+        "*",
+
+        {
+
+            order: {
+
+                col: "created_at",
+
+                asc: false
+
+            },
+
+            limit: 20
+
+        }
+
+    );
+
+}
+
+/* ============================================================
+   EXPORT
+============================================================ */
+
+export default {
+
+    select,
+
+    insert,
+
+    update,
+
+    delete: remove,
+
+    getProfile,
+
+    getDashboardStats,
+
+    getLastMovements,
+
+    getStockStatus,
+
+    logStockMovement,
+
+    importStock,
+
+    getImportHistory
+
+};
