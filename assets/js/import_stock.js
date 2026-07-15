@@ -453,13 +453,7 @@ updateExcelInfo(sheetName) {
 
 renderPreview() {
 
-    const tbody =
-
-        document.getElementById(
-
-            "previewTableBody"
-
-        );
+    const tbody = document.getElementById("previewTableBody");
 
     if (!tbody) return;
 
@@ -468,71 +462,45 @@ renderPreview() {
     if (this.rows.length === 0) {
 
         tbody.innerHTML = `
-
             <tr>
-
                 <td colspan="11" class="empty-table">
-
                     Aucun fichier sélectionné.
-
                 </td>
-
             </tr>
-
         `;
 
         return;
 
     }
 
-    const preview =
-
-        this.rows.slice(0, 20);
+    const preview = this.rows.slice(0, 20);
 
     preview.forEach((row, index) => {
 
         const data = this.mapRow(row);
 
         tbody.insertAdjacentHTML(
-
             "beforeend",
-
             `
-
             <tr>
-
                 <td>${index + 1}</td>
-
                 <td>${data.division}</td>
-
                 <td>${data.magasin}</td>
-
                 <td>${data.article}</td>
-
-                <td>${data.designation}</td>
-
+                <td>${data.designation_article}</td>
                 <td>${data.lot}</td>
-
                 <td>${data.quantite.toLocaleString("fr-FR")}</td>
-
                 <td>${data.unite}</td>
-
-                <td>${data.type}</td>
-
-                <td>${data.groupe}</td>
-
-                <td>${data.qualite}</td>
-
+                <td>${data.type_article}</td>
+                <td>${data.groupe_article}</td>
+                <td>${data.controle_qualite.toLocaleString("fr-FR")}</td>
             </tr>
-
             `
-
         );
 
     });
 
 }
-
 /* ==========================================================
    SUMMARY
 ========================================================== */
@@ -641,101 +609,57 @@ mapRow(row) {
 
     return {
 
-        division:
+        division: String(
+            row["Division"] ?? ""
+        ).trim(),
 
-            String(
+        magasin: String(
+            row["Magasin"] ?? ""
+        ).trim(),
 
-                row["Division"] ?? ""
+        emplacement: null,
 
-            ).trim(),
+        article: String(
+            row["Article"] ?? ""
+        ).trim(),
 
-        magasin:
+        designation_article: String(
+            row["Désignation article"] ??
+            row["Designation article"] ??
+            ""
+        ).trim(),
 
-            String(
+        lot: String(
+            row["Lot"] ?? ""
+        ).trim(),
 
-                row["Magasin"] ?? ""
+        quantite: this.parseNumber(
+            row["À utilisation libre"]
+        ),
 
-            ).trim(),
+        unite: String(
+            row["Unité quantité base"] ??
+            row["Unite quantité base"] ??
+            "KG"
+        ).trim(),
 
-        article:
+        type_article: String(
+            row["Type d'article"] ??
+            row["Type article"] ??
+            ""
+        ).trim(),
 
-            String(
+        groupe_article: String(
+            row["Groupe d'articles"] ??
+            row["Groupe articles"] ??
+            ""
+        ).trim(),
 
-                row["Article"] ?? ""
+        famille_article: null,
 
-            ).trim(),
-
-        designation:
-
-            String(
-
-                row["Désignation article"] ??
-
-                row["Designation article"] ??
-
-                ""
-
-            ).trim(),
-
-        lot:
-
-            String(
-
-                row["Lot"] ?? ""
-
-            ).trim(),
-
-        quantite:
-
-            this.parseNumber(
-
-                row["À utilisation libre"]
-
-            ),
-
-        unite:
-
-            String(
-
-                row["Unité quantité base"] ??
-
-                row["Unite quantité base"] ??
-
-                "KG"
-
-            ).trim(),
-
-        type:
-
-            String(
-
-                row["Type d'article"] ??
-
-                row["Type article"] ??
-
-                ""
-
-            ).trim(),
-
-        groupe:
-
-            String(
-
-                row["Groupe d'articles"] ??
-
-                row["Groupe articles"] ??
-
-                ""
-
-            ).trim(),
-
-        qualite:
-
-            this.parseNumber(
-
-                row["Contrôle qualité"]
-
-            )
+        controle_qualite: this.parseNumber(
+            row["Contrôle qualité"]
+        )
 
     };
 
@@ -823,9 +747,7 @@ validateRows() {
         if (!data.article) {
 
             errors.push(
-
                 `Ligne ${index + 2} : Article manquant.`
-
             );
 
         }
@@ -833,19 +755,15 @@ validateRows() {
         if (!data.magasin) {
 
             errors.push(
-
                 `Ligne ${index + 2} : Magasin manquant.`
-
             );
 
         }
 
-        if (!data.designation) {
+        if (!data.designation_article) {
 
             errors.push(
-
                 `Ligne ${index + 2} : Désignation manquante.`
-
             );
 
         }
@@ -853,9 +771,7 @@ validateRows() {
         if (!data.lot) {
 
             errors.push(
-
                 `Ligne ${index + 2} : Lot manquant.`
-
             );
 
         }
@@ -863,9 +779,7 @@ validateRows() {
         if (data.quantite < 0) {
 
             errors.push(
-
                 `Ligne ${index + 2} : Quantité négative.`
-
             );
 
         }
@@ -875,7 +789,6 @@ validateRows() {
     return errors;
 
 }
-
 /* ==========================================================
    GET MAPPED ROWS
 ========================================================== */
