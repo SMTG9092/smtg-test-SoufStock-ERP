@@ -7,7 +7,7 @@
  */
 
 import APP_CONFIG from "./core/config.js";
-import * as SessionManager from "./core/session.js";
+import SessionManager from "./core/session.js";
 import ThemeManager from "./core/theme.js";
 import LanguageManager from "./core/language.js";
 import * as Permissions from "./core/permissions.js";
