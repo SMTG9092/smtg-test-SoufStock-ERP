@@ -1,18 +1,19 @@
 /**
  * ==========================================================================
  * SoufStock Enterprise ERP/WMS
- * File: assets/js/import_stock.js
+ * File : assets/js/import_stock.js
  * ==========================================================================
  */
 
 import APP_CONFIG from "./core/config.js";
+import Api from "./core/api.js";
 import SessionManager from "./core/session.js";
 import ThemeManager from "./core/theme.js";
 import LanguageManager from "./core/language.js";
 import * as Permissions from "./core/permissions.js";
 import { Loader, Toast } from "./core/utils.js";
-import Navigation from "./core/navigation.js";
 import Sidebar from "./core/sidebar.js";
+import Navigation from "./core/navigation.js";
 
 class ImportStock {
 
@@ -27,6 +28,8 @@ class ImportStock {
         this.rows = [];
 
         this.importMode = "MISE_A_JOUR";
+
+        this.initialized = false;
 
     }
 
@@ -66,11 +69,17 @@ class ImportStock {
 
             this.setupUI();
 
+            this.initialized = true;
+
             Loader.hide();
+
+            console.log(
+                "[Import Stock] Ready."
+            );
 
         }
 
-        catch(error){
+        catch (error) {
 
             console.error(error);
 
@@ -86,295 +95,249 @@ class ImportStock {
     }
 
     /* ==========================================================
-       UI
+       SETUP UI
     ========================================================== */
 
-    setupUI(){
+    setupUI() {
 
         Sidebar.init();
 
         Navigation.init();
 
+        this.bindFileEvents();
+
+        this.bindImportButton();
+
+        this.bindImportMode();
+
+        this.bindButtons();
+
+        this.bindModals();
+
     }
+        /* ==========================================================
+       FILE EVENTS
+    ========================================================== */
 
-}
+    bindFileEvents() {
 
-const importStock = new ImportStock();
+        const input = document.getElementById("excelFile");
+        const dropZone = document.getElementById("dropZone");
 
-document.addEventListener(
+        if (input) {
 
-    "DOMContentLoaded",
+            input.addEventListener("change", (event) => {
 
-    () => importStock.init()
+                const file = event.target.files[0];
 
-);
-
-export default importStock;
-/* ==========================================================
-   FILE EVENTS
-========================================================== */
-
-setupUI(){
-
-    Sidebar.init();
-
-    Navigation.init();
-
-    this.bindFileEvents();
-
-}
-
-/* ==========================================================
-   FILE
-========================================================== */
-
-bindFileEvents(){
-
-    const input =
-        document.getElementById("excelFile");
-
-    const zone =
-        document.getElementById("dropZone");
-
-    if(input){
-
-        input.addEventListener(
-
-            "change",
-
-            (e)=>{
-
-                const file = e.target.files[0];
-
-                if(file){
+                if (file) {
 
                     this.loadExcel(file);
 
                 }
 
-            }
+            });
 
-        );
+        }
 
-    }
+        if (dropZone) {
 
-    if(zone){
+            dropZone.addEventListener("dragover", (event) => {
 
-        zone.addEventListener(
+                event.preventDefault();
 
-            "dragover",
+                dropZone.classList.add("dragover");
 
-            (e)=>{
+            });
 
-                e.preventDefault();
+            dropZone.addEventListener("dragleave", () => {
 
-                zone.classList.add("dragover");
+                dropZone.classList.remove("dragover");
 
-            }
+            });
 
-        );
+            dropZone.addEventListener("drop", (event) => {
 
-        zone.addEventListener(
+                event.preventDefault();
 
-            "dragleave",
+                dropZone.classList.remove("dragover");
 
-            ()=>{
+                const file = event.dataTransfer.files[0];
 
-                zone.classList.remove("dragover");
-
-            }
-
-        );
-
-        zone.addEventListener(
-
-            "drop",
-
-            (e)=>{
-
-                e.preventDefault();
-
-                zone.classList.remove("dragover");
-
-                const file =
-                    e.dataTransfer.files[0];
-
-                if(file){
+                if (file) {
 
                     this.loadExcel(file);
 
                 }
 
+            });
+
+        }
+
+    }
+
+    /* ==========================================================
+       LOAD EXCEL
+    ========================================================== */
+
+    loadExcel(file) {
+
+        this.file = file;
+
+        this.updateFileInfo();
+
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+
+            try {
+
+                const data = new Uint8Array(event.target.result);
+
+                this.workbook = XLSX.read(data, {
+
+                    type: "array"
+
+                });
+
+                const firstSheet = this.workbook.SheetNames[0];
+
+                this.sheet = this.workbook.Sheets[firstSheet];
+
+                this.rows = XLSX.utils.sheet_to_json(
+
+                    this.sheet,
+
+                    {
+
+                        defval: ""
+
+                    }
+
+                );
+
+                this.updateExcelInfo(firstSheet);
+
+                this.renderPreview();
+
+                this.updateSummary();
+
+                Toast.success(
+
+                    "Import Stock",
+
+                    "Fichier Excel chargé."
+
+                );
+
             }
 
-        );
+            catch (error) {
 
-    }
+                console.error(error);
 
-}
+                Toast.error(
 
-/* ==========================================================
-   LOAD EXCEL
-========================================================== */
+                    "Excel",
 
-loadExcel(file){
+                    "Impossible de lire le fichier."
 
-    this.file = file;
-
-    this.updateFileInfo(file);
-
-    const reader = new FileReader();
-
-    reader.onload = (event)=>{
-
-        const data = new Uint8Array(
-
-            event.target.result
-
-        );
-
-        this.workbook = XLSX.read(
-
-            data,
-
-            {
-
-                type:"array"
+                );
 
             }
 
-        );
+        };
 
-        const firstSheet =
-
-            this.workbook.SheetNames[0];
-
-        this.sheet =
-
-            this.workbook.Sheets[firstSheet];
-
-        this.rows =
-
-            XLSX.utils.sheet_to_json(
-
-                this.sheet,
-
-                {
-
-                    defval:""
-
-                }
-
-            );
-
-        this.updateExcelInfo(firstSheet);
-
-        this.renderPreview();
-
-    };
-
-    reader.readAsArrayBuffer(file);
-
-}
-
-/* ==========================================================
-   FILE INFO
-========================================================== */
-
-updateFileInfo(file){
-
-    const name =
-        document.getElementById("fileName");
-
-    const size =
-        document.getElementById("fileSize");
-
-    if(name){
-
-        name.textContent = file.name;
+        reader.readAsArrayBuffer(file);
 
     }
 
-    if(size){
+    /* ==========================================================
+       FILE INFORMATION
+    ========================================================== */
 
-        size.textContent =
+    updateFileInfo() {
 
-            (file.size/1024).toFixed(2)
+        if (!this.file) return;
 
-            +" KB";
+        const fileName = document.getElementById("fileName");
+        const fileSize = document.getElementById("fileSize");
 
-    }
+        if (fileName) {
 
-}
+            fileName.textContent = this.file.name;
 
-updateExcelInfo(sheet){
+        }
 
-    const sheetName =
-        document.getElementById("sheetName");
+        if (fileSize) {
 
-    const rows =
-        document.getElementById("rowCount");
+            fileSize.textContent =
 
-    if(sheetName){
+                (this.file.size / 1024).toFixed(2) + " KB";
 
-        sheetName.textContent = sheet;
-
-    }
-
-    if(rows){
-
-        rows.textContent =
-
-            this.rows.length;
+        }
 
     }
 
-}
-/* ==========================================================
-   PREVIEW
-========================================================== */
+    updateExcelInfo(sheetName) {
 
-renderPreview(){
+        const sheet = document.getElementById("sheetName");
+        const rows = document.getElementById("rowCount");
 
-    const tbody =
+        if (sheet) {
 
-        document.getElementById(
+            sheet.textContent = sheetName;
+
+        }
+
+        if (rows) {
+
+            rows.textContent = this.rows.length;
+
+        }
+
+    }
+        /* ==========================================================
+       PREVIEW
+    ========================================================== */
+
+    renderPreview() {
+
+        const tbody = document.getElementById(
 
             "previewTableBody"
 
         );
 
-    if(!tbody) return;
+        if (!tbody) return;
 
-    tbody.innerHTML = "";
+        tbody.innerHTML = "";
 
-    if(this.rows.length===0){
+        if (this.rows.length === 0) {
 
-        tbody.innerHTML=`
+            tbody.innerHTML = `
 
-            <tr>
+                <tr>
 
-                <td colspan="11"
+                    <td colspan="11" class="empty-table">
 
-                    class="empty-table">
+                        Aucun fichier sélectionné.
 
-                    Aucun fichier chargé.
+                    </td>
 
-                </td>
+                </tr>
 
-            </tr>
+            `;
 
-        `;
+            return;
 
-        return;
+        }
 
-    }
+        const preview = this.rows.slice(0, 20);
 
-    this.rows
+        preview.forEach((row, index) => {
 
-        .slice(0,20)
-
-        .forEach((row,index)=>{
+            const data = this.mapRow(row);
 
             tbody.insertAdjacentHTML(
 
@@ -384,27 +347,27 @@ renderPreview(){
 
                 <tr>
 
-                    <td>${index+1}</td>
+                    <td>${index + 1}</td>
 
-                    <td>${row.Division ?? ""}</td>
+                    <td>${data.division}</td>
 
-                    <td>${row.Magasin ?? ""}</td>
+                    <td>${data.magasin}</td>
 
-                    <td>${row.Article ?? ""}</td>
+                    <td>${data.article}</td>
 
-                    <td>${row.Désignation ?? row.Designation ?? ""}</td>
+                    <td>${data.designation}</td>
 
-                    <td>${row.Lot ?? ""}</td>
+                    <td>${data.lot}</td>
 
-                    <td>${row.Quantité ?? row.Quantite ?? 0}</td>
+                    <td>${data.quantite}</td>
 
-                    <td>${row.Unité ?? row.Unite ?? ""}</td>
+                    <td>${data.unite}</td>
 
-                    <td>${row.Type ?? ""}</td>
+                    <td>${data.type}</td>
 
-                    <td>${row.Groupe ?? ""}</td>
+                    <td>${data.groupe}</td>
 
-                    <td>${row.Qualité ?? row.Qualite ?? ""}</td>
+                    <td>${data.qualite}</td>
 
                 </tr>
 
@@ -414,929 +377,863 @@ renderPreview(){
 
         });
 
-    this.updateSummary();
+    }
 
-}
+    /* ==========================================================
+       SUMMARY
+    ========================================================== */
 
-/* ==========================================================
-   SUMMARY
-========================================================== */
+    updateSummary() {
 
-updateSummary(){
+        const articles = new Set();
 
-    const articles = new Set();
+        const lots = new Set();
 
-    const lots = new Set();
+        const magasins = new Set();
 
-    const magasins = new Set();
+        let total = 0;
 
-    let total = 0;
+        this.rows.forEach((row) => {
 
-    this.rows.forEach(row=>{
+            const data = this.mapRow(row);
 
-        if(row.Article){
+            if (data.article) {
 
-            articles.add(
+                articles.add(data.article);
 
-                row.Article
+            }
 
-            );
+            if (data.lot) {
 
-        }
+                lots.add(data.lot);
 
-        if(row.Lot){
+            }
 
-            lots.add(
+            if (data.magasin) {
 
-                row.Lot
+                magasins.add(data.magasin);
 
-            );
+            }
 
-        }
+            total += Number(data.quantite || 0);
 
-        if(row.Magasin){
+        });
 
-            magasins.add(
+        this.setValue(
 
-                row.Magasin
+            "summaryArticles",
 
-            );
-
-        }
-
-        total += Number(
-
-            row.Quantité ??
-
-            row.Quantite ??
-
-            0
+            articles.size
 
         );
 
-    });
+        this.setValue(
 
-    this.setValue(
+            "summaryLots",
 
-        "summaryArticles",
+            lots.size
 
-        articles.size
+        );
 
-    );
+        this.setValue(
 
-    this.setValue(
+            "summaryMagasins",
 
-        "summaryLots",
+            magasins.size
 
-        lots.size
+        );
 
-    );
+        this.setValue(
 
-    this.setValue(
+            "summaryQuantity",
 
-        "summaryMagasins",
+            total.toLocaleString("fr-FR")
 
-        magasins.size
-
-    );
-
-    this.setValue(
-
-        "summaryQuantity",
-
-        total.toLocaleString(
-
-            "fr-FR"
-
-        )
-
-    );
-
-}
-
-/* ==========================================================
-   HELPERS
-========================================================== */
-
-setValue(id,value){
-
-    const element =
-
-        document.getElementById(id);
-
-    if(element){
-
-        element.textContent = value;
+        );
 
     }
 
-}
-/* ==========================================================
-   COLUMN MAPPING
-========================================================== */
+    /* ==========================================================
+       HELPERS
+    ========================================================== */
 
-mapRow(row){
+    setValue(id, value) {
 
-    return{
+        const element = document.getElementById(id);
 
-        division:
+        if (element) {
 
-            row.Division ??
-            row["Division"] ??
-            row["DIVISION"] ??
-            "",
+            element.textContent = value;
 
-        magasin:
+        }
 
-            row.Magasin ??
-            row["Magasin"] ??
-            row["MAGASIN"] ??
-            row["Storage Location"] ??
-            "",
+    }
+        /* ==========================================================
+       COLUMN MAPPING
+    ========================================================== */
 
-        article:
+    mapRow(row) {
 
-            row.Article ??
-            row["Article"] ??
-            row["ARTICLE"] ??
-            row["Material"] ??
-            row["Code Article"] ??
-            "",
+        return {
 
-        designation:
+            division:
 
-            row.Désignation ??
-            row.Designation ??
-            row["Désignation"] ??
-            row["Designation"] ??
-            row["Material Description"] ??
-            "",
+                row.Division ??
+                row["Division"] ??
+                row["DIVISION"] ??
+                "",
 
-        lot:
+            magasin:
 
-            row.Lot ??
-            row["Lot"] ??
-            row["Batch"] ??
-            "",
+                row.Magasin ??
+                row["Magasin"] ??
+                row["MAGASIN"] ??
+                row["Storage Location"] ??
+                "",
 
-        quantite:Number(
+            article:
 
-            row.Quantité ??
+                row.Article ??
+                row["Article"] ??
+                row["ARTICLE"] ??
+                row["Material"] ??
+                row["Code Article"] ??
+                "",
 
-            row.Quantite ??
+            designation:
 
-            row["Quantité"] ??
+                row.Désignation ??
+                row.Designation ??
+                row["Désignation"] ??
+                row["Designation"] ??
+                row["Material Description"] ??
+                "",
 
-            row["Quantite"] ??
+            lot:
 
-            row["Stock"] ??
+                row.Lot ??
+                row["Lot"] ??
+                row["Batch"] ??
+                "",
 
-            row["Available Stock"] ??
+            quantite: Number(
 
-            0
+                row.Quantité ??
+                row.Quantite ??
+                row["Quantité"] ??
+                row["Quantite"] ??
+                row["Stock"] ??
+                row["Available Stock"] ??
+                0
 
-        ),
+            ),
 
-        unite:
+            unite:
 
-            row.Unité ??
+                row.Unité ??
+                row.Unite ??
+                row["Unité"] ??
+                row["Base Unit"] ??
+                "",
 
-            row.Unite ??
+            type:
 
-            row["Unité"] ??
+                row.Type ??
+                row["Type"] ??
+                "",
 
-            row["Base Unit"] ??
+            groupe:
 
-            "",
+                row.Groupe ??
+                row["Groupe"] ??
+                row["Material Group"] ??
+                "",
 
-        type:
+            qualite:
 
-            row.Type ??
+                row.Qualité ??
+                row.Qualite ??
+                row["Qualité"] ??
+                row["Qualite"] ??
+                ""
 
-            row["Type"] ??
+        };
 
-            "",
+    }
 
-        groupe:
+    /* ==========================================================
+       VALIDATION
+    ========================================================== */
 
-            row.Groupe ??
+    validateRows() {
 
-            row["Groupe"] ??
+        const errors = [];
 
-            row["Material Group"] ??
+        this.rows.forEach((row, index) => {
 
-            "",
+            const data = this.mapRow(row);
 
-        qualite:
+            if (!data.article) {
 
-            row.Qualité ??
+                errors.push(
 
-            row.Qualite ??
+                    `Ligne ${index + 2} : Article manquant.`
 
-            row["Qualité"] ??
+                );
 
-            row["Qualite"] ??
+            }
 
-            ""
+            if (!data.magasin) {
 
-    };
+                errors.push(
 
-}
+                    `Ligne ${index + 2} : Magasin manquant.`
 
-/* ==========================================================
-   GET MAPPED ROWS
-========================================================== */
+                );
 
-getMappedRows(){
+            }
 
-    return this.rows.map(
+            if (Number.isNaN(data.quantite)) {
 
-        row=>this.mapRow(row)
+                errors.push(
 
-    );
+                    `Ligne ${index + 2} : Quantité invalide.`
 
-}
-/* ==========================================================
-   IMPORT
-========================================================== */
+                );
 
-bindImportButton(){
+            }
 
-    const button =
+        });
 
-        document.getElementById(
+        return errors;
+
+    }
+
+    /* ==========================================================
+       GET MAPPED ROWS
+    ========================================================== */
+
+    getMappedRows() {
+
+        return this.rows.map(
+
+            row => this.mapRow(row)
+
+        );
+
+    }
+        /* ==========================================================
+       IMPORT BUTTON
+    ========================================================== */
+
+    bindImportButton() {
+
+        const button = document.getElementById(
 
             "startImportBtn"
 
         );
 
-    if(!button) return;
+        if (!button) return;
 
-    button.addEventListener(
+        button.addEventListener(
 
-        "click",
+            "click",
 
-        ()=>this.startImport()
-
-    );
-
-}
-
-/* ==========================================================
-   START IMPORT
-========================================================== */
-
-async startImport(){
-
-    try{
-
-        if(this.rows.length===0){
-
-            Toast.warning(
-
-                "Import",
-
-                "Aucun fichier sélectionné."
-
-            );
-
-            return;
-
-        }
-
-        Loader.show(
-
-            "Importation...",
-
-            "Traitement des données"
-
-        );
-
-        const data =
-
-            this.getMappedRows();
-
-        const result =
-
-            await this.importData(
-
-                data
-
-            );
-
-        this.updateReport(
-
-            result
-
-        );
-
-        Toast.success(
-
-            "Import",
-
-            "Import terminé."
+            () => this.startImport()
 
         );
 
     }
 
-    catch(error){
+    /* ==========================================================
+       START IMPORT
+    ========================================================== */
 
-        console.error(error);
+    async startImport() {
 
-        Toast.error(
+        try {
 
-            "Import",
+            if (this.rows.length === 0) {
 
-            error.message
+                Toast.warning(
 
-        );
+                    "Import Stock",
 
-    }
-
-    finally{
-
-        Loader.hide();
-
-    }
-
-}
-
-/* ==========================================================
-   API IMPORT
-========================================================== */
-
-async importData(data){
-
-    return await Api.importStock({
-
-        mode:this.importMode,
-
-        rows:data
-
-    });
-
-}
-
-/* ==========================================================
-   REPORT
-========================================================== */
-
-updateReport(result){
-
-    this.setValue(
-
-        "addedCount",
-
-        result?.added ?? 0
-
-    );
-
-    this.setValue(
-
-        "updatedCount",
-
-        result?.updated ?? 0
-
-    );
-
-    this.setValue(
-
-        "deletedCount",
-
-        result?.deleted ?? 0
-
-    );
-
-    this.setValue(
-
-        "errorCount",
-
-        result?.errors ?? 0
-
-    );
-
-}
-/* ==========================================================
-   IMPORT MODE
-========================================================== */
-
-bindImportMode(){
-
-    document
-
-        .querySelectorAll(
-
-            "input[name='importMode']"
-
-        )
-
-        .forEach(radio=>{
-
-            radio.addEventListener(
-
-                "change",
-
-                ()=>{
-
-                    this.importMode =
-
-                        radio.value;
-
-                    this.updateSelectedMode();
-
-                }
-
-            );
-
-        });
-
-}
-
-/* ==========================================================
-   UPDATE MODE
-========================================================== */
-
-updateSelectedMode(){
-
-    const element =
-
-        document.getElementById(
-
-            "selectedMode"
-
-        );
-
-    if(element){
-
-        element.textContent =
-
-            this.importMode
-
-                .replaceAll(
-
-                    "_",
-
-                    " "
+                    "Veuillez sélectionner un fichier Excel."
 
                 );
 
+                return;
+
+            }
+
+            const errors = this.validateRows();
+
+            if (errors.length > 0) {
+
+                Toast.error(
+
+                    "Validation",
+
+                    errors[0]
+
+                );
+
+                console.error(errors);
+
+                return;
+
+            }
+
+            Loader.show(
+
+                "Importation...",
+
+                "Traitement des données"
+
+            );
+
+            const data = this.getMappedRows();
+
+            this.updateProgress(0, data.length);
+
+            const result = await this.importData(data);
+
+            this.updateReport(result);
+
+            this.updateProgress(data.length, data.length);
+
+            Toast.success(
+
+                "Import Stock",
+
+                "Import terminé avec succès."
+
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            Toast.error(
+
+                "Import Stock",
+
+                error.message ||
+
+                "Erreur pendant l'import."
+
+            );
+
+        }
+
+        finally {
+
+            Loader.hide();
+
+        }
+
     }
 
-}
+    /* ==========================================================
+       IMPORT DATA
+    ========================================================== */
 
-/* ==========================================================
-   PROGRESS
-========================================================== */
+    async importData(data) {
 
-updateProgress(current,total){
+        if (typeof Api.importStock !== "function") {
 
-    const percent =
+            throw new Error(
 
-        total===0
+                "Api.importStock() est introuvable."
 
-        ?0
+            );
 
-        :Math.round(
+        }
 
-            current*100/total
+        return await Api.importStock({
+
+            mode: this.importMode,
+
+            rows: data
+
+        });
+
+    }
+
+    /* ==========================================================
+       REPORT
+    ========================================================== */
+
+    updateReport(result = {}) {
+
+        this.setValue(
+
+            "addedCount",
+
+            result.added ?? 0
 
         );
 
-    const bar =
+        this.setValue(
 
-        document.getElementById(
+            "updatedCount",
+
+            result.updated ?? 0
+
+        );
+
+        this.setValue(
+
+            "deletedCount",
+
+            result.deleted ?? 0
+
+        );
+
+        this.setValue(
+
+            "errorCount",
+
+            result.errors ?? 0
+
+        );
+
+    }
+
+    /* ==========================================================
+       PROGRESS
+    ========================================================== */
+
+    updateProgress(current, total) {
+
+        const percent =
+
+            total === 0
+
+                ? 0
+
+                : Math.round(
+
+                    (current * 100) / total
+
+                );
+
+        const bar = document.getElementById(
 
             "progressBar"
 
         );
 
-    if(bar){
+        if (bar) {
 
-        bar.style.width =
-
-            percent+"%";
-
-    }
-
-    this.setValue(
-
-        "progressPercent",
-
-        percent+"%"
-
-    );
-
-    this.setValue(
-
-        "processedRows",
-
-        current
-
-    );
-
-    this.setValue(
-
-        "totalRowsImport",
-
-        total
-
-    );
-
-}
-
-/* ==========================================================
-   HISTORY
-========================================================== */
-
-async loadHistory(){
-
-    try{
-
-        if(!Api.getImportHistory){
-
-            return;
+            bar.style.width = percent + "%";
 
         }
 
-        const history =
+        this.setValue(
 
-            await Api.getImportHistory();
+            "progressPercent",
 
-        this.renderHistory(
+            percent + "%"
 
-            history
+        );
+
+        this.setValue(
+
+            "processedRows",
+
+            current
+
+        );
+
+        this.setValue(
+
+            "totalRowsImport",
+
+            total
 
         );
 
     }
+        /* ==========================================================
+       IMPORT MODE
+    ========================================================== */
 
-    catch(error){
+    bindImportMode() {
 
-        console.error(error);
+        const radios = document.querySelectorAll(
+
+            "input[name='importMode']"
+
+        );
+
+        radios.forEach((radio) => {
+
+            radio.addEventListener("change", () => {
+
+                this.importMode = radio.value;
+
+                this.updateSelectedMode();
+
+            });
+
+        });
 
     }
 
-}
+    updateSelectedMode() {
 
-renderHistory(history=[]){
+        const element = document.getElementById(
 
-    const tbody =
+            "selectedMode"
 
-        document.getElementById(
+        );
+
+        if (!element) return;
+
+        switch (this.importMode) {
+
+            case "REMPLACER":
+
+                element.textContent = "Remplacer";
+
+                break;
+
+            case "SYNCHRONISATION":
+
+                element.textContent = "Synchronisation";
+
+                break;
+
+            default:
+
+                element.textContent = "Mise à jour";
+
+        }
+
+    }
+
+    /* ==========================================================
+       HISTORY
+    ========================================================== */
+
+    async loadHistory() {
+
+        try {
+
+            if (typeof Api.getImportHistory !== "function") {
+
+                return;
+
+            }
+
+            const history =
+
+                await Api.getImportHistory();
+
+            this.renderHistory(history);
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    }
+
+    renderHistory(history = []) {
+
+        const tbody = document.getElementById(
 
             "historyTableBody"
 
         );
 
-    if(!tbody) return;
+        if (!tbody) return;
 
-    tbody.innerHTML="";
+        tbody.innerHTML = "";
 
-    if(history.length===0){
+        if (history.length === 0) {
 
-        tbody.innerHTML=`
+            tbody.innerHTML = `
 
-        <tr>
+                <tr>
 
-            <td colspan="10"
+                    <td colspan="10" class="empty-table">
 
-                class="empty-table">
+                        Aucun historique disponible.
 
-                Aucun historique.
+                    </td>
 
-            </td>
+                </tr>
 
-        </tr>
+            `;
 
-        `;
+            return;
 
-        return;
+        }
 
-    }
+        history.forEach(item => {
 
-    history.forEach(item=>{
+            tbody.insertAdjacentHTML(
 
-        tbody.insertAdjacentHTML(
+                "beforeend",
 
-            "beforeend",
+                `
 
-            `
+                <tr>
 
-            <tr>
+                    <td>${item.date ?? "-"}</td>
 
-                <td>${item.date ?? "-"}</td>
+                    <td>${item.user ?? "-"}</td>
 
-                <td>${item.user ?? "-"}</td>
+                    <td>${item.file ?? "-"}</td>
 
-                <td>${item.file ?? "-"}</td>
+                    <td>${item.mode ?? "-"}</td>
 
-                <td>${item.mode ?? "-"}</td>
+                    <td>${item.rows ?? 0}</td>
 
-                <td>${item.rows ?? 0}</td>
+                    <td>${item.added ?? 0}</td>
 
-                <td>
+                    <td>${item.updated ?? 0}</td>
 
-                    <span class="history-badge success">
+                    <td>${item.deleted ?? 0}</td>
 
-                        ${item.status ?? "-"}
+                    <td>
 
-                    </span>
+                        <span class="history-badge success">
 
-                </td>
+                            ${item.status ?? "-"}
 
-                <td>
+                        </span>
 
-                    <button
+                    </td>
 
-                        class="btn-view"
+                    <td>
 
-                        data-id="${item.id}">
+                        <button
 
-                        <i class="fas fa-eye"></i>
+                            class="btn-view"
 
-                    </button>
+                            data-id="${item.id}">
 
-                </td>
+                            <i class="fas fa-eye"></i>
 
-            </tr>
+                        </button>
 
-            `
+                    </td>
 
-        );
+                </tr>
 
-    });
-
-}
-
-/* ==========================================================
-   REFRESH
-========================================================== */
-
-async refresh(){
-
-    await this.loadHistory();
-
-}
-
-/* ==========================================================
-   DESTROY
-========================================================== */
-
-destroy(){
-
-    this.file = null;
-
-    this.rows = [];
-
-    this.sheet = null;
-
-    this.workbook = null;
-
-}
-/* ==========================================================
-   PART 7
-   EVENTS + MODALS + HELPERS
-========================================================== */
-
-/* ===========================
-   BUTTONS
-=========================== */
-
-bindButtons(){
-
-    document
-
-        .getElementById("cancelImportBtn")
-
-        ?.addEventListener(
-
-            "click",
-
-            ()=>this.cancelImport()
-
-        );
-
-    document
-
-        .getElementById("downloadReportBtn")
-
-        ?.addEventListener(
-
-            "click",
-
-            ()=>this.downloadReport()
-
-        );
-
-    document
-
-        .getElementById("finishImportBtn")
-
-        ?.addEventListener(
-
-            "click",
-
-            ()=>this.finish()
-
-        );
-
-    document
-
-        .getElementById("refreshHistoryBtn")
-
-        ?.addEventListener(
-
-            "click",
-
-            ()=>this.loadHistory()
-
-        );
-
-}
-
-/* ===========================
-   CANCEL
-=========================== */
-
-cancelImport(){
-
-    this.file = null;
-
-    this.rows = [];
-
-    this.workbook = null;
-
-    this.sheet = null;
-
-    const input =
-
-        document.getElementById(
-
-            "excelFile"
-
-        );
-
-    if(input){
-
-        input.value = "";
-
-    }
-
-    this.renderPreview();
-
-    this.updateProgress(0,0);
-
-    Toast.info(
-
-        "Import",
-
-        "Import annulé."
-
-    );
-
-}
-
-/* ===========================
-   DOWNLOAD REPORT
-=========================== */
-
-downloadReport(){
-
-    Toast.info(
-
-        "Rapport",
-
-        "Fonction disponible après connexion avec l'API."
-
-    );
-
-}
-
-/* ===========================
-   FINISH
-=========================== */
-
-finish(){
-
-    window.location.href =
-
-        "../stock/stock.html";
-
-}
-
-/* ===========================
-   MODALS
-=========================== */
-
-openModal(id){
-
-    document
-
-        .getElementById(id)
-
-        ?.classList
-
-        .add("show");
-
-}
-
-closeModal(id){
-
-    document
-
-        .getElementById(id)
-
-        ?.classList
-
-        .remove("show");
-
-}
-
-bindModals(){
-
-    document
-
-        .querySelectorAll(
-
-            ".modal-close"
-
-        )
-
-        .forEach(button=>{
-
-            button.addEventListener(
-
-                "click",
-
-                ()=>{
-
-                    button
-
-                        .closest(".modal")
-
-                        ?.classList
-
-                        .remove("show");
-
-                }
+                `
 
             );
 
         });
 
-}
+    }
 
-/* ===========================
-   LOADER
-=========================== */
+    /* ==========================================================
+       REFRESH
+    ========================================================== */
 
-showLoader(text="Chargement..."){
+    async refresh() {
 
-    const loader =
+        await this.loadHistory();
 
-        document.getElementById(
+    }
+        /* ==========================================================
+       BUTTONS
+    ========================================================== */
 
-            "pageLoader"
+    bindButtons() {
 
-        );
+        document.getElementById("cancelImportBtn")
+            ?.addEventListener(
+                "click",
+                () => this.cancelImport()
+            );
 
-    const label =
+        document.getElementById("downloadReportBtn")
+            ?.addEventListener(
+                "click",
+                () => this.downloadReport()
+            );
 
-        document.getElementById(
+        document.getElementById("finishImportBtn")
+            ?.addEventListener(
+                "click",
+                () => this.finish()
+            );
 
-            "loaderText"
-
-        );
-
-    if(label){
-
-        label.textContent = text;
+        document.getElementById("refreshHistoryBtn")
+            ?.addEventListener(
+                "click",
+                () => this.refresh()
+            );
 
     }
 
-    if(loader){
+    /* ==========================================================
+       CANCEL IMPORT
+    ========================================================== */
 
-        loader.style.display="flex";
+    cancelImport() {
 
-    }
+        this.file = null;
 
-}
+        this.workbook = null;
 
-hideLoader(){
+        this.sheet = null;
 
-    const loader =
+        this.rows = [];
 
-        document.getElementById(
+        const input = document.getElementById("excelFile");
 
-            "pageLoader"
+        if (input) {
+
+            input.value = "";
+
+        }
+
+        this.renderPreview();
+
+        this.updateSummary();
+
+        this.updateProgress(0, 0);
+
+        Toast.info(
+
+            "Import Stock",
+
+            "Import annulé."
 
         );
 
-    if(loader){
+    }
 
-        loader.style.display="none";
+    /* ==========================================================
+       DOWNLOAD REPORT
+    ========================================================== */
+
+    downloadReport() {
+
+        Toast.info(
+
+            "Rapport",
+
+            "Téléchargement bientôt disponible."
+
+        );
+
+    }
+
+    /* ==========================================================
+       FINISH
+    ========================================================== */
+
+    finish() {
+
+        window.location.href =
+
+            "../stock/stock.html";
+
+    }
+
+    /* ==========================================================
+       MODALS
+    ========================================================== */
+
+    bindModals() {
+
+        document
+
+            .querySelectorAll(".modal-close")
+
+            .forEach(button => {
+
+                button.addEventListener(
+
+                    "click",
+
+                    () => {
+
+                        button
+
+                            .closest(".modal")
+
+                            ?.classList.remove("show");
+
+                    }
+
+                );
+
+            });
+
+    }
+
+    /* ==========================================================
+       DESTROY
+    ========================================================== */
+
+    destroy() {
+
+        this.file = null;
+
+        this.workbook = null;
+
+        this.sheet = null;
+
+        this.rows = [];
+
+        console.log(
+
+            "[Import Stock] Destroy."
+
+        );
 
     }
 
 }
+
+/* ==========================================================
+   INSTANCE
+========================================================== */
+
+const importStock = new ImportStock();
+
+/* ==========================================================
+   START
+========================================================== */
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    () => importStock.init()
+
+);
+
+/* ==========================================================
+   DESTROY
+========================================================== */
+
+window.addEventListener(
+
+    "beforeunload",
+
+    () => importStock.destroy()
+
+);
+
+/* ==========================================================
+   EXPORT
+========================================================== */
+
+export default importStock;
