@@ -252,3 +252,34 @@ export async function refreshProfile() {
     }
     return profile;
 }
+/* ============================================================
+   DEFAULT EXPORT
+============================================================ */
+
+const AuthManager = {
+    login,
+    loginWithGoogle,
+    logout,
+
+    // Session
+    getSession: currentSession,
+    getUser: currentUser,
+    currentSession,
+    currentUser,
+    isAuthenticated,
+
+    // Profile
+    getProfile,
+    getRole,
+    refreshProfile,
+    updateLastLogin,
+
+    // Local Storage
+    storedProfile,
+    storedRole,
+    currentUserName,
+    currentUserPhoto,
+    currentUserId
+};
+
+export default AuthManager;
