@@ -15,6 +15,13 @@ import { Loader, Toast } from "./core/utils.js";
 import Sidebar from "./core/sidebar.js";
 import Navigation from "./core/navigation.js";
 
+console.log("========== API ==========");
+console.log(Api);
+console.log("Keys:", Object.keys(Api));
+console.log("importStock:", Api.importStock);
+console.log("getImportHistory:", Api.getImportHistory);
+console.log("=========================");
+
 class ImportStock {
 
     constructor() {
