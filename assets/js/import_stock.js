@@ -367,7 +367,7 @@ class ImportStock {
 
                     <td>${data.groupe}</td>
 
-                    <td>${data.qualite}</td>
+                    <td>${data.Contrôle qualité}</td>
 
                 </tr>
 
@@ -468,99 +468,129 @@ class ImportStock {
         }
 
     }
-        /* ==========================================================
-       COLUMN MAPPING
-    ========================================================== */
+/* ==========================================================
+   COLUMN MAPPING
+========================================================== */
 
-    mapRow(row) {
+mapRow(row) {
 
-        return {
+    return {
 
-            division:
+        /* ===========================
+           DIVISION
+        =========================== */
 
-                row.Division ??
-                row["Division"] ??
-                row["DIVISION"] ??
-                "",
+        division:
 
-            magasin:
+            row["Division"] ?? "",
 
-                row.Magasin ??
-                row["Magasin"] ??
-                row["MAGASIN"] ??
-                row["Storage Location"] ??
-                "",
+        /* ===========================
+           MAGASIN
+        =========================== */
 
-            article:
+        magasin:
 
-                row.Article ??
-                row["Article"] ??
-                row["ARTICLE"] ??
-                row["Material"] ??
-                row["Code Article"] ??
-                "",
+            row["Magasin"] ?? "",
 
-            designation:
+        /* ===========================
+           ARTICLE
+        =========================== */
 
-                row.Désignation ??
-                row.Designation ??
-                row["Désignation"] ??
-                row["Designation"] ??
-                row["Material Description"] ??
-                "",
+        article:
 
-            lot:
+            row["Article"] ?? "",
 
-                row.Lot ??
-                row["Lot"] ??
-                row["Batch"] ??
-                "",
+        /* ===========================
+           DESIGNATION
+        =========================== */
 
-            quantite: Number(
+        designation:
 
-                row.Quantité ??
-                row.Quantite ??
-                row["Quantité"] ??
-                row["Quantite"] ??
-                row["Stock"] ??
-                row["Available Stock"] ??
-                0
+            row["Désignation article"] ??
+            row["Designation article"] ??
+            "",
 
-            ),
+        /* ===========================
+           LOT
+        =========================== */
 
-            unite:
+        lot:
 
-                row.Unité ??
-                row.Unite ??
-                row["Unité"] ??
-                row["Base Unit"] ??
-                "",
+            row["Lot"] ?? "",
 
-            type:
+        /* ===========================
+           QUANTITE
+        =========================== */
 
-                row.Type ??
-                row["Type"] ??
-                "",
+        quantite:
 
-            groupe:
+            parseFloat(
 
-                row.Groupe ??
-                row["Groupe"] ??
-                row["Material Group"] ??
-                "",
+                String(
 
-            qualite:
+                    row["À utilisation libre"] ?? 0
 
-                row.Qualité ??
-                row.Qualite ??
-                row["Qualité"] ??
-                row["Qualite"] ??
-                ""
+                )
 
-        };
+                .replace(/\s/g, "")
 
-    }
+                .replace(",", ".")
 
+            ) || 0,
+
+        /* ===========================
+           UNITE
+        =========================== */
+
+        unite:
+
+            row["Unité quantité base"] ??
+
+            row["Unite quantité base"] ??
+
+            "KG",
+
+        /* ===========================
+           TYPE ARTICLE
+        =========================== */
+
+        type:
+
+            row["Type d'article"] ??
+
+            "",
+
+        /* ===========================
+           GROUPE ARTICLE
+        =========================== */
+
+        groupe:
+
+            row["Groupe d'articles"] ??
+
+            "",
+
+        /* ===========================
+           CONTROLE QUALITE
+        =========================== */
+
+        qualite:
+
+            parseFloat(
+
+                String(
+
+                    row["Contrôle qualité"] ?? 0
+
+                )
+
+                .replace(",", ".")
+
+            ) || 0
+
+    };
+
+}
     /* ==========================================================
        VALIDATION
     ========================================================== */
