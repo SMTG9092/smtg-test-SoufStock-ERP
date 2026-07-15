@@ -1,9 +1,11 @@
 /**
  * ============================================================
- * SoufStock Enterprise ERP
- * realtime.js
+ * SoufStock Enterprise ERP/WMS
+ * File : assets/js/core/realtime.js
  * ============================================================
  */
+
+"use strict";
 
 import supabase from "./supabase.js";
 import DashboardData from "./dashboard-data.js";
@@ -14,70 +16,58 @@ class RealtimeManager {
 
     constructor() {
 
-        this.supabase = AuthManager.supabase;
+        this.supabase = supabase;
 
         this.channels = [];
 
     }
 
     /* ============================================================
-     * INIT
-     * ============================================================
-     */
+       INIT
+    ============================================================ */
 
     init() {
 
         this.subscribeStock();
-
         this.subscribeCommandes();
-
         this.subscribePicking();
-
         this.subscribeExpeditions();
-
         this.subscribeMovements();
+
+        console.log("✅ Realtime Started");
 
     }
 
     /* ============================================================
-     * CHANNEL
-     * ============================================================
-     */
+       CREATE CHANNEL
+    ============================================================ */
 
     createChannel(name, table, callback, event = "*") {
 
         const channel = this.supabase
-
-            .channel(name)
-
+            .channel(`soufstock-${name}`)
             .on(
-
                 "postgres_changes",
-
                 {
-
                     event,
-
                     schema: "public",
-
                     table
-
                 },
-
                 callback
-
             )
+            .subscribe((status) => {
 
-            .subscribe();
+                console.log(`[Realtime] ${name}:`, status);
+
+            });
 
         this.channels.push(channel);
 
     }
 
     /* ============================================================
-     * STOCK
-     * ============================================================
-     */
+       STOCK
+    ============================================================ */
 
     subscribeStock() {
 
@@ -89,18 +79,13 @@ class RealtimeManager {
 
             async () => {
 
-                await DashboardData.refresh();
+                await DashboardData.refresh?.();
+                await Charts.refresh?.();
 
-                await Charts.refresh();
-
-                Notifications.add(
-
+                Notifications.add?.(
                     "Stock",
-
                     "Le stock a été mis à jour.",
-
                     "info"
-
                 );
 
             }
@@ -110,9 +95,8 @@ class RealtimeManager {
     }
 
     /* ============================================================
-     * COMMANDES
-     * ============================================================
-     */
+       COMMANDES
+    ============================================================ */
 
     subscribeCommandes() {
 
@@ -124,18 +108,13 @@ class RealtimeManager {
 
             async () => {
 
-                await DashboardData.refresh();
+                await DashboardData.refresh?.();
+                await Charts.refresh?.();
 
-                await Charts.refresh();
-
-                Notifications.add(
-
+                Notifications.add?.(
                     "Commandes",
-
                     "Les commandes ont été mises à jour.",
-
                     "success"
-
                 );
 
             }
@@ -145,9 +124,8 @@ class RealtimeManager {
     }
 
     /* ============================================================
-     * PICKING
-     * ============================================================
-     */
+       PICKING
+    ============================================================ */
 
     subscribePicking() {
 
@@ -159,7 +137,7 @@ class RealtimeManager {
 
             async () => {
 
-                await DashboardData.refresh();
+                await DashboardData.refresh?.();
 
             }
 
@@ -168,9 +146,8 @@ class RealtimeManager {
     }
 
     /* ============================================================
-     * EXPEDITIONS
-     * ============================================================
-     */
+       EXPEDITIONS
+    ============================================================ */
 
     subscribeExpeditions() {
 
@@ -182,7 +159,7 @@ class RealtimeManager {
 
             async () => {
 
-                await DashboardData.refresh();
+                await DashboardData.refresh?.();
 
             }
 
@@ -191,9 +168,8 @@ class RealtimeManager {
     }
 
     /* ============================================================
-     * MOUVEMENTS
-     * ============================================================
-     */
+       MOUVEMENTS
+    ============================================================ */
 
     subscribeMovements() {
 
@@ -203,15 +179,16 @@ class RealtimeManager {
 
             "mouvements_stock",
 
-            async payload => {
+            async (payload) => {
 
-                await DashboardData.refresh();
+                await DashboardData.refresh?.();
+                await Charts.refresh?.();
 
-                Notifications.add(
+                Notifications.add?.(
 
                     "Nouveau mouvement",
 
-                    payload.new.article ||
+                    payload?.new?.article ||
 
                     "Nouvelle opération",
 
@@ -228,22 +205,19 @@ class RealtimeManager {
     }
 
     /* ============================================================
-     * REFRESH
-     * ============================================================
-     */
+       REFRESH
+    ============================================================ */
 
     async refresh() {
 
-        await DashboardData.refresh();
-
-        await Charts.refresh();
+        await DashboardData.refresh?.();
+        await Charts.refresh?.();
 
     }
 
     /* ============================================================
-     * STOP
-     * ============================================================
-     */
+       DESTROY
+    ============================================================ */
 
     destroy() {
 
@@ -255,12 +229,13 @@ class RealtimeManager {
 
         this.channels = [];
 
+        console.log("🛑 Realtime Stopped");
+
     }
 
     /* ============================================================
-     * STATUS
-     * ============================================================
-     */
+       STATUS
+    ============================================================ */
 
     isRunning() {
 
