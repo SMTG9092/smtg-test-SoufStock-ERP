@@ -406,31 +406,6 @@ async function getLastMovements(limit = 10) {
 }
 
 /* ============================================================
-   EXPORT
-============================================================ */
-
-export default {
-
-    select,
-
-    insert,
-
-    update,
-
-    delete: remove,
-
-    getProfile,
-
-    getDashboardStats,
-
-    getLastMovements,
-
-    getStockStatus,
-
-    logStockMovement
-
-};
-/* ============================================================
    IMPORT STOCK
 ============================================================ */
 
