@@ -94,117 +94,199 @@ class ImportStock {
 
     }
 
-    /* ==========================================================
-       SETUP UI
-    ========================================================== */
+/* ==========================================================
+   SETUP UI
+========================================================== */
 
-    setupUI() {
+setupUI() {
 
-        Sidebar.init();
+    if (this.uiInitialized) return;
 
-        Navigation.init();
+    this.uiInitialized = true;
 
-        this.bindFileEvents();
+    Sidebar.init();
 
-        this.bindImportButton();
+    Navigation.init();
 
-        this.bindImportMode();
+    this.bindFileEvents();
 
-        this.bindButtons();
+    this.bindImportButton();
 
-        this.bindModals();
+    this.bindImportMode();
 
-    }
-        /* ==========================================================
-       FILE EVENTS
-    ========================================================== */
+    this.bindButtons();
 
-    bindFileEvents() {
+    this.bindModals();
 
-        const input = document.getElementById("excelFile");
-        const dropZone = document.getElementById("dropZone");
+}
 
-        if (input) {
+/* ==========================================================
+   FILE EVENTS
+========================================================== */
 
-            input.addEventListener("change", (event) => {
+bindFileEvents() {
 
-                const file = event.target.files[0];
+    const input = document.getElementById("excelFile");
 
-                if (file) {
+    const dropZone = document.getElementById("dropZone");
 
-                    this.loadExcel(file);
+    if (input) {
 
-                }
+        input.addEventListener("change", (event) => {
 
-            });
+            const file = event.target.files[0];
 
-        }
+            if (!file) return;
 
-        if (dropZone) {
+            this.validateAndLoad(file);
 
-            dropZone.addEventListener("dragover", (event) => {
-
-                event.preventDefault();
-
-                dropZone.classList.add("dragover");
-
-            });
-
-            dropZone.addEventListener("dragleave", () => {
-
-                dropZone.classList.remove("dragover");
-
-            });
-
-            dropZone.addEventListener("drop", (event) => {
-
-                event.preventDefault();
-
-                dropZone.classList.remove("dragover");
-
-                const file = event.dataTransfer.files[0];
-
-                if (file) {
-
-                    this.loadExcel(file);
-
-                }
-
-            });
-
-        }
+        });
 
     }
 
-    /* ==========================================================
-       LOAD EXCEL
-    ========================================================== */
+    if (dropZone) {
 
-    loadExcel(file) {
+        dropZone.addEventListener("dragover", (event) => {
 
-        this.file = file;
+            event.preventDefault();
 
-        this.updateFileInfo();
+            dropZone.classList.add("dragover");
 
-        const reader = new FileReader();
+        });
 
-        reader.onload = (event) => {
+        dropZone.addEventListener("dragleave", () => {
 
-            try {
+            dropZone.classList.remove("dragover");
 
-                const data = new Uint8Array(event.target.result);
+        });
 
-                this.workbook = XLSX.read(data, {
+        dropZone.addEventListener("drop", (event) => {
+
+            event.preventDefault();
+
+            dropZone.classList.remove("dragover");
+
+            const file = event.dataTransfer.files[0];
+
+            if (!file) return;
+
+            this.validateAndLoad(file);
+
+        });
+
+    }
+
+}
+
+/* ==========================================================
+   VALIDATE FILE
+========================================================== */
+
+validateAndLoad(file) {
+
+    const extension =
+
+        file.name
+
+        .split(".")
+
+        .pop()
+
+        .toLowerCase();
+
+    if (
+
+        extension !== "xlsx" &&
+
+        extension !== "xls"
+
+    ) {
+
+        Toast.error(
+
+            "Import Stock",
+
+            "Veuillez sélectionner un fichier Excel."
+
+        );
+
+        return;
+
+    }
+
+    this.loadExcel(file);
+
+}
+
+/* ==========================================================
+   LOAD EXCEL
+========================================================== */
+
+loadExcel(file) {
+
+    this.file = file;
+
+    this.updateFileInfo();
+
+    Loader.show(
+
+        "Excel",
+
+        "Lecture du fichier..."
+
+    );
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+
+        try {
+
+            const data = new Uint8Array(
+
+                event.target.result
+
+            );
+
+            this.workbook = XLSX.read(
+
+                data,
+
+                {
 
                     type: "array"
 
-                });
+                }
 
-                const firstSheet = this.workbook.SheetNames[0];
+            );
 
-                this.sheet = this.workbook.Sheets[firstSheet];
+            if (
 
-                this.rows = XLSX.utils.sheet_to_json(
+                !this.workbook ||
+
+                this.workbook.SheetNames.length === 0
+
+            ) {
+
+                throw new Error(
+
+                    "Aucune feuille trouvée."
+
+                );
+
+            }
+
+            const firstSheet =
+
+                this.workbook.SheetNames[0];
+
+            this.sheet =
+
+                this.workbook.Sheets[firstSheet];
+
+            this.rows =
+
+                XLSX.utils.sheet_to_json(
 
                     this.sheet,
 
@@ -216,529 +298,51 @@ class ImportStock {
 
                 );
 
-                this.updateExcelInfo(firstSheet);
+            if (
 
-                this.renderPreview();
+                this.rows.length === 0
 
-                this.updateSummary();
+            ) {
 
-                Toast.success(
+                throw new Error(
 
-                    "Import Stock",
-
-                    "Fichier Excel chargé."
+                    "Le fichier Excel est vide."
 
                 );
 
             }
 
-            catch (error) {
+            console.table(
 
-                console.error(error);
-
-                Toast.error(
-
-                    "Excel",
-
-                    "Impossible de lire le fichier."
-
-                );
-
-            }
-
-        };
-
-        reader.readAsArrayBuffer(file);
-
-    }
-
-    /* ==========================================================
-       FILE INFORMATION
-    ========================================================== */
-
-    updateFileInfo() {
-
-        if (!this.file) return;
-
-        const fileName = document.getElementById("fileName");
-        const fileSize = document.getElementById("fileSize");
-
-        if (fileName) {
-
-            fileName.textContent = this.file.name;
-
-        }
-
-        if (fileSize) {
-
-            fileSize.textContent =
-
-                (this.file.size / 1024).toFixed(2) + " KB";
-
-        }
-
-    }
-
-    updateExcelInfo(sheetName) {
-
-        const sheet = document.getElementById("sheetName");
-        const rows = document.getElementById("rowCount");
-
-        if (sheet) {
-
-            sheet.textContent = sheetName;
-
-        }
-
-        if (rows) {
-
-            rows.textContent = this.rows.length;
-
-        }
-
-    }
-        /* ==========================================================
-       PREVIEW
-    ========================================================== */
-
-    renderPreview() {
-
-        const tbody = document.getElementById(
-
-            "previewTableBody"
-
-        );
-
-        if (!tbody) return;
-
-        tbody.innerHTML = "";
-
-        if (this.rows.length === 0) {
-
-            tbody.innerHTML = `
-
-                <tr>
-
-                    <td colspan="11" class="empty-table">
-
-                        Aucun fichier sélectionné.
-
-                    </td>
-
-                </tr>
-
-            `;
-
-            return;
-
-        }
-
-        const preview = this.rows.slice(0, 20);
-
-        preview.forEach((row, index) => {
-
-            const data = this.mapRow(row);
-
-            tbody.insertAdjacentHTML(
-
-                "beforeend",
-
-                `
-
-                <tr>
-
-                    <td>${index + 1}</td>
-
-                    <td>${data.division}</td>
-
-                    <td>${data.magasin}</td>
-
-                    <td>${data.article}</td>
-
-                    <td>${data.designation}</td>
-
-                    <td>${data.lot}</td>
-
-                    <td>${data.quantite}</td>
-
-                    <td>${data.unite}</td>
-
-                    <td>${data.type}</td>
-
-                    <td>${data.groupe}</td>
-
-                    <td>${data.Contrôle qualité}</td>
-
-                </tr>
-
-                `
+                this.rows.slice(0, 5)
 
             );
 
-        });
+            console.log(
 
-    }
+                Object.keys(
 
-    /* ==========================================================
-       SUMMARY
-    ========================================================== */
-
-    updateSummary() {
-
-        const articles = new Set();
-
-        const lots = new Set();
-
-        const magasins = new Set();
-
-        let total = 0;
-
-        this.rows.forEach((row) => {
-
-            const data = this.mapRow(row);
-
-            if (data.article) {
-
-                articles.add(data.article);
-
-            }
-
-            if (data.lot) {
-
-                lots.add(data.lot);
-
-            }
-
-            if (data.magasin) {
-
-                magasins.add(data.magasin);
-
-            }
-
-            total += Number(data.quantite || 0);
-
-        });
-
-        this.setValue(
-
-            "summaryArticles",
-
-            articles.size
-
-        );
-
-        this.setValue(
-
-            "summaryLots",
-
-            lots.size
-
-        );
-
-        this.setValue(
-
-            "summaryMagasins",
-
-            magasins.size
-
-        );
-
-        this.setValue(
-
-            "summaryQuantity",
-
-            total.toLocaleString("fr-FR")
-
-        );
-
-    }
-
-    /* ==========================================================
-       HELPERS
-    ========================================================== */
-
-    setValue(id, value) {
-
-        const element = document.getElementById(id);
-
-        if (element) {
-
-            element.textContent = value;
-
-        }
-
-    }
-/* ==========================================================
-   COLUMN MAPPING
-========================================================== */
-
-mapRow(row) {
-
-    return {
-
-        /* ===========================
-           DIVISION
-        =========================== */
-
-        division:
-
-            row["Division"] ?? "",
-
-        /* ===========================
-           MAGASIN
-        =========================== */
-
-        magasin:
-
-            row["Magasin"] ?? "",
-
-        /* ===========================
-           ARTICLE
-        =========================== */
-
-        article:
-
-            row["Article"] ?? "",
-
-        /* ===========================
-           DESIGNATION
-        =========================== */
-
-        designation:
-
-            row["Désignation article"] ??
-            row["Designation article"] ??
-            "",
-
-        /* ===========================
-           LOT
-        =========================== */
-
-        lot:
-
-            row["Lot"] ?? "",
-
-        /* ===========================
-           QUANTITE
-        =========================== */
-
-        quantite:
-
-            parseFloat(
-
-                String(
-
-                    row["À utilisation libre"] ?? 0
+                    this.rows[0]
 
                 )
-
-                .replace(/\s/g, "")
-
-                .replace(",", ".")
-
-            ) || 0,
-
-        /* ===========================
-           UNITE
-        =========================== */
-
-        unite:
-
-            row["Unité quantité base"] ??
-
-            row["Unite quantité base"] ??
-
-            "KG",
-
-        /* ===========================
-           TYPE ARTICLE
-        =========================== */
-
-        type:
-
-            row["Type d'article"] ??
-
-            "",
-
-        /* ===========================
-           GROUPE ARTICLE
-        =========================== */
-
-        groupe:
-
-            row["Groupe d'articles"] ??
-
-            "",
-
-        /* ===========================
-           CONTROLE QUALITE
-        =========================== */
-
-        qualite:
-
-            parseFloat(
-
-                String(
-
-                    row["Contrôle qualité"] ?? 0
-
-                )
-
-                .replace(",", ".")
-
-            ) || 0
-
-    };
-
-}
-    /* ==========================================================
-       VALIDATION
-    ========================================================== */
-
-    validateRows() {
-
-        const errors = [];
-
-        this.rows.forEach((row, index) => {
-
-            const data = this.mapRow(row);
-
-            if (!data.article) {
-
-                errors.push(
-
-                    `Ligne ${index + 2} : Article manquant.`
-
-                );
-
-            }
-
-            if (!data.magasin) {
-
-                errors.push(
-
-                    `Ligne ${index + 2} : Magasin manquant.`
-
-                );
-
-            }
-
-            if (Number.isNaN(data.quantite)) {
-
-                errors.push(
-
-                    `Ligne ${index + 2} : Quantité invalide.`
-
-                );
-
-            }
-
-        });
-
-        return errors;
-
-    }
-
-    /* ==========================================================
-       GET MAPPED ROWS
-    ========================================================== */
-
-    getMappedRows() {
-
-        return this.rows.map(
-
-            row => this.mapRow(row)
-
-        );
-
-    }
-        /* ==========================================================
-       IMPORT BUTTON
-    ========================================================== */
-
-    bindImportButton() {
-
-        const button = document.getElementById(
-
-            "startImportBtn"
-
-        );
-
-        if (!button) return;
-
-        button.addEventListener(
-
-            "click",
-
-            () => this.startImport()
-
-        );
-
-    }
-
-    /* ==========================================================
-       START IMPORT
-    ========================================================== */
-
-    async startImport() {
-
-        try {
-
-            if (this.rows.length === 0) {
-
-                Toast.warning(
-
-                    "Import Stock",
-
-                    "Veuillez sélectionner un fichier Excel."
-
-                );
-
-                return;
-
-            }
-
-            const errors = this.validateRows();
-
-            if (errors.length > 0) {
-
-                Toast.error(
-
-                    "Validation",
-
-                    errors[0]
-
-                );
-
-                console.error(errors);
-
-                return;
-
-            }
-
-            Loader.show(
-
-                "Importation...",
-
-                "Traitement des données"
 
             );
 
-            const data = this.getMappedRows();
+            this.updateExcelInfo(
 
-            this.updateProgress(0, data.length);
+                firstSheet
 
-            const result = await this.importData(data);
+            );
 
-            this.updateReport(result);
+            this.renderPreview();
 
-            this.updateProgress(data.length, data.length);
+            this.updateSummary();
 
             Toast.success(
 
                 "Import Stock",
 
-                "Import terminé avec succès."
+                `${this.rows.length} lignes chargées.`
 
             );
 
@@ -750,11 +354,9 @@ mapRow(row) {
 
             Toast.error(
 
-                "Import Stock",
+                "Excel",
 
-                error.message ||
-
-                "Erreur pendant l'import."
+                error.message
 
             );
 
@@ -766,33 +368,696 @@ mapRow(row) {
 
         }
 
+    };
+
+    reader.onerror = () => {
+
+        Loader.hide();
+
+        Toast.error(
+
+            "Excel",
+
+            "Impossible de lire le fichier."
+
+        );
+
+    };
+
+    reader.readAsArrayBuffer(file);
+
+}
+    
+/* ==========================================================
+   FILE INFORMATION
+========================================================== */
+
+updateFileInfo() {
+
+    if (!this.file) return;
+
+    const fileName = document.getElementById("fileName");
+    const fileSize = document.getElementById("fileSize");
+
+    if (fileName) {
+
+        fileName.textContent = this.file.name;
+
     }
 
-    /* ==========================================================
-       IMPORT DATA
-    ========================================================== */
+    if (fileSize) {
 
-    async importData(data) {
+        const size =
 
-        if (typeof Api.importStock !== "function") {
+            this.file.size / 1024;
 
-            throw new Error(
+        fileSize.textContent =
 
-                "Api.importStock() est introuvable."
+            `${size.toFixed(2)} KB`;
+
+    }
+
+}
+
+updateExcelInfo(sheetName) {
+
+    const sheet = document.getElementById("sheetName");
+    const rows = document.getElementById("rowCount");
+
+    if (sheet) {
+
+        sheet.textContent = sheetName;
+
+    }
+
+    if (rows) {
+
+        rows.textContent =
+
+            this.rows.length.toLocaleString("fr-FR");
+
+    }
+
+}
+
+/* ==========================================================
+   PREVIEW
+========================================================== */
+
+renderPreview() {
+
+    const tbody =
+
+        document.getElementById(
+
+            "previewTableBody"
+
+        );
+
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    if (this.rows.length === 0) {
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td colspan="11" class="empty-table">
+
+                    Aucun fichier sélectionné.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+    const preview =
+
+        this.rows.slice(0, 20);
+
+    preview.forEach((row, index) => {
+
+        const data = this.mapRow(row);
+
+        tbody.insertAdjacentHTML(
+
+            "beforeend",
+
+            `
+
+            <tr>
+
+                <td>${index + 1}</td>
+
+                <td>${data.division}</td>
+
+                <td>${data.magasin}</td>
+
+                <td>${data.article}</td>
+
+                <td>${data.designation}</td>
+
+                <td>${data.lot}</td>
+
+                <td>${data.quantite.toLocaleString("fr-FR")}</td>
+
+                <td>${data.unite}</td>
+
+                <td>${data.type}</td>
+
+                <td>${data.groupe}</td>
+
+                <td>${data.qualite}</td>
+
+            </tr>
+
+            `
+
+        );
+
+    });
+
+}
+
+/* ==========================================================
+   SUMMARY
+========================================================== */
+
+updateSummary() {
+
+    const articles = new Set();
+
+    const lots = new Set();
+
+    const magasins = new Set();
+
+    let total = 0;
+
+    this.rows.forEach((row) => {
+
+        const data = this.mapRow(row);
+
+        if (data.article) {
+
+            articles.add(data.article);
+
+        }
+
+        if (data.lot) {
+
+            lots.add(data.lot);
+
+        }
+
+        if (data.magasin) {
+
+            magasins.add(data.magasin);
+
+        }
+
+        total += data.quantite;
+
+    });
+
+    this.setValue(
+
+        "summaryArticles",
+
+        articles.size.toLocaleString("fr-FR")
+
+    );
+
+    this.setValue(
+
+        "summaryLots",
+
+        lots.size.toLocaleString("fr-FR")
+
+    );
+
+    this.setValue(
+
+        "summaryMagasins",
+
+        magasins.size.toLocaleString("fr-FR")
+
+    );
+
+    this.setValue(
+
+        "summaryQuantity",
+
+        total.toLocaleString(
+
+            "fr-FR",
+
+            {
+
+                minimumFractionDigits: 3,
+
+                maximumFractionDigits: 3
+
+            }
+
+        )
+
+    );
+
+}
+
+/* ==========================================================
+   HELPERS
+========================================================== */
+
+setValue(id, value) {
+
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    element.textContent = value;
+
+}
+
+/* ==========================================================
+   COLUMN MAPPING
+========================================================== */
+
+mapRow(row) {
+
+    return {
+
+        division:
+
+            String(
+
+                row["Division"] ?? ""
+
+            ).trim(),
+
+        magasin:
+
+            String(
+
+                row["Magasin"] ?? ""
+
+            ).trim(),
+
+        article:
+
+            String(
+
+                row["Article"] ?? ""
+
+            ).trim(),
+
+        designation:
+
+            String(
+
+                row["Désignation article"] ??
+
+                row["Designation article"] ??
+
+                ""
+
+            ).trim(),
+
+        lot:
+
+            String(
+
+                row["Lot"] ?? ""
+
+            ).trim(),
+
+        quantite:
+
+            this.parseNumber(
+
+                row["À utilisation libre"]
+
+            ),
+
+        unite:
+
+            String(
+
+                row["Unité quantité base"] ??
+
+                row["Unite quantité base"] ??
+
+                "KG"
+
+            ).trim(),
+
+        type:
+
+            String(
+
+                row["Type d'article"] ??
+
+                row["Type article"] ??
+
+                ""
+
+            ).trim(),
+
+        groupe:
+
+            String(
+
+                row["Groupe d'articles"] ??
+
+                row["Groupe articles"] ??
+
+                ""
+
+            ).trim(),
+
+        qualite:
+
+            this.parseNumber(
+
+                row["Contrôle qualité"]
+
+            )
+
+    };
+
+}
+
+/* ==========================================================
+   PARSE NUMBER
+========================================================== */
+
+parseNumber(value) {
+
+    if (
+
+        value === null ||
+
+        value === undefined ||
+
+        value === ""
+
+    ) {
+
+        return 0;
+
+    }
+
+    return parseFloat(
+
+        String(value)
+
+            .trim()
+
+            .replace(/\s/g, "")
+
+            .replace(",", ".")
+
+    ) || 0;
+
+}
+/* ==========================================================
+   PARSE NUMBER
+========================================================== */
+
+parseNumber(value) {
+
+    if (
+
+        value === null ||
+
+        value === undefined ||
+
+        value === ""
+
+    ) {
+
+        return 0;
+
+    }
+
+    return parseFloat(
+
+        String(value)
+
+            .trim()
+
+            .replace(/\s/g, "")
+
+            .replace(",", ".")
+
+    ) || 0;
+
+}
+
+/* ==========================================================
+   VALIDATION
+========================================================== */
+
+validateRows() {
+
+    const errors = [];
+
+    this.rows.forEach((row, index) => {
+
+        const data = this.mapRow(row);
+
+        if (!data.article) {
+
+            errors.push(
+
+                `Ligne ${index + 2} : Article manquant.`
 
             );
 
         }
 
-        return await Api.importStock({
+        if (!data.magasin) {
 
-            mode: this.importMode,
+            errors.push(
 
-            rows: data
+                `Ligne ${index + 2} : Magasin manquant.`
 
-        });
+            );
+
+        }
+
+        if (!data.designation) {
+
+            errors.push(
+
+                `Ligne ${index + 2} : Désignation manquante.`
+
+            );
+
+        }
+
+        if (!data.lot) {
+
+            errors.push(
+
+                `Ligne ${index + 2} : Lot manquant.`
+
+            );
+
+        }
+
+        if (data.quantite < 0) {
+
+            errors.push(
+
+                `Ligne ${index + 2} : Quantité négative.`
+
+            );
+
+        }
+
+    });
+
+    return errors;
+
+}
+
+/* ==========================================================
+   GET MAPPED ROWS
+========================================================== */
+
+getMappedRows() {
+
+    return this.rows.map(
+
+        row => this.mapRow(row)
+
+    );
+
+}
+
+/* ==========================================================
+   GET MAPPED ROWS
+========================================================== */
+
+getMappedRows() {
+
+    return this.rows.map(
+
+        row => this.mapRow(row)
+
+    );
+
+}
+
+/* ==========================================================
+   IMPORT BUTTON
+========================================================== */
+
+bindImportButton() {
+
+    const button = document.getElementById(
+
+        "startImportBtn"
+
+    );
+
+    if (!button) return;
+
+    button.addEventListener(
+
+        "click",
+
+        () => this.startImport()
+
+    );
+
+}
+
+/* ==========================================================
+   START IMPORT
+========================================================== */
+
+async startImport() {
+
+    try {
+
+        if (this.rows.length === 0) {
+
+            Toast.warning(
+
+                "Import Stock",
+
+                "Veuillez sélectionner un fichier Excel."
+
+            );
+
+            return;
+
+        }
+
+        const errors = this.validateRows();
+
+        if (errors.length > 0) {
+
+            console.error(errors);
+
+            Toast.error(
+
+                "Validation",
+
+                `${errors.length} erreur(s) détectée(s).\n${errors[0]}`
+
+            );
+
+            return;
+
+        }
+
+        const data = this.getMappedRows();
+
+        Loader.show(
+
+            "Importation...",
+
+            `Traitement de ${data.length} ligne(s)...`
+
+        );
+
+        this.updateProgress(
+
+            0,
+
+            data.length
+
+        );
+
+        const result = await this.importData(
+
+            data
+
+        );
+
+        this.updateReport(
+
+            result
+
+        );
+
+        this.updateProgress(
+
+            data.length,
+
+            data.length
+
+        );
+
+        Toast.success(
+
+            "Import Stock",
+
+            `Import terminé (${data.length} ligne(s)).`
+
+        );
 
     }
+
+    catch (error) {
+
+        console.error(error);
+
+        Toast.error(
+
+            "Import Stock",
+
+            error.message ||
+
+            "Erreur pendant l'import."
+
+        );
+
+    }
+
+    finally {
+
+        Loader.hide();
+
+    }
+
+}
+    
+/* ==========================================================
+   IMPORT DATA
+========================================================== */
+
+async importData(data) {
+
+    if (typeof Api.importStock !== "function") {
+
+        throw new Error(
+
+            "Api.importStock() est introuvable."
+
+        );
+
+    }
+
+    return await Api.importStock({
+
+        mode: this.importMode,
+
+        rows: data
+
+    });
+
+}
 
     /* ==========================================================
        REPORT
@@ -834,61 +1099,66 @@ mapRow(row) {
 
     }
 
-    /* ==========================================================
-       PROGRESS
-    ========================================================== */
+/* ==========================================================
+   PROGRESS
+========================================================== */
 
-    updateProgress(current, total) {
+updateProgress(current, total) {
 
-        const percent =
+    const percent =
 
-            total === 0
+        total > 0
 
-                ? 0
+            ? Math.round(
 
-                : Math.round(
+                (current * 100) / total
 
-                    (current * 100) / total
+            )
 
-                );
+            : 0;
 
-        const bar = document.getElementById(
+    const bar =
+
+        document.getElementById(
 
             "progressBar"
 
         );
 
-        if (bar) {
+    if (bar) {
 
-            bar.style.width = percent + "%";
+        bar.style.width =
 
-        }
-
-        this.setValue(
-
-            "progressPercent",
-
-            percent + "%"
-
-        );
-
-        this.setValue(
-
-            "processedRows",
-
-            current
-
-        );
-
-        this.setValue(
-
-            "totalRowsImport",
-
-            total
-
-        );
+            percent + "%";
 
     }
+
+    this.setValue(
+
+        "progressPercent",
+
+        percent + "%"
+
+    );
+
+    this.setValue(
+
+        "processedRows",
+
+        current.toLocaleString("fr-FR")
+
+    );
+
+    this.setValue(
+
+        "totalRowsImport",
+
+        total.toLocaleString("fr-FR")
+
+    );
+
+}
+    
         /* ==========================================================
        IMPORT MODE
     ========================================================== */
@@ -1110,43 +1380,53 @@ mapRow(row) {
 
     }
 
-    /* ==========================================================
-       CANCEL IMPORT
-    ========================================================== */
+/* ==========================================================
+   CANCEL IMPORT
+========================================================== */
 
-    cancelImport() {
+cancelImport() {
 
-        this.file = null;
+    this.file = null;
 
-        this.workbook = null;
+    this.workbook = null;
 
-        this.sheet = null;
+    this.sheet = null;
 
-        this.rows = [];
+    this.rows = [];
 
-        const input = document.getElementById("excelFile");
+    const input =
 
-        if (input) {
+        document.getElementById(
 
-            input.value = "";
-
-        }
-
-        this.renderPreview();
-
-        this.updateSummary();
-
-        this.updateProgress(0, 0);
-
-        Toast.info(
-
-            "Import Stock",
-
-            "Import annulé."
+            "excelFile"
 
         );
 
+    if (input) {
+
+        input.value = "";
+
     }
+
+    this.updateFileInfo();
+
+    this.updateExcelInfo("-");
+
+    this.renderPreview();
+
+    this.updateSummary();
+
+    this.updateProgress(0, 0);
+
+    Toast.info(
+
+        "Import Stock",
+
+        "Import annulé."
+
+    );
+
+}
 
     /* ==========================================================
        DOWNLOAD REPORT
