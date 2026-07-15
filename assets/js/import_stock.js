@@ -962,12 +962,15 @@ async importData(data) {
     if (typeof Api.importStock !== "function") {
 
         throw new Error(
-
             "Api.importStock() est introuvable."
-
         );
 
     }
+
+    console.log("========== DATA SENT TO API ==========");
+    console.log(data[0]);
+    console.table(data.slice(0, 5));
+    console.log("======================================");
 
     return await Api.importStock({
 
@@ -978,7 +981,6 @@ async importData(data) {
     });
 
 }
-
     /* ==========================================================
        REPORT
     ========================================================== */
