@@ -1374,7 +1374,7 @@ cancelImport() {
 
         window.location.href =
 
-            "/stock.html";
+            "stock.html";
 
     }
 
