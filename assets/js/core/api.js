@@ -8,7 +8,7 @@
 "use strict";
 
 import supabase from "./supabase.js";
-import Auth from "./auth.js";
+import * as Auth from "./auth.js";
 
 /**
  * Structure de réponse standardisée pour toutes les opérations de l'API
