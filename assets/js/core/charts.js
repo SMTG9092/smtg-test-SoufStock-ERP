@@ -251,3 +251,16 @@ async renderChambreChart() {
     );
 
 }
+destroyAll() {
+
+    Object.keys(this.charts)
+
+        .forEach(key => this.destroy(key));
+
+}
+
+}
+
+const Charts = new ChartsManager();
+
+export default Charts;
