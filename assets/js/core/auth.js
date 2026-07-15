@@ -15,271 +15,463 @@ import supabase, {
 import APP_CONFIG from "./config.js";
 
 /* ============================================================
-    LOGIN (Supporte E-mail OU Nom d'utilisateur)
+   HELPERS
 ============================================================ */
+
+const PROFILE_KEY = APP_CONFIG.AUTH.PROFILE_KEY;
+const ROLE_KEY = "soufstock_role";
+
+/* ============================================================
+   SAVE LOCAL DATA
+============================================================ */
+
+function saveProfile(profile) {
+
+    localStorage.setItem(
+        PROFILE_KEY,
+        JSON.stringify(profile)
+    );
+
+}
+
+function saveRole(role) {
+
+    localStorage.setItem(
+        ROLE_KEY,
+        JSON.stringify(role)
+    );
+
+}
+
+function clearStorage() {
+
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(ROLE_KEY);
+
+}
+/* ============================================================
+   LOGIN (Email ou Username)
+============================================================ */
+
 export async function login(identifier, password) {
+
     try {
+
         let email = identifier.trim();
 
-        // 1. Détection : Si ce n'est pas un e-mail (ne contient pas de '@'), on cherche l'e-mail associé au username
+        /* --------------------------------------------
+           Username -> Email
+        -------------------------------------------- */
+
         if (!email.includes("@")) {
-            const { data: userProfile, error: searchError } = await supabase
+
+            const { data: userProfile, error } = await supabase
                 .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
                 .select("email")
                 .eq("username", email)
-                .maybeSingle(); // Retourne null si non trouvé sans lever d'exception bloquante
+                .maybeSingle();
 
-            if (searchError || !userProfile) {
+            if (error) throw error;
+
+            if (!userProfile) {
+
                 throw new Error("Nom d'utilisateur introuvable.");
+
             }
+
             email = userProfile.email;
+
         }
 
-        // 2. Connexion Supabase avec l'e-mail résolu
-        const { data, error } = await supabase.auth.signInWithPassword({
+        /* --------------------------------------------
+           Login Supabase
+        -------------------------------------------- */
+
+        const {
+            data,
+            error
+        } = await supabase.auth.signInWithPassword({
+
             email,
             password
+
         });
 
         if (error) throw error;
 
-        // 3. Charger le profil utilisateur
-        const { data: profile, error: profileError } = await supabase
+        /* --------------------------------------------
+           Profile
+        -------------------------------------------- */
+
+        const {
+
+            data: profile,
+            error: profileError
+
+        } = await supabase
+
             .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
+
             .select("*")
+
             .eq("id", data.user.id)
+
             .single();
 
         if (profileError) throw profileError;
 
-        // 4. Charger le rôle
-        const { data: role, error: roleError } = await supabase
+        /* --------------------------------------------
+           Role
+        -------------------------------------------- */
+
+        const {
+
+            data: role,
+            error: roleError
+
+        } = await supabase
+
             .from(APP_CONFIG.DATABASE.ROLES_TABLE)
+
             .select("*")
+
             .eq("id", profile.role_id)
+
             .single();
 
         if (roleError) throw roleError;
 
-        // 5. Sauvegarder localement
-        localStorage.setItem(
-            APP_CONFIG.AUTH.PROFILE_KEY,
-            JSON.stringify(profile)
-        );
+        /* --------------------------------------------
+           Save Local
+        -------------------------------------------- */
 
-        localStorage.setItem(
-            "soufstock_role",
-            JSON.stringify(role)
-        );
+        saveProfile(profile);
 
-        // 6. Mettre à jour la date de dernière connexion
+        saveRole(role);
+
+        /* --------------------------------------------
+           Last Login
+        -------------------------------------------- */
+
         await updateLastLogin(data.user.id);
 
         return {
+
             success: true,
+
             user: data.user,
+
             session: data.session,
+
             profile,
+
             role
+
         };
 
-    } catch (error) {
+    }
+
+    catch (error) {
+
+        console.error("[AUTH LOGIN]", error);
+
         return {
+
             success: false,
+
             message: error.message
+
         };
+
     }
+
 }
 
 /* ============================================================
-    LOGIN WITH GOOGLE (SSO)
+   LOGIN WITH GOOGLE
 ============================================================ */
+
 export async function loginWithGoogle() {
+
     try {
+
         const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
+
+            provider: "google",
+
             options: {
-                redirectTo: window.location.origin + '/index.html', // Redirection après connexion réussie
+
+                redirectTo:
+                    window.location.origin +
+                    "/" +
+                    APP_CONFIG.ROUTES.DASHBOARD
+
             }
+
         });
+
         if (error) throw error;
-        return { success: true, data };
-    } catch (error) {
-        return { success: false, message: error.message };
+
+        return {
+
+            success: true,
+
+            data
+
+        };
+
     }
+
+    catch (error) {
+
+        console.error("[AUTH GOOGLE]", error);
+
+        return {
+
+            success: false,
+
+            message: error.message
+
+        };
+
+    }
+
 }
 
 /* ============================================================
-    LOGOUT
+   LOGOUT
 ============================================================ */
+
 export async function logout() {
-    localStorage.removeItem(APP_CONFIG.AUTH.PROFILE_KEY);
-    localStorage.removeItem("soufstock_role");
+
+    clearStorage();
+
     await supabase.auth.signOut();
+
 }
 
 /* ============================================================
-    CURRENT SESSION
+   SESSION
 ============================================================ */
+
 export async function currentSession() {
+
     return await getSession();
+
 }
 
-/* ============================================================
-    CURRENT USER
-============================================================ */
 export async function currentUser() {
+
     return await getUser();
+
 }
 
-/* ============================================================
-    AUTH CHECK
-============================================================ */
 export async function isAuthenticated() {
-    const session = await getSession();
-    return session !== null;
+
+    return (await getSession()) !== null;
+
 }
 
 /* ============================================================
-    USER PROFILE
+   PROFILE
 ============================================================ */
+
 export async function getProfile() {
+
     const user = await getUser();
+
     if (!user) return null;
 
-    const { data } = await supabase
+    const {
+
+        data,
+        error
+
+    } = await supabase
+
         .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
+
         .select("*")
+
         .eq("id", user.id)
+
         .single();
 
+    if (error) return null;
+
     return data;
+
 }
 
 /* ============================================================
-    USER ROLE
+   ROLE
 ============================================================ */
+
 export async function getRole() {
+
     const profile = await getProfile();
+
     if (!profile) return null;
 
-    const { data } = await supabase
+    const {
+
+        data,
+        error
+
+    } = await supabase
+
         .from(APP_CONFIG.DATABASE.ROLES_TABLE)
+
         .select("*")
+
         .eq("id", profile.role_id)
+
         .single();
 
+    if (error) return null;
+
     return data;
+
 }
 
 /* ============================================================
-    UPDATE LAST LOGIN
+   LAST LOGIN
 ============================================================ */
+
 export async function updateLastLogin(userId) {
+
     await supabase
+
         .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
+
         .update({
+
             dernier_login: new Date().toISOString()
+
         })
+
         .eq("id", userId);
+
 }
 
 /* ============================================================
-    STORED PROFILE
+   LOCAL STORAGE
 ============================================================ */
+
 export function storedProfile() {
-    const profile = localStorage.getItem(
-        APP_CONFIG.AUTH.PROFILE_KEY
-    );
-    if (!profile) return null;
-    return JSON.parse(profile);
+
+    const profile = localStorage.getItem(PROFILE_KEY);
+
+    return profile ? JSON.parse(profile) : null;
+
 }
 
-/* ============================================================
-    STORED ROLE
-============================================================ */
 export function storedRole() {
-    const role = localStorage.getItem(
-        "soufstock_role"
-    );
-    if (!role) return null;
-    return JSON.parse(role);
+
+    const role = localStorage.getItem(ROLE_KEY);
+
+    return role ? JSON.parse(role) : null;
+
 }
 
 /* ============================================================
-    USER NAME
+   USER HELPERS
 ============================================================ */
+
 export function currentUserName() {
+
     const profile = storedProfile();
+
     if (!profile) return "";
 
     return (
+
         profile.nom_complet ||
+
         profile.nom ||
+
         profile.username ||
+
         profile.email ||
+
         ""
+
     );
+
 }
 
-/* ============================================================
-    USER PHOTO
-============================================================ */
 export function currentUserPhoto() {
-    const profile = storedProfile();
-    if (!profile) return "";
-    return profile.photo || "";
+
+    return storedProfile()?.photo || "";
+
 }
 
-/* ============================================================
-    USER ID
-============================================================ */
 export async function currentUserId() {
+
     const user = await getUser();
+
     return user?.id || null;
+
 }
 
 /* ============================================================
-    REFRESH PROFILE
+   REFRESH PROFILE
 ============================================================ */
+
 export async function refreshProfile() {
+
     const profile = await getProfile();
+
     if (profile) {
-        localStorage.setItem(
-            APP_CONFIG.AUTH.PROFILE_KEY,
-            JSON.stringify(profile)
-        );
+
+        saveProfile(profile);
+
     }
+
     return profile;
+
 }
+
 /* ============================================================
    DEFAULT EXPORT
 ============================================================ */
 
 const AuthManager = {
+
     login,
+
     loginWithGoogle,
+
     logout,
 
-    // Session
     getSession: currentSession,
+
     getUser: currentUser,
+
     currentSession,
+
     currentUser,
+
     isAuthenticated,
 
-    // Profile
     getProfile,
+
     getRole,
+
     refreshProfile,
+
     updateLastLogin,
 
-    // Local Storage
     storedProfile,
+
     storedRole,
+
     currentUserName,
+
     currentUserPhoto,
+
     currentUserId
+
 };
 
 export default AuthManager;
