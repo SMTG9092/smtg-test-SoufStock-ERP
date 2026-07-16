@@ -19,11 +19,9 @@
         rel="icon"
         href="assets/img/logo.png">
 
-
     <link
         rel="stylesheet"
         href="assets/css/stock.css">
-    
 
     <link
         rel="stylesheet"
@@ -37,347 +35,372 @@
          LOADER
     =========================================================== -->
 
-<div
-    id="fullscreenLoader"
-    class="fullscreen-loader">
+    <div
+        id="fullscreenLoader"
+        class="fullscreen-loader">
 
-    <div class="loader-spinner"></div>
+        <div class="loader-spinner"></div>
 
-    <h3 id="loaderTitle">
+        <h3 id="loaderTitle">
 
-        SoufStock ERP
+            SoufStock ERP
 
-    </h3>
+        </h3>
 
-    <p id="loaderMessage">
+        <p id="loaderMessage">
 
-        Chargement du stock...
+            Chargement du stock...
 
-    </p>
+        </p>
 
-</div>
+    </div>
 
+    <!-- ==========================================================
+         STOCK PAGE
+    =========================================================== -->
 
-            <!-- ==================================================
-                 PAGE HEADER
-            =================================================== -->
+    <main class="stock-page">
 
-            <section class="page-header">
+        <!-- ======================================================
+             HEADER
+        ======================================================= -->
 
-                <div class="page-title">
+        <header class="stock-header">
 
-                    <h1>
+            <div class="header-left">
 
-                        <i class="fa-solid fa-boxes-stacked"></i>
+                <div class="logo-box">
 
-                        Stock Disponible
+                    <img
+                        src="assets/img/logo.png"
+                        alt="SoufStock Logo">
 
-                    </h1>
+                    <div>
 
-                    <p>
+                        <h2>
 
-                        Consultation du stock actuel par article et par lot.
+                            SoufStock ERP
 
-                    </p>
+                        </h2>
+
+                        <span>
+
+                            Gestion du Stock
+
+                        </span>
+
+                    </div>
 
                 </div>
 
-                <nav class="breadcrumb">
+            </div>
 
-                    <a href="dashboard.html">
+            <div class="header-right">
 
-                        Dashboard
+                <input
+                    type="text"
+                    id="globalSearch"
+                    class="search-input"
+                    placeholder="Rechercher un article, un lot...">
 
-                    </a>
+                <button
+                    id="btnRefresh"
+                    class="btn btn-primary">
 
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <i class="fa-solid fa-rotate"></i>
+
+                    Actualiser
+
+                </button>
+
+            </div>
+
+        </header>
+
+        <!-- ======================================================
+             PAGE HEADER
+        ======================================================= -->
+
+        <section class="page-header">
+
+            <div class="page-title">
+
+                <h1>
+
+                    <i class="fa-solid fa-boxes-stacked"></i>
+
+                    Stock Disponible
+
+                </h1>
+
+                <p>
+
+                    Consultation du stock actuel par article et par lot.
+
+                </p>
+
+            </div>
+
+            <div class="page-actions">
+
+                <button
+                    id="btnExport"
+                    class="btn btn-success">
+
+                    <i class="fa-solid fa-file-excel"></i>
+
+                    Export Excel
+
+                </button>
+
+                <button
+                    id="btnPrint"
+                    class="btn btn-secondary">
+
+                    <i class="fa-solid fa-print"></i>
+
+                    Imprimer
+
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- ======================================================
+             CONTENT
+        ======================================================= -->
+                <!-- ======================================================
+             KPI CARDS
+        ======================================================= -->
+
+        <section
+            id="stockCards"
+            class="stock-kpi">
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon green">
+
+                    <i class="fa-solid fa-boxes-stacked"></i>
+
+                </div>
+
+                <div class="kpi-content">
 
                     <span>
 
-                        Stock
+                        Stock Total
 
                     </span>
 
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <h2 id="stockTotal">
 
-                    <strong>
+                        0
 
-                        Stock Disponible
+                    </h2>
 
-                    </strong>
+                    <small>
 
-                </nav>
+                        KG / PC
 
-            </section>
-
-            <!-- ==================================================
-                 CONTENT START
-            =================================================== -->
-                        <!-- ==========================================================
-                 KPI CARDS
-            =========================================================== -->
-
-            <section
-                id="stockCards"
-                class="stock-kpi">
-
-                <div class="kpi-card">
-
-                    <div class="kpi-icon green">
-
-                        <i class="fa-solid fa-boxes-stacked"></i>
-
-                    </div>
-
-                    <div class="kpi-content">
-
-                        <span>
-
-                            Stock Total
-
-                        </span>
-
-                        <h2 id="stockTotal">
-
-                            0
-
-                        </h2>
-
-                        <small>
-
-                            KG / PC
-
-                        </small>
-
-                    </div>
+                    </small>
 
                 </div>
 
-                <div class="kpi-card">
+            </div>
 
-                    <div class="kpi-icon blue">
+            <div class="kpi-card">
 
-                        <i class="fa-solid fa-barcode"></i>
+                <div class="kpi-icon blue">
 
-                    </div>
-
-                    <div class="kpi-content">
-
-                        <span>
-
-                            Articles
-
-                        </span>
-
-                        <h2 id="totalArticles">
-
-                            0
-
-                        </h2>
-
-                        <small>
-
-                            Références
-
-                        </small>
-
-                    </div>
+                    <i class="fa-solid fa-barcode"></i>
 
                 </div>
 
-                <div class="kpi-card">
+                <div class="kpi-content">
 
-                    <div class="kpi-icon orange">
+                    <span>
 
-                        <i class="fa-solid fa-layer-group"></i>
+                        Articles
 
-                    </div>
+                    </span>
 
-                    <div class="kpi-content">
+                    <h2 id="totalArticles">
 
-                        <span>
+                        0
 
-                            Lots
+                    </h2>
 
-                        </span>
+                    <small>
 
-                        <h2 id="totalLots">
+                        Références
 
-                            0
-
-                        </h2>
-
-                        <small>
-
-                            Lots différents
-
-                        </small>
-
-                    </div>
+                    </small>
 
                 </div>
 
-                <div class="kpi-card">
+            </div>
 
-                    <div class="kpi-icon purple">
+            <div class="kpi-card">
 
-                        <i class="fa-solid fa-warehouse"></i>
+                <div class="kpi-icon orange">
 
-                    </div>
-
-                    <div class="kpi-content">
-
-                        <span>
-
-                            Magasins
-
-                        </span>
-
-                        <h2 id="totalMagasins">
-
-                            0
-
-                        </h2>
-
-                        <small>
-
-                            Chambres
-
-                        </small>
-
-                    </div>
+                    <i class="fa-solid fa-layer-group"></i>
 
                 </div>
 
-            </section>
+                <div class="kpi-content">
 
+                    <span>
 
-            <!-- ==========================================================
-                 FILTERS
-            =========================================================== -->
+                        Lots
 
-            <section class="stock-toolbar">
+                    </span>
 
-                <form
-                    id="stockFilterForm"
-                    class="stock-filters">
+                    <h2 id="totalLots">
 
-                    <div class="filter-group">
+                        0
 
-                        <label>
+                    </h2>
 
-                            Recherche
+                    <small>
 
-                        </label>
+                        Lots différents
 
-                        <input
-                            type="text"
-                            id="searchInput"
-                            placeholder="Article, Désignation, Lot...">
-
-                    </div>
-
-                    <div class="filter-group">
-
-                        <label>
-
-                            Article
-
-                        </label>
-
-                        <select id="filterArticle">
-
-                            <option value="">
-
-                                Tous
-
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="filter-group">
-
-                        <label>
-
-                            Magasin
-
-                        </label>
-
-                        <select id="filterMagasin">
-
-                            <option value="">
-
-                                Tous
-
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="filter-group">
-
-                        <label>
-
-                            Lot
-
-                        </label>
-
-                        <input
-                            type="text"
-                            id="filterLot"
-                            placeholder="Numéro de lot">
-
-                    </div>
-
-                </form>
-
-                <div class="toolbar-actions">
-
-                    <button
-                        id="btnRefresh"
-                        class="btn btn-primary">
-
-                        <i class="fa-solid fa-rotate"></i>
-
-                        Actualiser
-
-                    </button>
-
-                    <button
-                        id="btnExport"
-                        class="btn btn-success">
-
-                        <i class="fa-solid fa-file-excel"></i>
-
-                        Export Excel
-
-                    </button>
-
-                    <button
-                        id="btnPrint"
-                        class="btn btn-secondary">
-
-                        <i class="fa-solid fa-print"></i>
-
-                        Imprimer
-
-                    </button>
+                    </small>
 
                 </div>
 
-            </section>
+            </div>
 
+            <div class="kpi-card">
 
-            <!-- ==========================================================
-                 TABLE CARD
-            =========================================================== -->
+                <div class="kpi-icon purple">
 
-            <section class="table-card">
+                    <i class="fa-solid fa-warehouse"></i>
 
-                <div class="table-header">
+                </div>
+
+                <div class="kpi-content">
+
+                    <span>
+
+                        Magasins
+
+                    </span>
+
+                    <h2 id="totalMagasins">
+
+                        0
+
+                    </h2>
+
+                    <small>
+
+                        Chambres
+
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ======================================================
+             FILTERS
+        ======================================================= -->
+
+        <section class="stock-toolbar">
+
+            <form
+                id="stockFilterForm"
+                class="stock-filters">
+
+                <div class="filter-group">
+
+                    <label>
+
+                        Recherche
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Article, Désignation, Lot...">
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label>
+
+                        Article
+
+                    </label>
+
+                    <select id="filterArticle">
+
+                        <option value="">
+
+                            Tous les articles
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label>
+
+                        Magasin
+
+                    </label>
+
+                    <select id="filterMagasin">
+
+                        <option value="">
+
+                            Tous les magasins
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label>
+
+                        Lot
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="filterLot"
+                        placeholder="Numéro de lot">
+
+                </div>
+
+            </form>
+
+        </section>
+
+        <!-- ======================================================
+             TABLE
+        ======================================================= -->
+
+        <section class="table-card">
+
+            <div class="table-header">
+
+                <div>
 
                     <h3>
 
@@ -395,262 +418,261 @@
 
                 </div>
 
-                <div class="table-responsive">
+            </div>
 
-                    <table
-                        id="stockTable"
-                        class="stock-table">
+            <div class="table-responsive">
 
-                        <thead>
+                <table
+                    id="stockTable"
+                    class="stock-table">
 
-                            <tr>
+                    <thead>
 
-                                <th>#</th>
+                        <tr>
 
-                                <th>Article</th>
+                            <th>#</th>
 
-                                <th>Désignation</th>
+                            <th>Article</th>
 
-                                <th>Lot</th>
+                            <th>Désignation</th>
 
-                                <th>Magasin</th>
+                            <th>Lot</th>
 
-                                <th>Disponible</th>
+                            <th>Magasin</th>
 
-                                <th>Unité</th>
+                            <th>Disponible</th>
 
-                                <th>Actions</th>
+                            <th>Unité</th>
 
-                            </tr>
+                            <th>Actions</th>
 
-                        </thead>
+                        </tr>
 
-                        <tbody id="stockTableBody">
+                    </thead>
 
-                            <tr>
+                    <tbody id="stockTableBody">
 
-                                <td
-                                    colspan="8"
-                                    class="loading-row">
+                        <tr>
 
-                                    Chargement des données...
+                            <td
+                                colspan="8"
+                                class="loading-row">
 
-                                </td>
+                                Chargement des données...
 
-                            </tr>
+                            </td>
 
-                        </tbody>
+                        </tr>
 
-                    </table>
+                    </tbody>
 
-                </div>
+                </table>
 
-            </section>
+            </div>
 
+        </section>
 
-            <!-- ==========================================================
-                 PAGINATION
-            =========================================================== -->
+        <!-- ======================================================
+             PAGINATION
+        ======================================================= -->
 
-            <section class="pagination-wrapper">
+        <section class="pagination-wrapper">
 
-                <div class="pagination-info">
+            <div class="pagination-info">
 
-                    Affichage :
+                Affichage :
 
-                    <strong id="paginationInfo">
+                <strong id="paginationInfo">
 
-                        0
+                    0
 
-                    </strong>
+                </strong>
 
-                </div>
-
-                <div
-                    id="pagination"
-                    class="pagination">
-
-                </div>
-
-            </section>
-                        <!-- ==========================================================
-                 STOCK DETAILS MODAL
-            =========================================================== -->
+            </div>
 
             <div
-                id="stockModal"
-                class="modal-overlay"
-                hidden>
+                id="pagination"
+                class="pagination">
 
-                <div class="stock-modal">
+            </div>
 
-                    <div class="modal-header">
+        </section>
+                <!-- ======================================================
+             STOCK DETAILS MODAL
+        ======================================================= -->
 
-                        <h2>
+        <div
+            id="stockModal"
+            class="modal-overlay"
+            hidden>
 
-                            <i class="fa-solid fa-circle-info"></i>
+            <div class="stock-modal">
 
-                            Détails du Stock
+                <div class="modal-header">
 
-                        </h2>
+                    <h2>
 
-                        <button
-                            id="closeStockModal"
-                            class="close-btn">
+                        <i class="fa-solid fa-circle-info"></i>
 
-                            <i class="fa-solid fa-xmark"></i>
+                        Détails du Stock
 
-                        </button>
+                    </h2>
 
-                    </div>
+                    <button
+                        id="closeStockModal"
+                        class="close-btn">
 
-                    <div class="modal-body">
+                        <i class="fa-solid fa-xmark"></i>
 
-                        <div class="detail-grid">
+                    </button>
 
-                            <div class="detail-item">
+                </div>
 
-                                <label>Article</label>
+                <div class="modal-body">
 
-                                <span id="detailArticle">-</span>
+                    <div class="detail-grid">
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Article</label>
 
-                                <label>Désignation</label>
+                            <span id="detailArticle">-</span>
 
-                                <span id="detailDesignation">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Désignation</label>
 
-                                <label>Lot</label>
+                            <span id="detailDesignation">-</span>
 
-                                <span id="detailLot">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Lot</label>
 
-                                <label>Magasin</label>
+                            <span id="detailLot">-</span>
 
-                                <span id="detailMagasin">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Magasin</label>
 
-                                <label>Division</label>
+                            <span id="detailMagasin">-</span>
 
-                                <span id="detailDivision">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Division</label>
 
-                                <label>Disponible</label>
+                            <span id="detailDivision">-</span>
 
-                                <span id="detailStock">0</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Disponible</label>
 
-                                <label>Unité</label>
+                            <span id="detailStock">0</span>
 
-                                <span id="detailUnite">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Unité</label>
 
-                                <label>Type Article</label>
+                            <span id="detailUnite">-</span>
 
-                                <span id="detailType">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Type Article</label>
 
-                                <label>Groupe</label>
+                            <span id="detailType">-</span>
 
-                                <span id="detailGroupe">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Groupe</label>
 
-                                <label>Document</label>
+                            <span id="detailGroupe">-</span>
 
-                                <span id="detailDocument">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Document</label>
 
-                                <label>Date Entrée</label>
+                            <span id="detailDocument">-</span>
 
-                                <span id="detailDateEntree">-</span>
+                        </div>
 
-                            </div>
+                        <div class="detail-item">
 
-                            <div class="detail-item">
+                            <label>Date Entrée</label>
 
-                                <label>Statut</label>
+                            <span id="detailDateEntree">-</span>
 
-                                <span
-                                    id="detailStatut"
-                                    class="status-badge">
+                        </div>
 
-                                    Disponible
+                        <div class="detail-item">
 
-                                </span>
+                            <label>Statut</label>
 
-                            </div>
+                            <span
+                                id="detailStatut"
+                                class="status-badge">
+
+                                Disponible
+
+                            </span>
 
                         </div>
 
                     </div>
 
-                    <div class="modal-footer">
+                </div>
 
-                        <button
-                            id="printFicheBtn"
-                            class="btn btn-success">
+                <div class="modal-footer">
 
-                            <i class="fa-solid fa-print"></i>
+                    <button
+                        id="printFicheBtn"
+                        class="btn btn-success">
 
-                            Imprimer
+                        <i class="fa-solid fa-print"></i>
 
-                        </button>
+                        Imprimer
 
-                        <button
-                            id="closeModalFooter"
-                            class="btn btn-secondary">
+                    </button>
 
-                            Fermer
+                    <button
+                        id="closeModalFooter"
+                        class="btn btn-secondary">
 
-                        </button>
+                        Fermer
 
-                    </div>
+                    </button>
 
                 </div>
 
             </div>
 
-        </main>
+        </div>
 
-    </div>
+    </main>
 
-    <!-- ==========================================================
+    <!-- ======================================================
          FOOTER
-    =========================================================== -->
+    ======================================================= -->
 
     <footer class="page-footer">
 
-        <div class="footer-left">
+        <div>
 
             © 2026
 
@@ -662,7 +684,7 @@
 
         </div>
 
-        <div class="footer-right">
+        <div>
 
             Version
 
@@ -676,40 +698,10 @@
 
     </footer>
 
-    <!-- ==========================================================
-         TOAST CONTAINER
-    =========================================================== -->
-
-    <div
-        id="toastContainer"
-        class="toast-container">
-
-    </div>
-
-    <!-- ==========================================================
-         OVERLAY
-    =========================================================== -->
-
-    <div
-        id="overlay"
-        class="overlay"
-        hidden>
-
-    </div>
-
-    <!-- ==========================================================
-         SIDEBAR BACKDROP
-    =========================================================== -->
-
-    <div
-        id="sidebarBackdrop"
-        class="sidebar-backdrop">
-
-    </div>
-
-    <!-- ==========================================================
+    <!-- ======================================================
          SCRIPTS
-    =========================================================== -->
+    ======================================================= -->
+
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
     <script
