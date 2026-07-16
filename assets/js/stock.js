@@ -32,54 +32,53 @@ class StockController {
 
     }
 
-    /* ============================================================
-       INIT
-    ============================================================ */
+/* ============================================================
+   INIT
+============================================================ */
 
-    async init() {
+async init() {
 
-        try {
+    try {
 
-            Loader.show(
+        this.showLoader(
 
-                "Chargement...",
+            "Chargement...",
 
-                "Lecture du stock..."
+            "Lecture du stock..."
 
-            );
+        );
 
-            this.setupUI();
+        this.setupUI();
 
-            await this.loadStock();
+        await this.loadStock();
 
-            Loader.hide();
+        this.hideLoader();
 
-            console.log(
+        console.log(
 
-                "[Stock] Initialisé."
+            "[Stock] Initialisé."
 
-            );
-
-        }
-
-        catch(error){
-
-            console.error(error);
-
-            Loader.hide();
-
-            Toast.error(
-
-                "Stock",
-
-                error.message
-
-            );
-
-        }
+        );
 
     }
 
+    catch(error){
+
+        console.error(error);
+
+        this.hideLoader();
+
+        Toast.error(
+
+            "Stock",
+
+            error.message
+
+        );
+
+    }
+
+}
     /* ============================================================
        UI
     ============================================================ */
