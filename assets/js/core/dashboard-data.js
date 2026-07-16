@@ -99,48 +99,59 @@ class DashboardData {
 
     }
 
-    /* ============================================================
-     * KPI
-     * ============================================================ */
+   /* ============================================================
+ * KPI
+ * ============================================================ */
 
-    renderStats() {
+renderStats() {
 
-this.setValue(
-    "stockTotal",
-    Number(this.stats.stock).toLocaleString(
-        "fr-FR",
-        {
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3
-        }
-    ) + " KG / Pce "
-);
+    const stockTotal = Number(this.stats.stock || 0);
 
-        this.setValue(
+    this.setValue(
 
-            "ordersCount",
+        "stockTotal",
 
-            this.stats.commandes
+        stockTotal.toLocaleString(
 
-        );
+            "fr-FR",
 
-        this.setValue(
+            {
 
-            "pickingCount",
+                minimumFractionDigits: 3,
 
-            this.stats.picking
+                maximumFractionDigits: 3
 
-        );
+            }
 
-        this.setValue(
+        ) + " KG"
 
-            "expeditionCount",
+    );
 
-            this.stats.expeditions
+    this.setValue(
 
-        );
+        "ordersCount",
 
-    }
+        this.stats.commandes || 0
+
+    );
+
+    this.setValue(
+
+        "pickingCount",
+
+        this.stats.picking || 0
+
+    );
+
+    this.setValue(
+
+        "expeditionCount",
+
+        this.stats.expeditions || 0
+
+    );
+
+}
 
     /* ============================================================
      * TABLE
