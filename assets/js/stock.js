@@ -7,16 +7,16 @@
 
 "use strict";
 
-import APP_CONFIG from "./core/config.js";
+/* ============================================================
+   IMPORTS
+============================================================ */
+
 import Api from "./core/api.js";
-import SessionManager from "./core/session.js";
-import ThemeManager from "./core/theme.js";
-import LanguageManager from "./core/language.js";
-import Sidebar from "./core/sidebar.js";
-import Navigation from "./core/navigation.js";
-import Profile from "./core/profile.js";
-import Notifications from "./core/notifications.js";
 import { Loader, Toast } from "./core/utils.js";
+
+/* ============================================================
+   STOCK CONTROLLER
+============================================================ */
 
 class StockController {
 
@@ -30,8 +30,6 @@ class StockController {
 
         this.rowsPerPage = 25;
 
-        this.initialized = false;
-
     }
 
     /* ============================================================
@@ -43,64 +41,39 @@ class StockController {
         try {
 
             Loader.show(
+
                 "Chargement...",
-                "Initialisation du Stock..."
+
+                "Lecture du stock..."
+
             );
-
-            ThemeManager.init();
-
-            LanguageManager.init();
-
-            await SessionManager.init();
-
-            const authenticated =
-                await SessionManager.isAuthenticated();
-
-            if (!authenticated) {
-
-                window.location.replace(
-                    APP_CONFIG.ROUTES.LOGIN
-                );
-
-                return;
-
-            }
-
-            await Promise.all([
-
-                Profile.load(),
-
-                Sidebar.init(),
-
-                Navigation.init(),
-
-                Notifications.init()
-
-            ]);
 
             this.setupUI();
 
             await this.loadStock();
 
-            this.initialized = true;
-
             Loader.hide();
 
             console.log(
+
                 "[Stock] Initialisé."
+
             );
 
         }
 
-        catch (error) {
+        catch(error){
 
             console.error(error);
 
             Loader.hide();
 
             Toast.error(
+
                 "Stock",
+
                 error.message
+
             );
 
         }
@@ -111,7 +84,7 @@ class StockController {
        UI
     ============================================================ */
 
-    setupUI() {
+    setupUI(){
 
         document
 
@@ -121,7 +94,7 @@ class StockController {
 
                 "click",
 
-                () => this.refresh()
+                ()=>this.refresh()
 
             );
 
@@ -133,7 +106,7 @@ class StockController {
 
                 "input",
 
-                () => this.applyFilters()
+                ()=>this.applyFilters()
 
             );
 
@@ -145,7 +118,7 @@ class StockController {
 
                 "change",
 
-                () => this.applyFilters()
+                ()=>this.applyFilters()
 
             );
 
@@ -157,7 +130,7 @@ class StockController {
 
                 "change",
 
-                () => this.applyFilters()
+                ()=>this.applyFilters()
 
             );
 
@@ -169,7 +142,7 @@ class StockController {
 
                 "input",
 
-                () => this.applyFilters()
+                ()=>this.applyFilters()
 
             );
 
@@ -181,7 +154,7 @@ class StockController {
 
                 "click",
 
-                () => this.exportExcel()
+                ()=>this.exportExcel()
 
             );
 
@@ -193,7 +166,7 @@ class StockController {
 
                 "click",
 
-                () => this.print()
+                ()=>this.print()
 
             );
 
@@ -205,7 +178,7 @@ class StockController {
 
                 "click",
 
-                () => this.closeModal()
+                ()=>this.closeModal()
 
             );
 
@@ -217,7 +190,7 @@ class StockController {
 
                 "click",
 
-                () => this.closeModal()
+                ()=>this.closeModal()
 
             );
 
@@ -229,15 +202,13 @@ class StockController {
 
                 "click",
 
-                (e) => {
+                e=>{
 
-                    if (
+                    if(
 
-                        e.target.id ===
+                        e.target.id==="stockModal"
 
-                        "stockModal"
-
-                    ) {
+                    ){
 
                         this.closeModal();
 
@@ -253,86 +224,86 @@ class StockController {
        REFRESH
     ============================================================ */
 
-async refresh() {
+    async refresh(){
 
-    await this.loadStock();
+        await this.loadStock();
 
-    Toast.success(
+        Toast.success(
 
-        "Stock",
+            "Stock",
 
-        "Données actualisées."
+            "Stock actualisé."
 
-    );
+        );
 
-}
+    }
+
     /* ============================================================
        LOAD STOCK
     ============================================================ */
 
-async loadStock() {
+    async loadStock(){
 
-    try {
+        try{
 
-        console.log("1 - Avant Api.getStock()");
+            Loader.show(
 
-        Loader.show(
-            "Chargement...",
-            "Lecture du stock..."
-        );
+                "Chargement...",
 
-        this.stock = await Api.getStock();
+                "Lecture du stock..."
 
-        console.log("2 - Data :", this.stock);
+            );
 
-        this.filteredStock = [...this.stock];
+            this.stock =
 
-        this.currentPage = 1;
+                await Api.getStock();
 
-        console.log("3 - renderCards");
-        this.renderCards();
+            this.filteredStock =
 
-        console.log("4 - fillFilters");
-        this.fillFilters();
+                [...this.stock];
 
-        console.log("5 - renderTable");
-        this.renderTable();
+            this.currentPage = 1;
 
-        console.log("6 - renderPagination");
-        this.renderPagination();
+            this.renderCards();
 
-        Loader.hide();
+            this.fillFilters();
 
-        console.log("7 - Fin");
+            this.renderTable();
+
+            this.renderPagination();
+
+            Loader.hide();
+
+        }
+
+        catch(error){
+
+            Loader.hide();
+
+            console.error(error);
+
+            Toast.error(
+
+                "Stock",
+
+                error.message
+
+            );
+
+        }
 
     }
-
-    catch (error) {
-
-        Loader.hide();
-
-        console.error("LOAD STOCK ERROR :", error);
-
-        Toast.error(
-            "Stock",
-            error.message
-        );
-
-    }
-
-}
-
-    /* ============================================================
-       KPI
+        /* ============================================================
+       KPI CARDS
     ============================================================ */
 
-    renderCards() {
+    renderCards(){
 
         const totalStock =
 
             this.filteredStock.reduce(
 
-                (sum, row) =>
+                (sum,row)=>
 
                     sum +
 
@@ -352,7 +323,7 @@ async loadStock() {
 
                 this.filteredStock.map(
 
-                    r => r.article
+                    r=>r.article
 
                 )
 
@@ -364,7 +335,7 @@ async loadStock() {
 
                 this.filteredStock.map(
 
-                    r => r.lot
+                    r=>r.lot
 
                 )
 
@@ -376,7 +347,7 @@ async loadStock() {
 
                 this.filteredStock.map(
 
-                    r => r.magasin
+                    r=>r.magasin
 
                 )
 
@@ -388,17 +359,9 @@ async loadStock() {
 
         ).textContent =
 
-            totalStock.toLocaleString(
+            this.formatNumber(
 
-                "fr-FR",
-
-                {
-
-                    minimumFractionDigits:3,
-
-                    maximumFractionDigits:3
-
-                }
+                totalStock
 
             );
 
@@ -406,19 +369,229 @@ async loadStock() {
 
             "totalArticles"
 
-        ).textContent = articles;
+        ).textContent =
+
+            articles;
 
         document.getElementById(
 
             "totalLots"
 
-        ).textContent = lots;
+        ).textContent =
+
+            lots;
 
         document.getElementById(
 
             "totalMagasins"
 
-        ).textContent = magasins;
+        ).textContent =
+
+            magasins;
+
+    }
+
+    /* ============================================================
+       FILTERS
+    ============================================================ */
+
+    fillFilters(){
+
+        const article =
+
+            document.getElementById(
+
+                "filterArticle"
+
+            );
+
+        const magasin =
+
+            document.getElementById(
+
+                "filterMagasin"
+
+            );
+
+        article.innerHTML =
+
+            `<option value="">Tous</option>`;
+
+        magasin.innerHTML =
+
+            `<option value="">Tous</option>`;
+
+        [...new Set(
+
+            this.stock.map(
+
+                r=>r.article
+
+            )
+
+        )]
+
+        .sort()
+
+        .forEach(value=>{
+
+            article.insertAdjacentHTML(
+
+                "beforeend",
+
+                `<option value="${value}">${value}</option>`
+
+            );
+
+        });
+
+        [...new Set(
+
+            this.stock.map(
+
+                r=>r.magasin
+
+            )
+
+        )]
+
+        .sort()
+
+        .forEach(value=>{
+
+            magasin.insertAdjacentHTML(
+
+                "beforeend",
+
+                `<option value="${value}">${value}</option>`
+
+            );
+
+        });
+
+    }
+
+    /* ============================================================
+       APPLY FILTERS
+    ============================================================ */
+
+    applyFilters(){
+
+        const search =
+
+            document
+
+            .getElementById(
+
+                "searchInput"
+
+            )
+
+            .value
+
+            .trim()
+
+            .toLowerCase();
+
+        const article =
+
+            document
+
+            .getElementById(
+
+                "filterArticle"
+
+            )
+
+            .value;
+
+        const magasin =
+
+            document
+
+            .getElementById(
+
+                "filterMagasin"
+
+            )
+
+            .value;
+
+        const lot =
+
+            document
+
+            .getElementById(
+
+                "filterLot"
+
+            )
+
+            .value
+
+            .trim()
+
+            .toLowerCase();
+
+        this.filteredStock =
+
+            this.stock.filter(row=>{
+
+                return(
+
+                    (
+
+                        !search ||
+
+                        row.article?.toLowerCase().includes(search) ||
+
+                        row.designation_article?.toLowerCase().includes(search) ||
+
+                        row.lot?.toLowerCase().includes(search)
+
+                    )
+
+                    &&
+
+                    (
+
+                        !article ||
+
+                        row.article===article
+
+                    )
+
+                    &&
+
+                    (
+
+                        !magasin ||
+
+                        row.magasin===magasin
+
+                    )
+
+                    &&
+
+                    (
+
+                        !lot ||
+
+                        row.lot?.toLowerCase().includes(lot)
+
+                    )
+
+                );
+
+            });
+
+        this.currentPage = 1;
+
+        this.renderCards();
+
+        this.renderTable();
+
+        this.renderPagination();
 
     }
 
@@ -426,7 +599,7 @@ async loadStock() {
        TABLE
     ============================================================ */
 
-    renderTable() {
+    renderTable(){
 
         const tbody =
 
@@ -452,17 +625,11 @@ async loadStock() {
 
                 start,
 
-                start +
-
-                this.rowsPerPage
+                start + this.rowsPerPage
 
             );
 
-        if (
-
-            rows.length === 0
-
-        ) {
+        if(rows.length===0){
 
             tbody.innerHTML =
 
@@ -472,7 +639,7 @@ async loadStock() {
 
                 <td colspan="8"
 
-                    class="empty-row">
+                    class="loading-row">
 
                     Aucun résultat.
 
@@ -498,63 +665,19 @@ async loadStock() {
 
                     <tr>
 
-                        <td>
+                        <td>${start+index+1}</td>
 
-                            ${start+index+1}
+                        <td>${item.article}</td>
 
-                        </td>
+                        <td>${item.designation_article}</td>
 
-                        <td>
+                        <td>${item.lot}</td>
 
-                            ${item.article}
+                        <td>${item.magasin}</td>
 
-                        </td>
+                        <td>${this.formatNumber(item.stock_disponible)}</td>
 
-                        <td>
-
-                            ${item.designation_article}
-
-                        </td>
-
-                        <td>
-
-                            ${item.lot}
-
-                        </td>
-
-                        <td>
-
-                            ${item.magasin}
-
-                        </td>
-
-                        <td>
-
-                            ${Number(
-
-                                item.stock_disponible
-
-                            ).toLocaleString(
-
-                                "fr-FR",
-
-                                {
-
-                                    minimumFractionDigits:3,
-
-                                    maximumFractionDigits:3
-
-                                }
-
-                            )}
-
-                        </td>
-
-                        <td>
-
-                            ${item.unite}
-
-                        </td>
+                        <td>${item.unite}</td>
 
                         <td>
 
@@ -584,37 +707,31 @@ async loadStock() {
 
         );
 
-        document.querySelectorAll(
+        document
 
-            ".action-btn.view"
+            .querySelectorAll(
 
-        ).forEach(
+                ".action-btn.view"
 
-            btn=>{
+            )
 
-                btn.addEventListener(
+            .forEach(btn=>{
 
-                    "click",
+                btn.onclick = ()=>{
 
-                    ()=>{
+                    this.showDetails(
 
-                        this.showDetails(
+                        this.filteredStock[
 
-                            this.filteredStock[
+                            btn.dataset.index
 
-                                btn.dataset.index
+                        ]
 
-                            ]
+                    );
 
-                        );
+                };
 
-                    }
-
-                );
-
-            }
-
-        );
+            });
 
         document.getElementById(
 
@@ -627,106 +744,10 @@ async loadStock() {
     }
 
     /* ============================================================
-       FILTERS
-    ============================================================ */
-
-    fillFilters() {
-
-        const article =
-
-            document.getElementById(
-
-                "filterArticle"
-
-            );
-
-        const magasin =
-
-            document.getElementById(
-
-                "filterMagasin"
-
-            );
-
-        article.innerHTML =
-
-            `<option value="">Tous</option>`;
-
-        magasin.innerHTML =
-
-            `<option value="">Tous</option>`;
-
-        [
-
-            ...new Set(
-
-                this.stock.map(
-
-                    r=>r.article
-
-                )
-
-            )
-
-        ]
-
-        .sort()
-
-        .forEach(
-
-            value=>{
-
-                article.insertAdjacentHTML(
-
-                    "beforeend",
-
-                    `<option>${value}</option>`
-
-                );
-
-            }
-
-        );
-
-        [
-
-            ...new Set(
-
-                this.stock.map(
-
-                    r=>r.magasin
-
-                )
-
-            )
-
-        ]
-
-        .sort()
-
-        .forEach(
-
-            value=>{
-
-                magasin.insertAdjacentHTML(
-
-                    "beforeend",
-
-                    `<option>${value}</option>`
-
-                );
-
-            }
-
-        );
-
-    }
-
-    /* ============================================================
        PAGINATION
     ============================================================ */
 
-    renderPagination() {
+    renderPagination(){
 
         const pagination =
 
@@ -738,7 +759,7 @@ async loadStock() {
 
         pagination.innerHTML = "";
 
-        const pages =
+        const totalPages =
 
             Math.ceil(
 
@@ -750,11 +771,11 @@ async loadStock() {
 
         for(
 
-            let i=1;
+            let page = 1;
 
-            i<=pages;
+            page <= totalPages;
 
-            i++
+            page++
 
         ){
 
@@ -767,18 +788,14 @@ async loadStock() {
                 <button
 
                     class="${
-
-                        i===this.currentPage
-
+                        page===this.currentPage
                         ? "active"
-
                         : ""
-
                     }"
 
-                    data-page="${i}">
+                    data-page="${page}">
 
-                    ${i}
+                    ${page}
 
                 </button>
 
@@ -790,35 +807,27 @@ async loadStock() {
 
         pagination
 
-        .querySelectorAll(
+        .querySelectorAll("button")
 
-            "button"
+        .forEach(btn=>{
 
-        )
+            btn.onclick=()=>{
 
-        .forEach(
+                this.currentPage=
 
-            btn=>{
+                    Number(
 
-                btn.onclick=()=>{
+                        btn.dataset.page
 
-                    this.currentPage=
+                    );
 
-                        Number(
+                this.renderTable();
 
-                            btn.dataset.page
+                this.renderPagination();
 
-                        );
+            };
 
-                    this.renderTable();
-
-                    this.renderPagination();
-
-                };
-
-            }
-
-        );
+        });
 
         document.getElementById(
 
@@ -829,91 +838,11 @@ async loadStock() {
             `${this.filteredStock.length} résultat(s)`;
 
     }
-    /* ============================================================
-       APPLY FILTERS
-    ============================================================ */
-
-    applyFilters() {
-
-        const search = document
-            .getElementById("searchInput")
-            .value
-            .trim()
-            .toLowerCase();
-
-        const article = document
-            .getElementById("filterArticle")
-            .value;
-
-        const magasin = document
-            .getElementById("filterMagasin")
-            .value;
-
-        const lot = document
-            .getElementById("filterLot")
-            .value
-            .trim()
-            .toLowerCase();
-
-        this.filteredStock = this.stock.filter(row => {
-
-            const matchSearch =
-
-                search === "" ||
-
-                row.article?.toLowerCase().includes(search) ||
-
-                row.designation_article?.toLowerCase().includes(search) ||
-
-                row.lot?.toLowerCase().includes(search);
-
-            const matchArticle =
-
-                article === "" ||
-
-                row.article === article;
-
-            const matchMagasin =
-
-                magasin === "" ||
-
-                row.magasin === magasin;
-
-            const matchLot =
-
-                lot === "" ||
-
-                row.lot?.toLowerCase().includes(lot);
-
-            return (
-
-                matchSearch &&
-
-                matchArticle &&
-
-                matchMagasin &&
-
-                matchLot
-
-            );
-
-        });
-
-        this.currentPage = 1;
-
-        this.renderCards();
-
-        this.renderTable();
-
-        this.renderPagination();
-
-    }
-
-    /* ============================================================
+        /* ============================================================
        DETAILS
     ============================================================ */
 
-    showDetails(item) {
+    showDetails(item){
 
         document.getElementById("detailArticle").textContent =
             item.article || "-";
@@ -931,11 +860,7 @@ async loadStock() {
             item.division || "-";
 
         document.getElementById("detailStock").textContent =
-            Number(item.stock_disponible || 0)
-            .toLocaleString("fr-FR",{
-                minimumFractionDigits:3,
-                maximumFractionDigits:3
-            });
+            this.formatNumber(item.stock_disponible);
 
         document.getElementById("detailUnite").textContent =
             item.unite || "-";
@@ -950,7 +875,7 @@ async loadStock() {
             item.document_article || "-";
 
         document.getElementById("detailDateEntree").textContent =
-            item.date_entree || "-";
+            this.formatDate(item.date_entree);
 
         document.getElementById("detailStatut").textContent =
             item.statut || "Disponible";
@@ -968,14 +893,14 @@ async loadStock() {
        CLOSE MODAL
     ============================================================ */
 
-    closeModal() {
+    closeModal(){
 
         const modal =
             document.getElementById("stockModal");
 
         modal.classList.remove("show");
 
-        setTimeout(() => {
+        setTimeout(()=>{
 
             modal.hidden = true;
 
@@ -987,15 +912,15 @@ async loadStock() {
        EXPORT EXCEL
     ============================================================ */
 
-    exportExcel() {
+    exportExcel(){
 
-        if(typeof XLSX === "undefined"){
+        if(typeof XLSX==="undefined"){
 
-            Toast.warning(
+            Toast.error(
 
                 "Export",
 
-                "SheetJS n'est pas chargé."
+                "SheetJS non chargé."
 
             );
 
@@ -1003,19 +928,23 @@ async loadStock() {
 
         }
 
-        const ws = XLSX.utils.json_to_sheet(
+        const worksheet =
 
-            this.filteredStock
+            XLSX.utils.json_to_sheet(
 
-        );
+                this.filteredStock
 
-        const wb = XLSX.utils.book_new();
+            );
+
+        const workbook =
+
+            XLSX.utils.book_new();
 
         XLSX.utils.book_append_sheet(
 
-            wb,
+            workbook,
 
-            ws,
+            worksheet,
 
             "Stock"
 
@@ -1023,48 +952,49 @@ async loadStock() {
 
         XLSX.writeFile(
 
-            wb,
+            workbook,
 
-            "Stock.xlsx"
+            "Stock_Disponible.xlsx"
 
         );
 
     }
 
     /* ============================================================
-       PRINT TABLE
+       PRINT
     ============================================================ */
 
-    print() {
+    print(){
 
         window.print();
 
     }
 
-    /* ============================================================
-       PRINT FICHE
-    ============================================================ */
-
-    printFiche() {
+    printFiche(){
 
         window.print();
 
     }
+
     /* ============================================================
        HELPERS
     ============================================================ */
 
-    formatNumber(value) {
+    formatNumber(value){
 
-        return Number(value || 0).toLocaleString(
+        return Number(
+
+            value || 0
+
+        ).toLocaleString(
 
             "fr-FR",
 
             {
 
-                minimumFractionDigits: 3,
+                minimumFractionDigits:3,
 
-                maximumFractionDigits: 3
+                maximumFractionDigits:3
 
             }
 
@@ -1072,9 +1002,13 @@ async loadStock() {
 
     }
 
-    formatDate(value) {
+    formatDate(value){
 
-        if (!value) return "-";
+        if(!value){
+
+            return "-";
+
+        }
 
         return new Date(value)
 
@@ -1083,30 +1017,14 @@ async loadStock() {
     }
 
     /* ============================================================
-       GETTERS
-    ============================================================ */
-
-    getStock() {
-
-        return this.stock;
-
-    }
-
-    getFilteredStock() {
-
-        return this.filteredStock;
-
-    }
-
-    /* ============================================================
        DESTROY
     ============================================================ */
 
-    destroy() {
+    destroy(){
 
         console.log(
 
-            "[Stock] Ressources libérées."
+            "[Stock] Fermé."
 
         );
 
@@ -1130,7 +1048,7 @@ document.addEventListener(
 
     "DOMContentLoaded",
 
-    () => {
+    ()=>{
 
         stock.init();
 
@@ -1146,7 +1064,7 @@ window.addEventListener(
 
     "beforeunload",
 
-    () => {
+    ()=>{
 
         stock.destroy();
 
