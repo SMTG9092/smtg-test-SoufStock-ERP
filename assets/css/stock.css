@@ -1099,3 +1099,106 @@ select{
     }
 
 }
+/* ==========================================================
+   QUICK NAVIGATION
+========================================================== */
+
+.quick-nav{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    margin-left:auto;
+
+    margin-right:20px;
+
+}
+
+.quick-nav-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:12px 20px;
+
+    background:#fff;
+
+    border:1px solid var(--border);
+
+    border-radius:14px;
+
+    color:var(--text);
+
+    text-decoration:none;
+
+    font-weight:600;
+
+    transition:.25s;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+
+}
+
+.quick-nav-btn:hover{
+
+    background:var(--primary);
+
+    color:#fff;
+
+    border-color:var(--primary);
+
+    transform:translateY(-3px);
+
+}
+
+.quick-nav-btn i{
+
+    font-size:17px;
+
+}
+
+/* ==========================================================
+   HEADER RESPONSIVE
+========================================================== */
+
+@media(max-width:1100px){
+
+    .stock-header{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:20px;
+
+    }
+
+    .quick-nav{
+
+        width:100%;
+
+        justify-content:center;
+
+        margin:0;
+
+        flex-wrap:wrap;
+
+    }
+
+    .header-right{
+
+        width:100%;
+
+        display:flex;
+
+        justify-content:center;
+
+    }
+
+}
