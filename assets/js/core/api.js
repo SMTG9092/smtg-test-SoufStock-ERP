@@ -424,13 +424,119 @@ async function getLastMovements(limit = 10) {
 
 async function importStock(payload) {
 
-    return await insert(
+    try {
 
-        "stock",
+        switch (payload.mode) {
 
-        payload.rows
+            /* ==========================================
+               1 - REMPLACER
+            ========================================== */
 
-    );
+            case "REMPLACER": {
+
+                const { error: deleteError } = await supabase
+                    .from("stock")
+                    .delete()
+                    .neq("id", 0);
+
+                if (deleteError) throw deleteError;
+
+                const { data, error } = await supabase
+                    .from("stock")
+                    .insert(payload.rows)
+                    .select();
+
+                if (error) throw error;
+
+                return apiResponse(true, data);
+
+            }
+
+            /* ==========================================
+               2 - MISE A JOUR
+            ========================================== */
+
+            case "UPDATE": {
+
+                const { data, error } = await supabase
+                    .from("stock")
+                    .upsert(
+                        payload.rows,
+                        {
+                            onConflict:
+                                "article,lot,magasin,emplacement"
+                        }
+                    )
+                    .select();
+
+                if (error) throw error;
+
+                return apiResponse(true, data);
+
+            }
+
+            /* ==========================================
+               3 - SYNCHRONISATION
+               Ajouter uniquement
+            ========================================== */
+
+            case "SYNC": {
+
+                const rowsToInsert = [];
+
+                for (const row of payload.rows) {
+
+                    const { data, error } = await supabase
+                        .from("stock")
+                        .select("id")
+                        .eq("article", row.article)
+                        .eq("lot", row.lot)
+                        .eq("magasin", row.magasin)
+                        .eq("emplacement", row.emplacement)
+                        .limit(1);
+
+                    if (error) throw error;
+
+                    if (!data || data.length === 0) {
+
+                        rowsToInsert.push(row);
+
+                    }
+
+                }
+
+                if (rowsToInsert.length === 0) {
+
+                    return apiResponse(true, []);
+
+                }
+
+                const { data, error } = await supabase
+                    .from("stock")
+                    .insert(rowsToInsert)
+                    .select();
+
+                if (error) throw error;
+
+                return apiResponse(true, data);
+
+            }
+
+            default:
+
+                throw new Error("Mode d'import inconnu.");
+
+        }
+
+    }
+
+    catch (err) {
+
+        console.error("[IMPORT STOCK]", err);
+
+        return apiResponse(false, null, err.message);
+
+    }
 
 }
 
