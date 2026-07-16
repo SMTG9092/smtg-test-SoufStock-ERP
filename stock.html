@@ -61,61 +61,97 @@
 
     <main class="stock-page">
 
-        <!-- ======================================================
-             HEADER
-        ======================================================= -->
+<!-- ======================================================
+     HEADER
+======================================================= -->
 
-        <header class="stock-header">
+<header class="stock-header">
 
-            <div class="header-left">
+    <div class="header-left">
 
-                <div class="logo-box">
+        <div class="logo-box">
 
-                    <img
-                        src="assets/img/logo.png"
-                        alt="SoufStock Logo">
+            <img
+                src="assets/img/logo.png"
+                alt="SoufStock Logo">
 
-                    <div>
+            <div>
 
-                        <h2>
+                <h2>
 
-                            SoufStock ERP
+                    SoufStock ERP
 
-                        </h2>
+                </h2>
 
-                        <span>
+                <span>
 
-                            Gestion du Stock
+                    Gestion du Stock
 
-                        </span>
-
-                    </div>
-
-                </div>
+                </span>
 
             </div>
 
-            <div class="header-right">
+        </div>
 
-                <input
-                    type="text"
-                    id="globalSearch"
-                    class="search-input"
-                    placeholder="Rechercher un article, un lot...">
+    </div>
 
-                <button
-                    id="btnRefresh"
-                    class="btn btn-primary">
+    <!-- ==================================================
+         QUICK NAVIGATION
+    =================================================== -->
 
-                    <i class="fa-solid fa-rotate"></i>
+    <div class="quick-nav">
 
-                    Actualiser
+        <a
+            href="dashboard.html"
+            class="quick-nav-btn">
 
-                </button>
+            <i class="fa-solid fa-house"></i>
 
-            </div>
+            Dashboard
 
-        </header>
+        </a>
+
+        <a
+            href="import/import_stock.html"
+            class="quick-nav-btn">
+
+            <i class="fa-solid fa-file-import"></i>
+
+            Import Stock
+
+        </a>
+
+        <a
+            href="mouvements.html"
+            class="quick-nav-btn">
+
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+
+            Mouvements
+
+        </a>
+
+    </div>
+
+    <!-- ==================================================
+         ACTIONS
+    =================================================== -->
+
+    <div class="header-right">
+
+        <button
+            id="btnRefresh"
+            class="btn btn-primary">
+
+            <i class="fa-solid fa-rotate"></i>
+
+            Actualiser
+
+        </button>
+
+    </div>
+
+</header>
 
         <!-- ======================================================
              PAGE HEADER
