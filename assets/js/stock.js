@@ -32,6 +32,41 @@ class StockController {
 
     }
 
+    /* ============================================================
+       LOADER
+    ============================================================ */
+
+    showLoader(
+        title = "Chargement...",
+        message = "Lecture du stock..."
+    ){
+
+        const loader =
+            document.getElementById("fullscreenLoader");
+
+        if(!loader) return;
+
+        loader.style.display = "flex";
+
+        document.getElementById("loaderTitle").textContent =
+            title;
+
+        document.getElementById("loaderMessage").textContent =
+            message;
+
+    }
+
+    hideLoader(){
+
+        const loader =
+            document.getElementById("fullscreenLoader");
+
+        if(!loader) return;
+
+        loader.style.display = "none";
+
+    }
+
 /* ============================================================
    INIT
 ============================================================ */
@@ -237,61 +272,58 @@ async init() {
 
     }
 
-    /* ============================================================
-       LOAD STOCK
-    ============================================================ */
+/* ============================================================
+   LOAD STOCK
+============================================================ */
 
-    async loadStock(){
+async loadStock(){
 
-        try{
+    try{
 
-            Loader.show(
+        this.showLoader(
 
-                "Chargement...",
+            "Chargement...",
 
-                "Lecture du stock..."
+            "Lecture du stock..."
 
-            );
+        );
 
-            this.stock =
+        this.stock = await Api.getStock();
 
-                await Api.getStock();
+        this.filteredStock = [...this.stock];
 
-            this.filteredStock =
+        this.currentPage = 1;
 
-                [...this.stock];
+        this.renderCards();
 
-            this.currentPage = 1;
+        this.fillFilters();
 
-            this.renderCards();
+        this.renderTable();
 
-            this.fillFilters();
+        this.renderPagination();
 
-            this.renderTable();
-
-            this.renderPagination();
-
-            Loader.hide();
-
-        }
-
-        catch(error){
-
-            Loader.hide();
-
-            console.error(error);
-
-            Toast.error(
-
-                "Stock",
-
-                error.message
-
-            );
-
-        }
+        this.hideLoader();
 
     }
+
+    catch(error){
+
+        this.hideLoader();
+
+        console.error(error);
+
+        Toast.error(
+
+            "Stock",
+
+            error.message
+
+        );
+
+    }
+
+}
+   
         /* ============================================================
        KPI CARDS
     ============================================================ */
