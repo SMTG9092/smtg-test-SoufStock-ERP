@@ -1864,26 +1864,12 @@ button{
 }
 
 /* ==========================================================
-   RESPONSIVE
+   RESPONSIVE FRAMEWORK
 ========================================================== */
 
-@media(max-width:1200px){
+@media (max-width:1200px){
 
-    .stats-grid{
-
-        grid-template-columns:repeat(2,1fr);
-
-    }
-
-    .dashboard-grid{
-
-        grid-template-columns:1fr;
-
-    }
-
-    .card,
-
-    .card.large{
+    .card{
 
         grid-column:span 12;
 
@@ -1891,19 +1877,7 @@ button{
 
 }
 
-@media(max-width:768px){
-
-    .stats-grid{
-
-        grid-template-columns:1fr;
-
-    }
-
-    .quick-actions{
-
-        grid-template-columns:repeat(2,1fr);
-
-    }
+@media (max-width:768px){
 
     .table{
 
@@ -1911,15 +1885,17 @@ button{
 
         overflow-x:auto;
 
+        white-space:nowrap;
+
     }
 
 }
 
-@media(max-width:480px){
+@media (max-width:576px){
 
-    .quick-actions{
+    .card{
 
-        grid-template-columns:1fr;
+        border-radius:16px;
 
     }
 
