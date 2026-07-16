@@ -12,7 +12,7 @@
 ============================================================ */
 
 import Api from "./core/api.js";
-import { Loader, Toast } from "./core/utils.js";
+import { Toast } from "./core/utils.js";
 
 /* ============================================================
    STOCK CONTROLLER
