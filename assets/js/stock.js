@@ -253,19 +253,17 @@ class StockController {
        REFRESH
     ============================================================ */
 
-    async refresh() {
+async refresh() {
 
-        await this.loadStock();
+    await this.loadStock();
 
-        Toast.success(
+    Toast.success(
 
-            "Stock",
+        "Stock",
 
-            "Données actualisées."
+        "Données actualisées."
 
-        );
-
-    }
+    );
 
 }
     /* ============================================================
