@@ -12,8 +12,6 @@ import Api from "./core/api.js";
 import SessionManager from "./core/session.js";
 import ThemeManager from "./core/theme.js";
 import LanguageManager from "./core/language.js";
-import Sidebar from "./core/sidebar.js";
-import Navigation from "./core/navigation.js";
 import Profile from "./core/profile.js";
 import Notifications from "./core/notifications.js";
 import { Loader, Toast } from "./core/utils.js";
