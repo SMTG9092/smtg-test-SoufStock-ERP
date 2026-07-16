@@ -1370,13 +1370,11 @@ cancelImport() {
        FINISH
     ========================================================== */
 
-    finish() {
+finish() {
 
-        window.location.href =
+    window.location.assign("/stock.html");
 
-            "stock.html";
-
-    }
+}
 
     /* ==========================================================
        MODALS
