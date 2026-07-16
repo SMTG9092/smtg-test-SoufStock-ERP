@@ -270,57 +270,57 @@ async refresh() {
        LOAD STOCK
     ============================================================ */
 
-    async loadStock() {
+async loadStock() {
 
-        try {
+    try {
 
-            Loader.show(
+        console.log("1 - Avant Api.getStock()");
 
-                "Chargement...",
+        Loader.show(
+            "Chargement...",
+            "Lecture du stock..."
+        );
 
-                "Lecture du stock..."
+        this.stock = await Api.getStock();
 
-            );
+        console.log("2 - Data :", this.stock);
 
-            this.stock = await Api.getStock();
+        this.filteredStock = [...this.stock];
 
-            this.filteredStock = [
+        this.currentPage = 1;
 
-                ...this.stock
+        console.log("3 - renderCards");
+        this.renderCards();
 
-            ];
+        console.log("4 - fillFilters");
+        this.fillFilters();
 
-            this.currentPage = 1;
+        console.log("5 - renderTable");
+        this.renderTable();
 
-            this.renderCards();
+        console.log("6 - renderPagination");
+        this.renderPagination();
 
-            this.fillFilters();
+        Loader.hide();
 
-            this.renderTable();
-
-            this.renderPagination();
-
-            Loader.hide();
-
-        }
-
-        catch (error) {
-
-            Loader.hide();
-
-            console.error(error);
-
-            Toast.error(
-
-                "Stock",
-
-                error.message
-
-            );
-
-        }
+        console.log("7 - Fin");
 
     }
+
+    catch (error) {
+
+        Loader.hide();
+
+        console.error("LOAD STOCK ERROR :", error);
+
+        Toast.error(
+            "Stock",
+            error.message
+        );
+
+    }
+
+}
 
     /* ============================================================
        KPI
