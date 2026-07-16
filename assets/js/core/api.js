@@ -571,6 +571,25 @@ async function getImportHistory() {
 }
 
 /* ============================================================
+   STOCK
+============================================================ */
+
+async function getStock() {
+
+    const { data, error } = await supabase
+        .from("vw_stock")
+        .select("*")
+        .order("designation_article", {
+            ascending: true
+        });
+
+    if (error) throw error;
+
+    return data || [];
+
+}
+
+/* ============================================================
    EXPORT
 ============================================================ */
 
@@ -591,6 +610,8 @@ export default {
     getLastMovements,
 
     getStockStatus,
+
+    getStock,          // ← زيد هادي
 
     logStockMovement,
 
