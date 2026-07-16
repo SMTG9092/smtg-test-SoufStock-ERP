@@ -105,13 +105,16 @@ class DashboardData {
 
     renderStats() {
 
-        this.setValue(
-
-            "stockTotal",
-
-            this.stats.stock
-
-        );
+this.setValue(
+    "stockTotal",
+    Number(this.stats.stock).toLocaleString(
+        "fr-FR",
+        {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3
+        }
+    ) + " KG"
+);
 
         this.setValue(
 
