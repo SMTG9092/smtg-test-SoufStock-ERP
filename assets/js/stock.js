@@ -774,83 +774,181 @@ async loadStock(){
 
     }
 
-    /* ============================================================
-       PAGINATION
-    ============================================================ */
+/* ============================================================
+   PAGINATION
+============================================================ */
 
-    renderPagination(){
+renderPagination(){
 
-        const pagination =
+    const pagination =
+        document.getElementById("pagination");
 
-            document.getElementById(
+    pagination.innerHTML = "";
 
-                "pagination"
+    const totalPages = Math.ceil(
+        this.filteredStock.length / this.rowsPerPage
+    );
 
-            );
+    if(totalPages <= 1){
 
-        pagination.innerHTML = "";
+        document.getElementById(
+            "paginationInfo"
+        ).textContent =
+            `${this.filteredStock.length} résultat(s)`;
 
-        const totalPages =
+        return;
 
-            Math.ceil(
+    }
 
-                this.filteredStock.length /
+    const createButton = (page, label = page, active = false)=>{
 
-                this.rowsPerPage
+        pagination.insertAdjacentHTML(
+            "beforeend",
+            `
+            <button
+                class="page-btn ${active ? "active" : ""}"
+                data-page="${page}">
+                ${label}
+            </button>
+            `
+        );
 
-            );
+    };
 
-        for(
+    const createDots = ()=>{
 
-            let page = 1;
+        pagination.insertAdjacentHTML(
+            "beforeend",
+            `<span class="page-dots">...</span>`
 
-            page <= totalPages;
+        );
 
-            page++
+    };
 
-        ){
+    /* =============================
+       PREVIOUS
+    ============================== */
 
-            pagination.insertAdjacentHTML(
+    if(this.currentPage > 1){
 
-                "beforeend",
+        createButton(
 
-                `
+            this.currentPage - 1,
 
-                <button
+            `<i class="fa-solid fa-chevron-left"></i>`
 
-                    class="${
-                        page===this.currentPage
-                        ? "active"
-                        : ""
-                    }"
+        );
 
-                    data-page="${page}">
+    }
 
-                    ${page}
+    /* =============================
+       FIRST PAGE
+    ============================== */
 
-                </button>
+    createButton(
 
-                `
+        1,
 
-            );
+        1,
 
-        }
+        this.currentPage === 1
 
-        pagination
+    );
 
-        .querySelectorAll("button")
+    /* =============================
+       LEFT DOTS
+    ============================== */
 
+    if(this.currentPage > 4){
+
+        createDots();
+
+    }
+
+    /* =============================
+       PAGES AROUND CURRENT
+    ============================== */
+
+    const start =
+        Math.max(2, this.currentPage - 2);
+
+    const end =
+        Math.min(totalPages - 1, this.currentPage + 2);
+
+    for(let page = start; page <= end; page++){
+
+        createButton(
+
+            page,
+
+            page,
+
+            page === this.currentPage
+
+        );
+
+    }
+
+    /* =============================
+       RIGHT DOTS
+    ============================== */
+
+    if(this.currentPage < totalPages - 3){
+
+        createDots();
+
+    }
+
+    /* =============================
+       LAST PAGE
+    ============================== */
+
+    if(totalPages > 1){
+
+        createButton(
+
+            totalPages,
+
+            totalPages,
+
+            this.currentPage === totalPages
+
+        );
+
+    }
+
+    /* =============================
+       NEXT
+    ============================== */
+
+    if(this.currentPage < totalPages){
+
+        createButton(
+
+            this.currentPage + 1,
+
+            `<i class="fa-solid fa-chevron-right"></i>`
+
+        );
+
+    }
+
+    /* =============================
+       EVENTS
+    ============================== */
+
+    pagination
+        .querySelectorAll(".page-btn")
         .forEach(btn=>{
 
-            btn.onclick=()=>{
+            btn.onclick = ()=>{
 
-                this.currentPage=
+                const page =
+                    Number(btn.dataset.page);
 
-                    Number(
+                if(!page) return;
 
-                        btn.dataset.page
-
-                    );
+                this.currentPage = page;
 
                 this.renderTable();
 
@@ -860,16 +958,14 @@ async loadStock(){
 
         });
 
-        document.getElementById(
+    document.getElementById(
+        "paginationInfo"
+    ).textContent =
+        `${this.filteredStock.length} résultat(s)`;
 
-            "paginationInfo"
-
-        ).textContent =
-
-            `${this.filteredStock.length} résultat(s)`;
-
-    }
-        /* ============================================================
+}
+   
+   /* ============================================================
        DETAILS
     ============================================================ */
 
