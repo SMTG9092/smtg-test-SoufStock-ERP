@@ -113,7 +113,7 @@ this.setValue(
             minimumFractionDigits: 3,
             maximumFractionDigits: 3
         }
-    ) + " KG"
+    ) + " KG / Pce "
 );
 
         this.setValue(
