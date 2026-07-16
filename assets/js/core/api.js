@@ -335,18 +335,20 @@ async function getProfile(userId) {
 async function getDashboardStats() {
 
     const [
+
         stock,
+
         commandes,
+
         picking,
+
         expeditions
+
     ] = await Promise.all([
 
         supabase
             .from("stock")
-            .select("*", {
-                count: "exact",
-                head: true
-            }),
+            .select("stock_disponible"),
 
         supabase
             .from("commandes_excel")
@@ -371,9 +373,23 @@ async function getDashboardStats() {
 
     ]);
 
+    if (stock.error) throw stock.error;
+
+    const totalStock =
+
+        (stock.data || []).reduce(
+
+            (sum, row) =>
+
+                sum + Number(row.stock_disponible || 0),
+
+            0
+
+        );
+
     return {
 
-        stock: stock.count || 0,
+        stock: totalStock,
 
         commandes: commandes.count || 0,
 
@@ -384,7 +400,6 @@ async function getDashboardStats() {
     };
 
 }
-
 /* ============================================================
    DERNIERS MOUVEMENTS
 ============================================================ */
