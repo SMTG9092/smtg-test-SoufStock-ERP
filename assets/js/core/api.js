@@ -336,7 +336,7 @@ async function getDashboardStats() {
 
     const [
 
-        stock,
+        dashboard,
 
         commandes,
 
@@ -347,8 +347,9 @@ async function getDashboardStats() {
     ] = await Promise.all([
 
         supabase
-            .from("stock")
-            .select("stock_disponible"),
+            .from("vw_dashboard")
+            .select("*")
+            .single(),
 
         supabase
             .from("commandes_excel")
@@ -373,33 +374,30 @@ async function getDashboardStats() {
 
     ]);
 
-    if (stock.error) throw stock.error;
-
-    const totalStock =
-
-        (stock.data || []).reduce(
-
-            (sum, row) =>
-
-                sum + Number(row.stock_disponible || 0),
-
-            0
-
-        );
+    if (dashboard.error) throw dashboard.error;
 
     return {
 
-        stock: totalStock,
+        stock: dashboard.data.stock_total,
 
         commandes: commandes.count || 0,
 
         picking: picking.count || 0,
 
-        expeditions: expeditions.count || 0
+        expeditions: expeditions.count || 0,
+
+        articles: dashboard.data.total_articles,
+
+        lignes: dashboard.data.total_lignes,
+
+        magasins: dashboard.data.total_magasins,
+
+        emplacements: dashboard.data.total_emplacements
 
     };
 
 }
+
 /* ============================================================
    DERNIERS MOUVEMENTS
 ============================================================ */
