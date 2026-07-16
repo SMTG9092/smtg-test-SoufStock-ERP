@@ -574,21 +574,67 @@ async function getImportHistory() {
    STOCK
 ============================================================ */
 
-async function getStock() {
+async function getStock(filters = {}) {
 
-    const { data, error } = await supabase
+    let query = supabase
         .from("vw_stock")
-        .select("*")
-        .order("designation_article", {
+        .select("*");
+
+    if (filters.article) {
+
+        query = query.eq(
+            "article",
+            filters.article
+        );
+
+    }
+
+    if (filters.magasin) {
+
+        query = query.eq(
+            "magasin",
+            filters.magasin
+        );
+
+    }
+
+    if (filters.lot) {
+
+        query = query.ilike(
+            "lot",
+            `%${filters.lot}%`
+        );
+
+    }
+
+    if (filters.search) {
+
+        query = query.or(
+
+            `article.ilike.%${filters.search}%,
+
+designation_article.ilike.%${filters.search}%,
+
+lot.ilike.%${filters.search}%`
+
+        );
+
+    }
+
+    query = query.order(
+        "designation_article",
+        {
             ascending: true
-        });
+        }
+    );
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
     return data || [];
 
 }
-
 /* ============================================================
    EXPORT
 ============================================================ */
