@@ -576,61 +576,54 @@ async function getImportHistory() {
 
 async function getStock(filters = {}) {
 
-    let query = supabase
-        .from("vw_stock")
-        .select("*", { count: "exact" });
+    const pageSize = 1000;
+    let from = 0;
+    let allRows = [];
 
-    if (filters.article) {
+    while (true) {
 
-        query = query.eq(
-            "article",
-            filters.article
-        );
+        let query = supabase
+            .from("vw_stock")
+            .select("*")
+            .order("designation_article", {
+                ascending: true
+            })
+            .range(from, from + pageSize - 1);
 
-    }
+        if (filters.article) {
+            query = query.eq("article", filters.article);
+        }
 
-    if (filters.magasin) {
+        if (filters.magasin) {
+            query = query.eq("magasin", filters.magasin);
+        }
 
-        query = query.eq(
-            "magasin",
-            filters.magasin
-        );
+        if (filters.lot) {
+            query = query.ilike("lot", `%${filters.lot}%`);
+        }
 
-    }
-
-    if (filters.lot) {
-
-        query = query.ilike(
-            "lot",
-            `%${filters.lot}%`
-        );
-
-    }
-
-    if (filters.search) {
-
-        query = query.or(
-            `article.ilike.%${filters.search}%,
+        if (filters.search) {
+            query = query.or(
+                `article.ilike.%${filters.search}%,
 designation_article.ilike.%${filters.search}%,
 lot.ilike.%${filters.search}%`
-        );
+            );
+        }
 
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        allRows.push(...(data || []));
+
+        if (!data || data.length < pageSize) {
+            break;
+        }
+
+        from += pageSize;
     }
 
-    query = query
-        .order("designation_article", {
-            ascending: true
-        })
-        .range(0, 10000);
-
-    const { data, error, count } = await query;
-
-console.log("Count =", count);
-console.log("Rows =", data.length);
-
-    if (error) throw error;
-
-    return data || [];
+    return allRows;
 
 }
 /* ============================================================
