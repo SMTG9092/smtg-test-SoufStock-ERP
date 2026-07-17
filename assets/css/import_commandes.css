@@ -1889,7 +1889,67 @@ input[type="checkbox"] {
 /* ==========================================================================
    19. RESPONSIVE
    ========================================================================== */
+/* ==========================================================
+   ENTERPRISE LAYOUT
+========================================================== */
 
+@media (min-width:1400px){
+
+    .page-content{
+
+        display:grid;
+
+        grid-template-columns:420px 1fr;
+
+        grid-template-areas:
+
+            "header header"
+
+            "import analyse"
+
+            "import details"
+
+            "workflow workflow"
+
+            "kpi kpi"
+
+            "progress progress";
+
+        gap:24px;
+
+        align-items:start;
+    }
+
+    .page-header{
+        grid-area:header;
+    }
+
+    .import-grid{
+        grid-area:import;
+        grid-template-columns:1fr;
+    }
+
+    .analyse-section{
+        grid-area:analyse;
+    }
+
+    .details-section{
+        grid-area:details;
+    }
+
+    .workflow-section{
+        grid-area:workflow;
+    }
+
+    .kpi-section{
+        grid-area:kpi;
+    }
+
+    .progress-section{
+        grid-area:progress;
+    }
+
+}
 /* --------------------------------------------------------------------------
    Desktop
 -------------------------------------------------------------------------- */
