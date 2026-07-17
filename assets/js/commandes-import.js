@@ -364,17 +364,10 @@ async function initPage() {
         // Initialisation de la session
         await Session.init();
 
-        // Récupération du client Supabase
-        supabase = Auth.supabase;
-
-        if (!supabase) {
-            throw new Error("Supabase n'est pas initialisé.");
-        }
-
-        // Cache des éléments DOM
+        // Cache des éléments HTML
         cacheDOM();
 
-        // Vérification de l'utilisateur connecté
+        // Vérification de la session utilisateur
         await loadCurrentUser();
 
         // Initialisation des événements
@@ -382,13 +375,12 @@ async function initPage() {
         setupAuthListener();
         setupWindowEvents();
 
-        // Chargement des données de la page
+        // Chargement des données
         await loadPage();
 
         // Rafraîchissement automatique
         startAutoRefresh();
 
-        // Message de succès
         Toast.success("Import Commandes prêt.");
 
         console.log("✅ Import Commandes initialized.");
