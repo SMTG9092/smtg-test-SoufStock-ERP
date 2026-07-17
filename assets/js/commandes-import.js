@@ -9,10 +9,10 @@
 /* ==========================================================
    Imports
 ========================================================== */
-import Auth from "./auth.js";
-import Session from "./session.js";
-import * as Utils from "./utils.js";
-import APP_CONFIG from "./config.js";
+import Auth from "./core/auth.js";
+import Session from "./core/session.js";
+import * as Utils from "./core/utils.js";
+import APP_CONFIG from "./core/config.js";
 
 /* ==========================================================
    Globals
