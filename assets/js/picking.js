@@ -5,300 +5,452 @@
  * ============================================================
  */
 
-Part 1
--------
-- Imports
-- Variables
-- DOM Elements
-- Initialisation
-- Event Listeners
+"use strict";
 
-Part 2
--------
-- Charger Commande
-- Lire Supabase
-- Afficher Informations Commande
-
-Part 3
--------
-- Construire Tableau
-- createArticleRow()
-- createLotRow()
-
-Part 4
--------
-- Ajouter Lot
-- Supprimer Lot
-- Calcul Préparée
-- Calcul Résumé
-
-Part 5
--------
-- Validation
-- Sauvegarde
-- Messages
-- Loader
-
-Part 6
--------
-- Helpers
-- Format
-- Reset
-- Export default
-/**
- * ============================================================
- * Charger Commande
- * Part 2
+/* ============================================================
+ * IMPORTS
  * ============================================================
  */
 
-/**
- * Charger une commande
+import supabase, { getUser } from "./core/supabase.js";
+import { Loader, Toast } from "./core/utils.js";
+
+/* ============================================================
+ * GLOBAL VARIABLES
+ * ============================================================
  */
-async function loadCommande() {
+
+let currentUser = null;
+let currentCommande = null;
+let currentPicking = null;
+let articles = [];
+
+/* ============================================================
+ * DOM ELEMENTS
+ * ============================================================
+ */
+
+const els = {
+
+    // Hidden
+    pickingId: document.getElementById("pickingId"),
+    suiviId: document.getElementById("suiviId"),
+
+    // Recherche
+    commandeInput: document.getElementById("commandeInput"),
+    btnSearch: document.getElementById("btnSearch"),
+    btnScanner: document.getElementById("btnScanner"),
+
+    // Header
+    btnSave: document.getElementById("btnSave"),
+    btnValidate: document.getElementById("btnValidate"),
+
+    // Informations
+    clientName: document.getElementById("clientName"),
+    dateCreation: document.getElementById("dateCreation"),
+    dateLivraison: document.getElementById("dateLivraison"),
+    tournee: document.getElementById("tournee"),
+    chauffeur: document.getElementById("chauffeur"),
+    statutCommande: document.getElementById("statutCommande"),
+
+    // Tableau
+    pickingBody: document.getElementById("pickingBody"),
+
+    // Progress
+    pickingProgress: document.getElementById("pickingProgress"),
+    progressText: document.getElementById("progressText"),
+
+    // Résumé
+    totalArticles: document.getElementById("totalArticles"),
+    totalQuantity: document.getElementById("totalQuantity"),
+    preparedQuantity: document.getElementById("preparedQuantity"),
+
+    // Footer
+    btnRefresh: document.getElementById("btnRefresh"),
+    btnSaveFooter: document.getElementById("btnSaveFooter"),
+    btnValidateFooter: document.getElementById("btnValidateFooter"),
+
+    // Popup
+    lotPopup: document.getElementById("lotPopup"),
+
+    // Modal
+    confirmModal: document.getElementById("confirmModal"),
+    confirmMessage: document.getElementById("confirmMessage"),
+    confirmYes: document.getElementById("confirmYes"),
+    confirmNo: document.getElementById("confirmNo"),
+
+    // Loader
+    pickingLoader: document.getElementById("pickingLoader"),
+
+    // Toast
+    toastContainer: document.getElementById("toastContainer"),
+
+    // Print
+    printArea: document.getElementById("printArea")
+
+};
+/* ============================================================
+ * INITIALISATION
+ * ============================================================
+ */
+
+document.addEventListener("DOMContentLoaded", init);
+
+async function init() {
 
     try {
 
-        const numeroCommande = commandeInput.value.trim();
+        Loader.show?.();
 
-        if (!numeroCommande) {
+        currentUser = await getUser();
 
-            Toast.warning("Veuillez saisir un numéro de commande.");
+        if (!currentUser) {
 
-            commandeInput.focus();
+            Toast.error("Utilisateur non connecté.");
 
             return;
 
         }
 
-        Loader.show("Chargement de la commande...");
+        bindEvents();
 
         resetPicking();
 
-        /* =======================================================
-           Informations Commande
-        ======================================================= */
-
-        const { data: commande, error: commandeError } = await supabase
-            .from("commandes_excel")
-            .select("*")
-            .eq("document_vente", numeroCommande)
-            .limit(1)
-            .single();
-
-        if (commandeError || !commande) {
-
-            Loader.hide();
-
-            Toast.error("Commande introuvable.");
-
-            return;
-
-        }
-
-        displayCommandeInfo(commande);
-
-        /* =======================================================
-           Articles Commande
-        ======================================================= */
-
-        const { data: articles, error: articlesError } = await supabase
-            .from("commandes_excel")
-            .select("*")
-            .eq("document_vente", numeroCommande)
-            .order("id", { ascending: true });
-
-        Loader.hide();
-
-        if (articlesError) {
-
-            Toast.error(articlesError.message);
-
-            return;
-
-        }
-
-        if (!articles || !articles.length) {
-
-            Toast.warning("Aucun article trouvé.");
-
-            return;
-
-        }
-
-        buildPickingTable(articles);
-
     } catch (error) {
 
-        Loader.hide();
+        console.error("Init Picking :", error);
 
-        console.error(error);
+        Toast.error("Erreur lors de l'initialisation.");
 
-        Toast.error(error.message);
+    } finally {
+
+        Loader.hide?.();
 
     }
 
 }
 
-
-/**
- * ============================================================
- * Affichage Informations Commande
+/* ============================================================
+ * EVENT LISTENERS
  * ============================================================
  */
 
-function displayCommandeInfo(commande) {
+function bindEvents() {
 
-    clientName.textContent =
-        commande.nom_receptionnaire ?? "-";
+    // Recherche
 
-    dateCreation.textContent =
-        formatDate(commande.date_creation);
+    els.btnSearch?.addEventListener("click", searchCommande);
 
-    dateLivraison.textContent =
-        formatDate(commande.date_livraison);
+    els.commandeInput?.addEventListener("keydown", (event) => {
 
-    tournee.textContent =
-        commande.tournee ?? "-";
+        if (event.key === "Enter") {
 
-    chauffeur.textContent =
-        commande.chauffeur ?? "-";
+            event.preventDefault();
 
-    statutCommande.textContent =
-        "En préparation";
+            searchCommande();
 
-    statutCommande.className =
-        "badge badge-warning";
-
-}
-
-
-/**
- * ============================================================
- * Reset
- * ============================================================
- */
-
-function resetPicking() {
-
-    pickingBody.innerHTML = "";
-
-    clientName.textContent = "-";
-
-    dateCreation.textContent = "-";
-
-    dateLivraison.textContent = "-";
-
-    tournee.textContent = "-";
-
-    chauffeur.textContent = "-";
-
-    statutCommande.textContent = "-";
-
-    totalArticles.textContent = "0";
-
-    totalQuantity.textContent = "0";
-
-    preparedQuantity.textContent = "0";
-
-}
-/**
- * ============================================================
- * Picking Table
- * Part 3
- * ============================================================
- */
-
-/**
- * Construire le tableau
- */
-function buildPickingTable(articles) {
-
-    pickingBody.innerHTML = "";
-
-    totalArticles.textContent = articles.length;
-
-    let totalQte = 0;
-
-    articles.forEach(article => {
-
-        totalQte += Number(article.quantite_commandee || 0);
-
-        createArticleRow(article);
+        }
 
     });
 
-    totalQuantity.textContent = totalQte;
+    els.btnScanner?.addEventListener("click", openScanner);
+
+    // Sauvegarde
+
+    els.btnSave?.addEventListener("click", savePicking);
+
+    els.btnSaveFooter?.addEventListener("click", savePicking);
+
+    // Validation
+
+    els.btnValidate?.addEventListener("click", validatePicking);
+
+    els.btnValidateFooter?.addEventListener("click", validatePicking);
+
+    // Refresh
+
+    els.btnRefresh?.addEventListener("click", refreshPicking);
+
+    // Modal
+
+    els.confirmNo?.addEventListener("click", closeConfirmModal);
 
 }
 
-
-/**
- * ============================================================
- * Ligne Article
+/* ============================================================
+ * PLACEHOLDERS
+ * (Implémentation dans les prochaines parties)
  * ============================================================
  */
 
-function createArticleRow(article) {
+async function searchCommande() {}
+
+async function savePicking() {}
+
+async function validatePicking() {}
+
+async function refreshPicking() {}
+
+function openScanner() {}
+
+function closeConfirmModal() {}
+/* ============================================================
+ * CHARGER COMMANDE
+ * ============================================================
+ */
+
+async function searchCommande() {
+
+    const numeroCommande = els.commandeInput.value.trim();
+
+    if (!numeroCommande) {
+
+        Toast.warning("Veuillez saisir un numéro de commande.");
+
+        els.commandeInput.focus();
+
+        return;
+
+    }
+
+    try {
+
+        Loader.show();
+
+        resetPicking();
+
+        currentCommande = await loadCommande(numeroCommande);
+
+        if (!currentCommande) {
+
+            Toast.warning("Commande introuvable.");
+
+            return;
+
+        }
+
+        displayCommandeInfo(currentCommande);
+
+        buildPickingTable(currentCommande.lignes);
+
+        calculateSummary();
+
+    } catch (error) {
+
+        console.error(error);
+
+        Toast.error("Erreur lors du chargement de la commande.");
+
+    } finally {
+
+        Loader.hide();
+
+    }
+
+}
+
+/* ============================================================
+ * LIRE SUPABASE
+ * ============================================================
+ */
+
+async function loadCommande(numeroCommande) {
+
+    const { data, error } = await supabase
+        .from("commandes_excel")
+        .select("*")
+        .eq("document_vente", numeroCommande)
+        .order("article");
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+
+        return null;
+
+    }
+
+    return {
+
+        numero: numeroCommande,
+
+        client: data[0].nom_receptionnaire,
+
+        dateCreation: data[0].date_creation,
+
+        dateLivraison: data[0].date_livraison,
+
+        tournee: data[0].tournee,
+
+        chauffeur: data[0].chauffeur,
+
+        statut: data[0].statut,
+
+        lignes: data
+
+    };
+
+}
+
+/* ============================================================
+ * INFORMATIONS COMMANDE
+ * ============================================================
+ */
+
+function displayCommandeInfo(cmd) {
+
+    els.clientName.textContent =
+        cmd.client || "-";
+
+    els.dateCreation.textContent =
+        formatDate(cmd.dateCreation);
+
+    els.dateLivraison.textContent =
+        formatDate(cmd.dateLivraison);
+
+    els.tournee.textContent =
+        cmd.tournee || "-";
+
+    els.chauffeur.textContent =
+        cmd.chauffeur || "-";
+
+    els.statutCommande.textContent =
+        cmd.statut || "En préparation";
+
+}
+/* ============================================================
+ * CONSTRUIRE TABLEAU
+ * ============================================================
+ */
+
+function buildPickingTable(lignes) {
+
+    els.pickingBody.innerHTML = "";
+
+    articles = [];
+
+    const map = new Map();
+
+    lignes.forEach((ligne) => {
+
+        const key = `${ligne.document_vente}_${ligne.article}`;
+
+        if (!map.has(key)) {
+
+            map.set(key, {
+
+                article: ligne.article,
+                designation: ligne.designation_article,
+                quantite: Number(ligne.quantite || 0),
+                pieces: Number(ligne.nb_pieces || 0),
+                lots: []
+
+            });
+
+        } else {
+
+            const article = map.get(key);
+
+            article.quantite += Number(ligne.quantite || 0);
+
+            article.pieces += Number(ligne.nb_pieces || 0);
+
+        }
+
+    });
+
+    articles = [...map.values()];
+
+    if (!articles.length) {
+
+        els.pickingBody.innerHTML = `
+            <tr class="empty-row">
+                <td colspan="7">
+                    Aucune ligne à préparer.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+    articles.forEach((article, index) => {
+
+        els.pickingBody.appendChild(
+
+            createArticleRow(article, index)
+
+        );
+
+    });
+
+}
+
+/* ============================================================
+ * ARTICLE ROW
+ * ============================================================
+ */
+
+function createArticleRow(article, index) {
 
     const tr = document.createElement("tr");
 
     tr.className = "article-row";
 
-    tr.dataset.article = article.article;
+    tr.dataset.index = index;
 
     tr.innerHTML = `
 
-        <td class="article-name">
+        <td>
 
-            ${article.designation_article}
+            <strong>${article.article}</strong>
 
-        </td>
+            <br>
 
-        <td class="text-center">
-
-            ${article.quantite_commandee}
+            <small>${article.designation ?? ""}</small>
 
         </td>
 
-        <td class="prepared-total">
+        <td class="text-end">
 
-            0
-
-        </td>
-
-        <td class="text-center">
-
-            ${article.nb_pieces || 0}
+            ${article.quantite.toFixed(3)}
 
         </td>
 
         <td>
 
-            <input
-                type="text"
-                class="lot-input"
-                placeholder="Lot">
+            <span
+                id="prepared_${index}">
+
+                0.000
+
+            </span>
 
         </td>
 
         <td>
 
-            <input
-                type="number"
-                class="qty-input"
-                min="0"
-                value="">
+            ${article.pieces}
 
         </td>
 
-        <td>
+        <td colspan="3">
+
+            <div
+                id="lots_${index}"
+                class="lots-container">
+
+            </div>
 
             <button
-                class="btn-add"
-                type="button">
+                type="button"
+                class="btn btn-success btn-add-lot"
+                data-index="${index}">
 
-                +
+                <i class="fas fa-plus"></i>
+
+                Ajouter un Lot
 
             </button>
 
@@ -306,59 +458,326 @@ function createArticleRow(article) {
 
     `;
 
-    pickingBody.appendChild(tr);
+    const container = tr.querySelector(".lots-container");
+
+    container.appendChild(
+
+        createLotRow(index)
+
+    );
+
+    tr.querySelector(".btn-add-lot")
+        .addEventListener("click", () => {
+
+            container.appendChild(
+
+                createLotRow(index)
+
+            );
+
+        });
+
+    return tr;
 
 }
 
-
-/**
- * ============================================================
- * Ajouter une ligne Lot
+/* ============================================================
+ * LOT ROW
  * ============================================================
  */
 
-function createLotRow(articleRow) {
+function createLotRow(articleIndex) {
 
-    const row = document.createElement("tr");
+    const row = document.createElement("div");
 
     row.className = "lot-row";
 
     row.innerHTML = `
 
-        <td colspan="4"></td>
-
-        <td>
+        <div class="lot-grid">
 
             <input
                 type="text"
                 class="lot-input"
                 placeholder="Lot">
 
-        </td>
-
-        <td>
-
             <input
                 type="number"
                 class="qty-input"
-                min="0">
-
-        </td>
-
-        <td>
+                placeholder="Qté"
+                min="0"
+                step="0.001">
 
             <button
-                class="btn-remove"
-                type="button">
+                type="button"
+                class="btn-remove">
 
-                -
+                <i class="fas fa-trash"></i>
 
             </button>
 
-        </td>
+        </div>
 
     `;
 
-    articleRow.insertAdjacentElement("afterend", row);
+    row.querySelector(".btn-remove")
+        .addEventListener("click", () => {
+
+            row.remove();
+
+            calculatePrepared(articleIndex);
+
+            calculateSummary();
+
+        });
+
+    row.querySelector(".qty-input")
+        .addEventListener("input", () => {
+
+            calculatePrepared(articleIndex);
+
+            calculateSummary();
+
+        });
+
+    return row;
+
+}
+/* ============================================================
+ * SMART LOT SELECTION
+ * ============================================================
+ */
+
+const PRIORITY_LOCATIONS = [
+    "A407",
+    "A408",
+    "A409",
+    "A411"
+];
+
+async function searchLotStock(article, lot) {
+
+    const { data, error } = await supabase
+        .from("stock")
+        .select(`
+            id,
+            article,
+            lot,
+            emplacement,
+            quantite
+        `)
+        .eq("article", article)
+        .eq("lot", lot)
+        .gt("quantite", 0);
+
+    if (error) throw error;
+
+    if (!data) return [];
+
+    return sortStockPriority(data);
+
+}
+
+/* ============================================================
+ * PRIORITÉ DES MAGASINS
+ * ============================================================
+ */
+
+function sortStockPriority(stock) {
+
+    return stock.sort((a, b) => {
+
+        const pa = PRIORITY_LOCATIONS.indexOf(a.emplacement);
+        const pb = PRIORITY_LOCATIONS.indexOf(b.emplacement);
+
+        if (pa === -1 && pb === -1) {
+            return a.emplacement.localeCompare(b.emplacement);
+        }
+
+        if (pa === -1) return 1;
+        if (pb === -1) return -1;
+
+        return pa - pb;
+
+    });
+
+}
+
+/* ============================================================
+ * RÉCUPÉRER LE STOCK DISPONIBLE
+ * ============================================================
+ */
+
+async function getAvailableStock(article, lot, quantityNeeded) {
+
+    const stock = await searchLotStock(article, lot);
+
+    let remaining = quantityNeeded;
+
+    const result = [];
+
+    for (const item of stock) {
+
+        if (remaining <= 0) break;
+
+        const qty = Math.min(item.quantite, remaining);
+
+        result.push({
+
+            stock_id: item.id,
+            emplacement: item.emplacement,
+            lot: item.lot,
+            disponible: item.quantite,
+            preleve: qty
+
+        });
+
+        remaining -= qty;
+
+    }
+
+    return {
+
+        lignes: result,
+        restant: remaining
+
+    };
+
+}
+/* ============================================================
+ * SAUVEGARDE PICKING
+ * ============================================================
+ */
+
+async function savePicking() {
+
+    if (!currentCommande) {
+        Toast.warning("Aucune commande chargée.");
+        return;
+    }
+
+    try {
+
+        Loader.show();
+
+        // Création Header si inexistant
+        if (!currentPicking) {
+
+            const { data, error } = await supabase
+                .from("picking")
+                .insert({
+                    document_vente: currentCommande.numero,
+                    utilisateur: currentUser.id,
+                    statut: "EN_COURS"
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            currentPicking = data;
+
+        }
+
+        // Suppression des anciennes lignes
+        await supabase
+            .from("picking_details")
+            .delete()
+            .eq("picking_id", currentPicking.id);
+
+        const details = [];
+
+        articles.forEach((article, articleIndex) => {
+
+            const container = document.getElementById(`lots_${articleIndex}`);
+
+            if (!container) return;
+
+            container.querySelectorAll(".lot-row").forEach((row) => {
+
+                const lot = row.querySelector(".lot-input").value.trim();
+                const qty = Number(row.querySelector(".qty-input").value || 0);
+
+                if (!lot || qty <= 0) return;
+
+                details.push({
+                    picking_id: currentPicking.id,
+                    article: article.article,
+                    lot: lot,
+                    quantite: qty
+                });
+
+            });
+
+        });
+
+        if (details.length > 0) {
+
+            const { error } = await supabase
+                .from("picking_details")
+                .insert(details);
+
+            if (error) throw error;
+
+        }
+
+        Toast.success("Picking sauvegardé.");
+
+    } catch (error) {
+
+        console.error(error);
+
+        Toast.error("Erreur lors de la sauvegarde.");
+
+    } finally {
+
+        Loader.hide();
+
+    }
+
+}
+
+/* ============================================================
+ * VALIDATION
+ * ============================================================
+ */
+
+async function validatePicking() {
+
+    if (!currentPicking) {
+
+        Toast.warning("Sauvegardez le picking avant validation.");
+
+        return;
+
+    }
+
+    try {
+
+        Loader.show();
+
+        const { error } = await supabase
+            .from("picking")
+            .update({
+                statut: "VALIDE",
+                date_validation: new Date().toISOString()
+            })
+            .eq("id", currentPicking.id);
+
+        if (error) throw error;
+
+        Toast.success("Picking validé.");
+
+    } catch (error) {
+
+        console.error(error);
+
+        Toast.error("Erreur lors de la validation.");
+
+    } finally {
+
+        Loader.hide();
+
+    }
 
 }
