@@ -1382,11 +1382,9 @@
     </div>
 
 </section>
-<!-- ===================================================== -->
-<!-- Part 8 : Loader + Toast + Modals -->
-<!-- ===================================================== -->
-
-<!-- ================= Loader ================= -->
+<!-- ==========================================================
+     LOADER
+========================================================== -->
 
 <div id="loaderOverlay" class="loader-overlay hidden">
 
@@ -1397,18 +1395,24 @@
             <div class="loader-spinner">
 
                 <div class="spinner-ring"></div>
-
                 <div class="spinner-ring"></div>
-
                 <div class="spinner-ring"></div>
 
             </div>
 
         </div>
 
-        <h2>Importation en cours...</h2>
+        <h2>
 
-        <p id="loaderMessage">Préparation des données...</p>
+            Importation en cours...
+
+        </h2>
+
+        <p id="loaderMessage">
+
+            Préparation des données...
+
+        </p>
 
         <div class="loader-progress">
 
@@ -1424,19 +1428,33 @@
 
         </div>
 
-        <span id="loaderPercent">0%</span>
+        <span id="loaderPercent">
+
+            0%
+
+        </span>
 
     </div>
 
 </div>
 
-<!-- ================= Toast Container ================= -->
+<!-- ==========================================================
+     TOAST CONTAINER
+========================================================== -->
 
-<div id="toastContainer" class="toast-container"></div>
+<div
+    id="toastContainer"
+    class="toast-container">
 
-<!-- ================= Confirmation Modal ================= -->
+</div>
 
-<div id="confirmModal" class="modal hidden">
+<!-- ==========================================================
+     CONFIRMATION MODAL
+========================================================== -->
+
+<div
+    id="confirmModal"
+    class="modal hidden">
 
     <div class="modal-content">
 
@@ -1450,9 +1468,17 @@
 
             <div>
 
-                <h2>Confirmation</h2>
+                <h2>
 
-                <p id="confirmMessage">Voulez-vous vraiment continuer ?</p>
+                    Confirmation
+
+                </h2>
+
+                <p id="confirmMessage">
+
+                    Voulez-vous vraiment continuer ?
+
+                </p>
 
             </div>
 
@@ -1462,7 +1488,8 @@
 
             <button
                 id="btnCancelModal"
-                class="btn btn-light">
+                class="btn btn-light"
+                type="button">
 
                 <i class="fas fa-xmark"></i>
 
@@ -1472,7 +1499,8 @@
 
             <button
                 id="btnConfirmModal"
-                class="btn btn-danger">
+                class="btn btn-danger"
+                type="button">
 
                 <i class="fas fa-check"></i>
 
@@ -1486,9 +1514,13 @@
 
 </div>
 
-<!-- ================= Success Modal ================= -->
+<!-- ==========================================================
+     SUCCESS MODAL
+========================================================== -->
 
-<div id="successModal" class="modal hidden">
+<div
+    id="successModal"
+    class="modal hidden">
 
     <div class="modal-content success">
 
@@ -1502,9 +1534,17 @@
 
             <div>
 
-                <h2>Importation Terminée</h2>
+                <h2>
 
-                <p id="successMessage">Toutes les commandes ont été traitées avec succès.</p>
+                    Importation Terminée
+
+                </h2>
+
+                <p id="successMessage">
+
+                    Toutes les commandes ont été traitées avec succès.
+
+                </p>
 
             </div>
 
@@ -1514,7 +1554,8 @@
 
             <button
                 id="btnCloseSuccess"
-                class="btn btn-success">
+                class="btn btn-success"
+                type="button">
 
                 <i class="fas fa-check"></i>
 
@@ -1528,9 +1569,13 @@
 
 </div>
 
-<!-- ================= Error Modal ================= -->
+<!-- ==========================================================
+     ERROR MODAL
+========================================================== -->
 
-<div id="errorModal" class="modal hidden">
+<div
+    id="errorModal"
+    class="modal hidden">
 
     <div class="modal-content danger">
 
@@ -1544,9 +1589,17 @@
 
             <div>
 
-                <h2>Une erreur est survenue</h2>
+                <h2>
 
-                <p id="errorMessage">Impossible de terminer l'importation.</p>
+                    Une erreur est survenue
+
+                </h2>
+
+                <p id="errorMessage">
+
+                    Impossible de terminer l'importation.
+
+                </p>
 
             </div>
 
@@ -1556,7 +1609,8 @@
 
             <button
                 id="btnCloseError"
-                class="btn btn-danger">
+                class="btn btn-danger"
+                type="button">
 
                 <i class="fas fa-xmark"></i>
 
@@ -1570,9 +1624,9 @@
 
 </div>
 
-<!-- ===================================================== -->
-<!-- End Page Content -->
-<!-- ===================================================== -->
+<!-- ==========================================================
+     END PAGE CONTENT
+========================================================== -->
 
             </main>
 
@@ -1580,33 +1634,47 @@
 
     </div>
 
-<!-- ================= Scripts ================= -->
+<!-- ==========================================================
+     JAVASCRIPT
+========================================================== -->
 
-<!-- ================= Config ================= -->
+<!-- Core -->
 
-<script type="module" src="../assets/js/config.js"></script>
+<script
+    type="module"
+    src="../assets/js/core/config.js">
+</script>
 
-<!-- ================= Utils ================= -->
+<script
+    type="module"
+    src="../assets/js/core/utils.js">
+</script>
 
-<script type="module" src="../assets/js/utils.js"></script>
+<script
+    type="module"
+    src="../assets/js/core/auth.js">
+</script>
 
-<!-- ================= Authentication ================= -->
+<script
+    type="module"
+    src="../assets/js/core/session.js">
+</script>
 
-<script type="module" src="../assets/js/auth.js"></script>
+<script
+    type="module"
+    src="../assets/js/core/permissions.js">
+</script>
 
-<script type="module" src="../assets/js/session.js"></script>
-
-<!-- ================= Permissions ================= -->
-
-<script type="module" src="/assets/js/permissions.js"></script>
-
-<!-- ================= SheetJS ================= -->
+<!-- SheetJS -->
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-<!-- ================= Import Commandes ================= -->
+<!-- Import Commandes -->
 
-<script type="module" src="../assets/js/commandes-import.js"></script>
+<script
+    type="module"
+    src="../assets/js/commandes-import.js">
+</script>
 
 </body>
 
