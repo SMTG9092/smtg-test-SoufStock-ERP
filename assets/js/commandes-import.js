@@ -19,8 +19,6 @@ import supabase from "./core/supabase.js";
    Globals
 ========================================================== */
 
-let supabase = null;
-
 let currentUser = null;
 
 let excelData = [];
