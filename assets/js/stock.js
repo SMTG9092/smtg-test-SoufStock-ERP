@@ -276,21 +276,40 @@ async init() {
    LOAD STOCK
 ============================================================ */
 
-async loadStock(){
+async loadStock() {
 
-    try{
+    try {
 
         this.showLoader(
-
             "Chargement...",
-
             "Lecture du stock..."
-
         );
 
         this.stock = await Api.getStock();
 
+        console.log("Stock chargé :", this.stock);
+
+        console.log("Nombre de lignes :", this.stock.length);
+
+        console.log(
+            "Total Stock :",
+            this.stock.reduce(
+                (sum, row) =>
+                    sum + Number(row.stock_disponible || 0),
+                0
+            )
+        );
+
         this.filteredStock = [...this.stock];
+
+        console.log(
+            "Total Filtered :",
+            this.filteredStock.reduce(
+                (sum, row) =>
+                    sum + Number(row.stock_disponible || 0),
+                0
+            )
+        );
 
         this.currentPage = 1;
 
@@ -306,18 +325,15 @@ async loadStock(){
 
     }
 
-    catch(error){
+    catch (error) {
 
         this.hideLoader();
 
         console.error(error);
 
         Toast.error(
-
             "Stock",
-
             error.message
-
         );
 
     }
