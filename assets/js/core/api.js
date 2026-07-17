@@ -102,7 +102,7 @@ async function select(
 
         }
 
-        const { data, error } = await query;
+        const { data, error } = await query.range(0, 10000);
 
         if (error) throw error;
 
