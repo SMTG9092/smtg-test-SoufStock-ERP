@@ -3080,17 +3080,19 @@ function randomId(){
    Export
 ========================================================== */
 
-window.ImportCommandes={
+window.ImportCommandes = {
 
-    analyse:analyseCommandes,
+    analyse: analyseCommandes,
 
-    importer:startImport,
+    importer: startImport,
 
-    refresh:refreshDashboard,
+    refresh: refreshDashboard,
+
+    reset: resetImport,
 
     exportExcel,
 
-    exportJSON:downloadJSON,
+    exportJSON: downloadJSON,
 
     clearLog,
 
