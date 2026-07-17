@@ -610,23 +610,18 @@ async function getStock(filters = {}) {
     if (filters.search) {
 
         query = query.or(
-
             `article.ilike.%${filters.search}%,
-
 designation_article.ilike.%${filters.search}%,
-
 lot.ilike.%${filters.search}%`
-
         );
 
     }
 
-    query = query.order(
-        "designation_article",
-        {
+    query = query
+        .order("designation_article", {
             ascending: true
-        }
-    );
+        })
+        .range(0, 10000);
 
     const { data, error } = await query;
 
