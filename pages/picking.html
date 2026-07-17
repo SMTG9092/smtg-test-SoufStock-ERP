@@ -5,22 +5,44 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
     <title>Picking | SoufStock Enterprise</title>
-        <!-- Dashboard CSS -->
 
+    <!-- Dashboard CSS -->
     <link
         rel="stylesheet"
         href="../assets/css/dashboard.css">
 
-    <link rel="stylesheet" href="../assets/css/picking.css">
+    <!-- Picking CSS -->
+    <link
+        rel="stylesheet"
+        href="../assets/css/picking.css">
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
 </head>
 
 <body>
 
     <div class="picking-page">
+
+        <!-- ========================================================= -->
+        <!-- Hidden Fields -->
+        <!-- ========================================================= -->
+
+        <input
+            type="hidden"
+            id="pickingId">
+
+        <input
+            type="hidden"
+            id="suiviId">
 
         <!-- ========================================================= -->
         <!-- Page Header -->
@@ -31,12 +53,17 @@
             <div class="page-title">
 
                 <h1>
+
                     <i class="fas fa-dolly"></i>
+
                     Préparation des Commandes
+
                 </h1>
 
                 <p>
+
                     Gestion des opérations de Picking
+
                 </p>
 
             </div>
@@ -45,6 +72,7 @@
 
                 <button
                     id="btnSave"
+                    type="button"
                     class="btn btn-success">
 
                     <i class="fas fa-save"></i>
@@ -55,6 +83,7 @@
 
                 <button
                     id="btnValidate"
+                    type="button"
                     class="btn btn-primary">
 
                     <i class="fas fa-check-circle"></i>
@@ -108,6 +137,7 @@
 
                     <button
                         id="btnSearch"
+                        type="button"
                         class="btn btn-primary">
 
                         <i class="fas fa-search"></i>
@@ -118,6 +148,7 @@
 
                     <button
                         id="btnScanner"
+                        type="button"
                         class="btn btn-secondary">
 
                         <i class="fas fa-barcode"></i>
@@ -131,285 +162,514 @@
             </div>
 
         </section>
+        
+<!-- ========================================================= -->
+<!-- Informations Commande -->
+<!-- ========================================================= -->
 
-        <!-- ========================================================= -->
-        <!-- Informations Commande -->
-        <!-- ========================================================= -->
+<section
+    id="commandeInfo"
+    class="card">
 
-        <section class="card">
+    <div class="card-header">
 
-            <div class="card-header">
+        <h2>
 
-                <h2>
+            <i class="fas fa-file-alt"></i>
 
-                    <i class="fas fa-file-alt"></i>
+            Informations Commande
 
-                    Informations Commande
-
-                </h2>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="info-grid">
-                                        <div class="info-item">
-
-                        <label>Client</label>
-
-                        <span id="clientName">-</span>
-
-                    </div>
-
-                    <div class="info-item">
-
-                        <label>Date Création</label>
-
-                        <span id="dateCreation">-</span>
-
-                    </div>
-
-                    <div class="info-item">
-
-                        <label>Date Livraison</label>
-
-                        <span id="dateLivraison">-</span>
-
-                    </div>
-
-                    <div class="info-item">
-
-                        <label>Tournée</label>
-
-                        <span id="tournee">-</span>
-
-                    </div>
-
-                    <div class="info-item">
-
-                        <label>Chauffeur</label>
-
-                        <span id="chauffeur">-</span>
-
-                    </div>
-
-                    <div class="info-item">
-
-                        <label>Statut</label>
-
-                        <span id="statutCommande"
-                              class="badge badge-warning">
-
-                            En préparation
-
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ========================================================= -->
-        <!-- Articles à Préparer -->
-        <!-- ========================================================= -->
-
-        <section class="card">
-
-            <div class="card-header">
-
-                <h2>
-
-                    <i class="fas fa-boxes"></i>
-
-                    Articles à Préparer
-
-                </h2>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="table-responsive">
-
-                    <table
-                        id="pickingTable"
-                        class="table table-hover">
-
-                        <thead>
-
-                            <tr>
-
-                                <th style="width:28%;">
-                                    Article
-                                </th>
-
-                                <th style="width:8%;">
-                                    Qté
-                                </th>
-
-                                <th style="width:10%;">
-                                    Préparée
-                                </th>
-
-                                <th style="width:10%;">
-                                    Nb Pièces
-                                </th>
-
-                                <th style="width:20%;">
-                                    Lot
-                                </th>
-
-                                <th style="width:14%;">
-                                    Qté Préparée
-                                </th>
-
-                                <th style="width:10%;">
-                                    Action
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody id="pickingBody">
-
-                            <tr class="empty-row">
-
-                                <td colspan="7">
-
-                                    Aucune commande chargée.
-
-                                </td>
-
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            </div>
-
-        </section>
-                <!-- ========================================================= -->
-        <!-- Résumé -->
-        <!-- ========================================================= -->
-
-        <section class="summary-section">
-
-            <div class="summary-card">
-
-                <span class="summary-label">
-
-                    Articles
-
-                </span>
-
-                <span
-                    id="totalArticles"
-                    class="summary-value">
-
-                    0
-
-                </span>
-
-            </div>
-
-            <div class="summary-card">
-
-                <span class="summary-label">
-
-                    Qté Totale
-
-                </span>
-
-                <span
-                    id="totalQuantity"
-                    class="summary-value">
-
-                    0
-
-                </span>
-
-            </div>
-
-            <div class="summary-card">
-
-                <span class="summary-label">
-
-                    Qté Préparée
-
-                </span>
-
-                <span
-                    id="preparedQuantity"
-                    class="summary-value">
-
-                    0
-
-                </span>
-
-            </div>
-
-        </section>
-
-        <!-- ========================================================= -->
-        <!-- Footer Actions -->
-        <!-- ========================================================= -->
-
-        <footer class="page-footer">
-
-            <div class="footer-left">
-
-                <button
-                    id="btnRefresh"
-                    class="btn btn-secondary">
-
-                    <i class="fas fa-sync-alt"></i>
-
-                    Actualiser
-
-                </button>
-
-            </div>
-
-            <div class="footer-right">
-
-                <button
-                    id="btnSaveFooter"
-                    class="btn btn-success">
-
-                    <i class="fas fa-save"></i>
-
-                    Enregistrer
-
-                </button>
-
-                <button
-                    id="btnValidateFooter"
-                    class="btn btn-primary">
-
-                    <i class="fas fa-check-circle"></i>
-
-                    Valider le Picking
-
-                </button>
-
-            </div>
-
-        </footer>
+        </h2>
 
     </div>
 
-    <!-- ========================================================= -->
-    <!-- JavaScript -->
-    <!-- ========================================================= -->
+    <div class="card-body">
 
-    <script type="module" src="../assets/js/picking.js"></script>
+        <div class="info-grid">
+
+            <div class="info-item">
+
+                <label>
+
+                    Client
+
+                </label>
+
+                <span id="clientName">
+
+                    -
+
+                </span>
+
+            </div>
+
+            <div class="info-item">
+
+                <label>
+
+                    Date Création
+
+                </label>
+
+                <span id="dateCreation">
+
+                    -
+
+                </span>
+
+            </div>
+
+            <div class="info-item">
+
+                <label>
+
+                    Date Livraison
+
+                </label>
+
+                <span id="dateLivraison">
+
+                    -
+
+                </span>
+
+            </div>
+
+            <div class="info-item">
+
+                <label>
+
+                    Tournée
+
+                </label>
+
+                <span id="tournee">
+
+                    -
+
+                </span>
+
+            </div>
+
+            <div class="info-item">
+
+                <label>
+
+                    Chauffeur
+
+                </label>
+
+                <span id="chauffeur">
+
+                    -
+
+                </span>
+
+            </div>
+
+            <div class="info-item">
+
+                <label>
+
+                    Statut
+
+                </label>
+
+                <span
+                    id="statutCommande"
+                    class="badge badge-warning"
+                    data-status="EN_PREPARATION">
+
+                    En préparation
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- Articles à Préparer -->
+<!-- ========================================================= -->
+
+<section
+    id="articlesSection"
+    class="card">
+
+    <div class="card-header">
+
+        <h2>
+
+            <i class="fas fa-boxes"></i>
+
+            Articles à Préparer
+
+        </h2>
+
+    </div>
+
+    <div class="card-body">
+
+        <!-- ========================================================= -->
+        <!-- Progress -->
+        <!-- ========================================================= -->
+
+        <div class="progress-container">
+
+            <div
+                id="pickingProgress"
+                class="progress-bar">
+
+                <span id="progressText">
+
+                    0%
+
+                </span>
+
+            </div>
+
+        </div>
+        
+<!-- ========================================================= -->
+<!-- Table -->
+<!-- ========================================================= -->
+
+<div class="table-responsive">
+
+    <table
+        id="pickingTable"
+        class="table table-hover"
+        aria-label="Tableau de Picking">
+
+        <thead id="pickingTableHead">
+
+            <tr>
+
+                <th
+                    scope="col"
+                    style="width:28%;">
+
+                    Article
+
+                </th>
+
+                <th
+                    scope="col"
+                    style="width:8%;">
+
+                    Qté
+
+                </th>
+
+                <th
+                    scope="col"
+                    style="width:10%;">
+
+                    Préparée
+
+                </th>
+
+                <th
+                    scope="col"
+                    style="width:10%;">
+
+                    Nb Pièces
+
+                </th>
+
+                <th
+                    scope="col"
+                    style="width:20%;">
+
+                    Lot
+
+                </th>
+
+                <th
+                    scope="col"
+                    style="width:14%;">
+
+                    Qté Préparée
+
+                </th>
+
+                <th
+                    scope="col"
+                    style="width:10%;">
+
+                    Action
+
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="pickingBody">
+
+            <tr class="empty-row">
+
+                <td colspan="7">
+
+                    Aucune commande chargée.
+
+                </td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- Résumé Picking -->
+<!-- ========================================================= -->
+
+<section
+    id="summarySection"
+    class="summary-section">
+
+    <div
+        class="summary-card"
+        data-value="articles">
+
+        <span class="summary-label">
+
+            Articles
+
+        </span>
+
+        <span
+            id="totalArticles"
+            class="summary-value">
+
+            0
+
+        </span>
+
+    </div>
+
+    <div
+        class="summary-card"
+        data-value="quantity">
+
+        <span class="summary-label">
+
+            Qté Totale
+
+        </span>
+
+        <span
+            id="totalQuantity"
+            class="summary-value">
+
+            0.000
+
+        </span>
+
+    </div>
+
+    <div
+        class="summary-card"
+        data-value="prepared">
+
+        <span class="summary-label">
+
+            Qté Préparée
+
+        </span>
+
+        <span
+            id="preparedQuantity"
+            class="summary-value">
+
+            0.000
+
+        </span>
+
+    </div>
+
+</section>
+
+<!-- ========================================================= -->
+<!-- Footer Actions -->
+<!-- ========================================================= -->
+
+<footer class="page-footer">
+
+    <div class="footer-left">
+
+        <button
+            id="btnRefresh"
+            type="button"
+            class="btn btn-secondary">
+
+            <i class="fas fa-sync-alt"></i>
+
+            Actualiser
+
+        </button>
+
+    </div>
+
+    <div class="footer-right">
+
+        <button
+            id="btnSaveFooter"
+            type="button"
+            class="btn btn-success">
+
+            <i class="fas fa-save"></i>
+
+            Enregistrer
+
+        </button>
+
+        <button
+            id="btnValidateFooter"
+            type="button"
+            class="btn btn-primary">
+
+            <i class="fas fa-check-circle"></i>
+
+            Valider le Picking
+
+        </button>
+
+    </div>
+
+</footer>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- Lot Popup -->
+<!-- ========================================================= -->
+
+<div
+    id="lotPopup"
+    class="lot-popup hidden">
+
+</div>
+
+<!-- ========================================================= -->
+<!-- Toast Container -->
+<!-- ========================================================= -->
+
+<div
+    id="toastContainer">
+
+</div>
+
+<!-- ========================================================= -->
+<!-- Confirmation Modal -->
+<!-- ========================================================= -->
+
+<div
+    id="confirmModal"
+    class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h3>
+
+                Confirmation
+
+            </h3>
+
+        </div>
+
+        <div class="modal-body">
+
+            <p id="confirmMessage">
+
+            </p>
+
+        </div>
+
+        <div class="modal-actions">
+
+            <button
+                id="confirmYes"
+                type="button"
+                class="btn btn-primary">
+
+                <i class="fas fa-check"></i>
+
+                Oui
+
+            </button>
+
+            <button
+                id="confirmNo"
+                type="button"
+                class="btn btn-secondary">
+
+                <i class="fas fa-times"></i>
+
+                Annuler
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- Loader -->
+<!-- ========================================================= -->
+
+<div
+    id="pickingLoader"
+    class="loader-overlay hidden">
+
+    <div class="loader-box">
+
+        <div class="spinner"></div>
+
+        <p id="loaderText">
+
+            Chargement...
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- Print Area -->
+<!-- ========================================================= -->
+
+<div
+    id="printArea"
+    style="display:none">
+
+</div>
+
+<!-- ========================================================= -->
+<!-- JavaScript -->
+<!-- ========================================================= -->
+
+<script
+    type="module"
+    src="../assets/js/picking.js">
+
+</script>
 
 </body>
 
