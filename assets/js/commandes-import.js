@@ -1257,29 +1257,56 @@ function updateAnalyseCards(){
 }
 
 /* ==========================================================
-   Reset Analyse
+   Reset Import
 ========================================================== */
 
-function resetAnalyse(){
+function resetImport() {
 
-    analyseResult = {
+    excelData = [];
+    piecesData = [];
 
-        total:0,
+    resetAnalyse();
 
-        inserted:0,
+    if (UI.fileExcel) UI.fileExcel.value = "";
+    if (UI.filePieces) UI.filePieces.value = "";
 
-        updated:0,
+    if (UI.excelFileName) {
+        UI.excelFileName.textContent = "Aucun fichier sélectionné";
+    }
 
-        deleted:0,
+    if (UI.piecesFileName) {
+        UI.piecesFileName.textContent = "Aucun fichier sélectionné";
+    }
 
-        same:0,
+    if (UI.btnImportExcel) {
+        UI.btnImportExcel.disabled = true;
+    }
 
-        errors:0
+    if (UI.btnImportPieces) {
+        UI.btnImportPieces.disabled = true;
+    }
 
-    };
+    if (UI.progressBar) {
+        UI.progressBar.style.width = "0%";
+    }
+
+    if (UI.progressPercent) {
+        UI.progressPercent.textContent = "0%";
+    }
+
+    if (UI.progressStatus) {
+        UI.progressStatus.textContent = "";
+    }
+
+    updateAnalyseCards();
+
+    clearLog();
+
+    addLog("Import réinitialisé.", "info");
+
+    Toast.success("Import réinitialisé.");
 
 }
-
 /* ==========================================================
    Start Import
 ========================================================== */
