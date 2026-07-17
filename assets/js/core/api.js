@@ -578,7 +578,7 @@ async function getStock(filters = {}) {
 
     let query = supabase
         .from("vw_stock")
-        .select("*");
+        .select("*", { count: "exact" });
 
     if (filters.article) {
 
@@ -623,7 +623,10 @@ lot.ilike.%${filters.search}%`
         })
         .range(0, 10000);
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
+
+console.log("Count =", count);
+console.log("Rows =", data.length);
 
     if (error) throw error;
 
