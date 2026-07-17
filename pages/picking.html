@@ -1,1 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Picking | SoufStock</title>
+
+    <link rel="stylesheet" href="../assets/css/picking.css">
+</head>
+
+<body>
+
+    <div class="picking-page">
+
+        <!-- ================= Header ================= -->
+
+        <div class="page-header">
+
+            <div>
+                <h1>Préparation des Commandes</h1>
+                <p>Gestion du Picking</p>
+            </div>
+
+            <div class="header-actions">
+                <button id="btnSave" class="btn success">
+                    Enregistrer
+                </button>
+
+                <button id="btnValidate" class="btn primary">
+                    Valider
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ================= Recherche ================= -->
+
+        <section class="card">
+
+            <div class="card-title">
+                Recherche Commande
+            </div>
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    id="commandeInput"
+                    placeholder="Numéro de commande">
+
+                <button id="btnSearch">
+                    Charger
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- ================= Informations ================= -->
+
+        <section class="card">
+
+            <div class="card-title">
+                Informations Commande
+            </div>
+
+            <div class="info-grid">
+
+                <div>
+                    <label>Client</label>
+                    <span id="client">-</span>
+                </div>
+
+                <div>
+                    <label>Date Création</label>
+                    <span id="dateCreation">-</span>
+                </div>
+
+                <div>
+                    <label>Date Livraison</label>
+                    <span id="dateLivraison">-</span>
+                </div>
+
+                <div>
+                    <label>Tournée</label>
+                    <span id="tournee">-</span>
+                </div>
+
+                <div>
+                    <label>Statut</label>
+                    <span id="statut">
+                        En préparation
+                    </span>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ================= Tableau ================= -->
+
+        <section class="card">
+
+            <div class="card-title">
+                Articles à Préparer
+            </div>
+
+            <div class="table-container">
+
+                <table id="pickingTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Article</th>
+
+                            <th>Qté</th>
+
+                            <th>Préparée</th>
+
+                            <th>Nb Pièces</th>
+
+                            <th>Lot</th>
+
+                            <th>Qté Préparée</th>
+
+                            <th></th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="pickingBody">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- ================= Résumé ================= -->
+
+        <section class="summary">
+
+            <div>
+
+                <span>Articles</span>
+
+                <strong id="totalArticles">
+                    0
+                </strong>
+
+            </div>
+
+            <div>
+
+                <span>Qté Totale</span>
+
+                <strong id="totalQte">
+                    0
+                </strong>
+
+            </div>
+
+            <div>
+
+                <span>Qté Préparée</span>
+
+                <strong id="totalPreparee">
+                    0
+                </strong>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <script type="module" src="../assets/js/picking.js"></script>
+
+</body>
+
+</html>
