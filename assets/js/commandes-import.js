@@ -984,6 +984,49 @@ function formatExcelDate(value){
 
 }
 /* ==========================================================
+   Reset Analyse
+========================================================== */
+
+function resetAnalyse() {
+
+    analyseResult = {
+
+        total: 0,
+
+        inserted: 0,
+
+        updated: 0,
+
+        deleted: 0,
+
+        same: 0,
+
+        errors: 0
+
+    };
+
+    updateAnalyseCards();
+
+    if (UI.progressBar) {
+
+        UI.progressBar.style.width = "0%";
+
+    }
+
+    if (UI.progressPercent) {
+
+        UI.progressPercent.textContent = "0%";
+
+    }
+
+    if (UI.progressStatus) {
+
+        UI.progressStatus.textContent = "Analyse en cours...";
+
+    }
+
+}
+/* ==========================================================
    Analyse des Commandes
 ========================================================== */
 
