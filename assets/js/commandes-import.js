@@ -438,74 +438,89 @@ function bindEvents() {
     console.log("Button:", UI.btnSelectExcel);
     console.log("Input :", UI.fileExcel);
 
-    /* ===========================
-       Choisir fichier KG
-    =========================== */
+/* ===========================
+   Choisir fichier KG
+=========================== */
 
-    UI.btnSelectExcel?.addEventListener("click", (e) => {
+UI.btnSelectExcel?.addEventListener("click", (e) => {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        UI.fileExcel.click();
+    UI.fileExcel.click();
 
-    });
+});
 
-    UI.fileExcel?.addEventListener("change", (e) => {
+UI.fileExcel?.addEventListener("change", (e) => {
 
-        const file = e.target.files[0];
+    const file = e.target.files[0];
 
-        if (!file) return;
+    if (!file) return;
 
-        UI.excelFileName.textContent = file.name;
+    UI.excelFileName.textContent = file.name;
 
-        UI.btnImportExcel.disabled = false;
+    // Activer le bouton Import KG
+    UI.btnImportExcel.disabled = false;
 
-    });
+    // Désactiver les étapes suivantes
+    UI.btnAnalyse.disabled = true;
+    UI.btnStartImport.disabled = true;
 
-    /* ===========================
-       Choisir fichier Pièces
-    =========================== */
+});
 
-    UI.btnSelectPieces?.addEventListener("click", (e) => {
+/* ===========================
+   Choisir fichier Pièces
+=========================== */
 
-        e.preventDefault();
+UI.btnSelectPieces?.addEventListener("click", (e) => {
 
-        UI.filePieces.click();
+    e.preventDefault();
 
-    });
+    UI.filePieces.click();
 
-    UI.filePieces?.addEventListener("change", (e) => {
+});
 
-        const file = e.target.files[0];
+UI.filePieces?.addEventListener("change", (e) => {
 
-        if (!file) return;
+    const file = e.target.files[0];
 
-        UI.piecesFileName.textContent = file.name;
+    if (!file) return;
 
-        UI.btnImportPieces.disabled = false;
+    UI.piecesFileName.textContent = file.name;
 
-    });
+    // Activer le bouton Import Pièces
+    UI.btnImportPieces.disabled = false;
 
-    /* ===========================
-       Import Excel KG
-    =========================== */
+    // Désactiver les étapes suivantes
+    UI.btnAnalyse.disabled = true;
+    UI.btnStartImport.disabled = true;
 
-    UI.btnImportExcel?.addEventListener("click", async () => {
+});
 
-        await importExcelKG();
+/* ===========================
+   Import Excel KG
+=========================== */
 
-    });
+UI.btnImportExcel?.addEventListener("click", async () => {
 
-    /* ===========================
-       Import Pièces
-    =========================== */
+    await importExcelKG();
 
-    UI.btnImportPieces?.addEventListener("click", async () => {
+    // Activer l'analyse après lecture du fichier
+    UI.btnAnalyse.disabled = false;
 
-        await importPieces();
+});
 
-    });
+/* ===========================
+   Import Pièces
+=========================== */
 
+UI.btnImportPieces?.addEventListener("click", async () => {
+
+    await importPieces();
+
+    // Activer l'analyse après lecture du fichier
+    UI.btnAnalyse.disabled = false;
+
+});
     /* ===========================
        Analyse
     =========================== */
