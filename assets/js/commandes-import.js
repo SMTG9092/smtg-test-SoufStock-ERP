@@ -13,6 +13,7 @@ import Auth from "./core/auth.js";
 import Session from "./core/session.js";
 import * as Utils from "./core/utils.js";
 import APP_CONFIG from "./core/config.js";
+import supabase from "./core/supabase.js";
 
 /* ==========================================================
    Globals
