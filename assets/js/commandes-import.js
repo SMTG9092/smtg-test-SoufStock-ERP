@@ -843,10 +843,6 @@ async function importExcelKG() {
 
         });
 
-        /* ==========================================
-           État Import KG
-        ========================================== */
-
         kgImported = true;
         kgAnalysed = false;
 
@@ -857,6 +853,20 @@ async function importExcelKG() {
         Toast.success(
             `${kgData.length} lignes KG chargées.`
         );
+
+    }
+
+    catch (error) {
+
+        Loader.hide();
+
+        console.error(error);
+
+        Toast.error(error.message);
+
+    }
+
+}
        
 /* ==========================================================
    Import Pièces
