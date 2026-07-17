@@ -358,44 +358,48 @@ document.addEventListener(
    Main Init
 ========================================================== */
 
-async function initPage(){
+async function initPage() {
 
-    try{
+    try {
 
+        // Initialisation de la session
         await Session.init();
 
+        // Récupération du client Supabase
         supabase = Auth.supabase;
 
-        // Cache tous les éléments HTML
+        if (!supabase) {
+            throw new Error("Supabase n'est pas initialisé.");
+        }
+
+        // Cache des éléments DOM
         cacheDOM();
 
+        // Vérification de l'utilisateur connecté
         await loadCurrentUser();
 
+        // Initialisation des événements
         bindEvents();
-
         setupAuthListener();
-
         setupWindowEvents();
 
+        // Chargement des données de la page
         await loadPage();
 
+        // Rafraîchissement automatique
         startAutoRefresh();
 
-        Toast.success(
-            "Import Commandes prêt."
-        );
+        // Message de succès
+        Toast.success("Import Commandes prêt.");
 
-        console.log(
-            "✅ Import Commandes initialized."
-        );
+        console.log("✅ Import Commandes initialized.");
 
-    }
-    catch(error){
+    } catch (error) {
 
-        console.error(error);
+        console.error("Erreur initPage :", error);
 
         Toast.error(
-            "Erreur lors du démarrage."
+            error?.message || "Erreur lors du démarrage."
         );
 
     }
