@@ -3,25 +3,48 @@
 
 <head>
 
+    <!-- ==========================================================
+         META
+    =========================================================== -->
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Import Commandes | SoufStock Enterprise ERP</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-    <!-- Page CSS -->
-    <link rel="stylesheet" href="/assets/css/import_commandes.css">
+    <meta
+        name="description"
+        content="Importation des commandes SAP (KG & Pièces) - SoufStock Enterprise ERP">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <title>
+
+        Import Commandes | SoufStock Enterprise ERP
+
+    </title>
+
+    <!-- ==========================================================
+         PAGE CSS
+    =========================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="/assets/css/import_commandes.css">
+
+    <!-- ==========================================================
+         FONT AWESOME
+    =========================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
 </head>
 
 <body>
-
-    <!-- ========================================= -->
-    <!-- Dashboard Layout -->
-    <!-- ========================================= -->
+    <!-- ==========================================================
+         DASHBOARD LAYOUT
+    =========================================================== -->
 
     <div class="dashboard-layout">
 
@@ -29,8 +52,7 @@
 
         <aside id="sidebar-container">
 
-            <!-- Sidebar sera chargée automatiquement
-                 بواسطة layout.js -->
+            <!-- Chargé automatiquement par layout.js -->
 
         </aside>
 
@@ -42,8 +64,7 @@
 
             <header id="topbar-container">
 
-                <!-- Topbar sera chargée automatiquement
-                     بواسطة layout.js -->
+                <!-- Chargé automatiquement par layout.js -->
 
             </header>
 
@@ -51,9 +72,9 @@
 
             <main class="page-content">
 
-                <!-- ========================================= -->
-                <!-- Header -->
-                <!-- ========================================= -->
+                <!-- ==========================================================
+                     PAGE HEADER
+                =========================================================== -->
 
                 <section class="page-header">
 
@@ -67,12 +88,15 @@
 
                         <div>
 
-                            <h1>Import Commandes</h1>
+                            <h1>
+
+                                Import Commandes
+
+                            </h1>
 
                             <p>
 
-                                Importation et synchronisation
-                                des commandes SAP (KG & Pièces)
+                                Importation et synchronisation des commandes SAP (KG & Pièces)
 
                             </p>
 
@@ -84,7 +108,8 @@
 
                         <button
                             id="btnRetour"
-                            class="btn btn-outline">
+                            class="btn btn-outline"
+                            type="button">
 
                             <i class="fas fa-arrow-left"></i>
 
@@ -95,188 +120,198 @@
                     </div>
 
                 </section>
+                <!-- ==========================================================
+                     IMPORT CARDS
+                =========================================================== -->
 
-                <!-- ========================================= -->
-                <!-- Part 2: Import Cards -->
-                <!-- ========================================= -->
+                <section class="import-grid">
 
-<section class="import-grid">
+                    <!-- ================= Import Excel KG ================= -->
 
-    <!-- ================= Import Excel KG ================= -->
+                    <div class="import-card">
 
-    <div class="import-card">
+                        <div class="card-header">
 
-        <div class="card-header">
+                            <div class="card-icon purple">
 
-            <div class="card-icon purple">
+                                <i class="fas fa-boxes-stacked"></i>
 
-                <i class="fas fa-boxes-stacked"></i>
+                            </div>
 
-            </div>
+                            <div>
 
-            <div>
+                                <h3>
 
-                <h3>Commandes Excel (KG)</h3>
+                                    Commandes Excel (KG)
 
-                <p>
+                                </h3>
 
-                    Importation des commandes SAP
-                    en kilogrammes.
+                                <p>
 
-                </p>
+                                    Importation des commandes SAP en kilogrammes.
 
-            </div>
+                                </p>
 
-        </div>
+                            </div>
 
-        <div class="card-body">
+                        </div>
 
-            <input
-                type="file"
-                id="fileExcel"
-                accept=".xlsx,.xls"
-                hidden>
+                        <div class="card-body">
 
-            <button
-                id="btnSelectExcel"
-                class="btn btn-light full-width">
+                            <input
+                                type="file"
+                                id="fileExcel"
+                                accept=".xlsx,.xls"
+                                hidden>
 
-                <i class="fas fa-folder-open"></i>
+                            <button
+                                id="btnSelectExcel"
+                                class="btn btn-light full-width"
+                                type="button">
 
-                Choisir un fichier Excel
+                                <i class="fas fa-folder-open"></i>
 
-            </button>
+                                Choisir un fichier Excel
 
-            <div class="selected-file">
+                            </button>
 
-                <span class="label">
+                            <div class="selected-file">
 
-                    Fichier :
+                                <span class="label">
 
-                </span>
+                                    Fichier :
 
-                <span id="excelFileName">
+                                </span>
 
-                    Aucun fichier sélectionné
+                                <span id="excelFileName">
 
-                </span>
+                                    Aucun fichier sélectionné
 
-            </div>
+                                </span>
 
-            <div class="file-status success hidden"
-                 id="excelStatus">
+                            </div>
 
-                <i class="fas fa-circle-check"></i>
+                            <div
+                                id="excelStatus"
+                                class="file-status success hidden">
 
-                ✔ Fichier sélectionné
+                                <i class="fas fa-circle-check"></i>
 
-            </div>
+                                Fichier sélectionné
 
-            <button
-                id="btnImportExcel"
-                class="btn btn-primary full-width"
-                disabled>
+                            </div>
 
-                <i class="fas fa-cloud-upload-alt"></i>
+                            <button
+                                id="btnImportExcel"
+                                class="btn btn-primary full-width"
+                                type="button"
+                                disabled>
 
-                Importer les Commandes KG
+                                <i class="fas fa-cloud-upload-alt"></i>
 
-            </button>
+                                Importer les Commandes KG
 
-        </div>
+                            </button>
 
-    </div>
+                        </div>
 
-    <!-- ================= Import Pièces ================= -->
+                    </div>
 
-    <div class="import-card">
+                    <!-- ================= Import Pièces ================= -->
 
-        <div class="card-header">
+                    <div class="import-card">
 
-            <div class="card-icon blue">
+                        <div class="card-header">
 
-                <i class="fas fa-cubes"></i>
+                            <div class="card-icon blue">
 
-            </div>
+                                <i class="fas fa-cubes"></i>
 
-            <div>
+                            </div>
 
-                <h3>Commandes Pièces</h3>
+                            <div>
 
-                <p>
+                                <h3>
 
-                    Importation des commandes SAP
-                    par nombre de pièces.
+                                    Commandes Pièces
 
-                </p>
+                                </h3>
 
-            </div>
+                                <p>
 
-        </div>
+                                    Importation des commandes SAP par nombre de pièces.
 
-        <div class="card-body">
+                                </p>
 
-            <input
-                type="file"
-                id="filePieces"
-                accept=".xlsx,.xls"
-                hidden>
+                            </div>
 
-            <button
-                id="btnSelectPieces"
-                class="btn btn-light full-width">
+                        </div>
 
-                <i class="fas fa-folder-open"></i>
+                        <div class="card-body">
 
-                Choisir un fichier Excel
+                            <input
+                                type="file"
+                                id="filePieces"
+                                accept=".xlsx,.xls"
+                                hidden>
 
-            </button>
+                            <button
+                                id="btnSelectPieces"
+                                class="btn btn-light full-width"
+                                type="button">
 
-            <div class="selected-file">
+                                <i class="fas fa-folder-open"></i>
 
-                <span class="label">
+                                Choisir un fichier Excel
 
-                    Fichier :
+                            </button>
 
-                </span>
+                            <div class="selected-file">
 
-                <span id="piecesFileName">
+                                <span class="label">
 
-                    Aucun fichier sélectionné
+                                    Fichier :
 
-                </span>
+                                </span>
 
-            </div>
+                                <span id="piecesFileName">
 
-            <div class="file-status success hidden"
-                 id="piecesStatus">
+                                    Aucun fichier sélectionné
 
-                <i class="fas fa-circle-check"></i>
+                                </span>
 
-                ✔ Fichier sélectionné
+                            </div>
 
-            </div>
+                            <div
+                                id="piecesStatus"
+                                class="file-status success hidden">
 
-            <button
-                id="btnImportPieces"
-                class="btn btn-primary full-width"
-                disabled>
+                                <i class="fas fa-circle-check"></i>
 
-                <i class="fas fa-cloud-upload-alt"></i>
+                                Fichier sélectionné
 
-                Importer les Pièces
+                            </div>
 
-            </button>
+                            <button
+                                id="btnImportPieces"
+                                class="btn btn-primary full-width"
+                                type="button"
+                                disabled>
 
-        </div>
+                                <i class="fas fa-cloud-upload-alt"></i>
 
-    </div>
+                                Importer les Pièces
 
-</section>
+                            </button>
 
-<!-- ===================================================== -->
-<!-- Part 3 : Zone Analyse -->
-<!-- ===================================================== -->
+                        </div>
+
+                    </div>
+
+                </section>
+<!-- ==========================================================
+     ANALYSE SECTION
+========================================================== -->
 
 <section class="analyse-section">
 
@@ -292,12 +327,15 @@
 
             <div>
 
-                <h2>Analyse des Commandes</h2>
+                <h2>
+
+                    Analyse des Commandes
+
+                </h2>
 
                 <p>
 
-                    Comparaison entre le fichier SAP et la base de données
-                    avant le lancement de l'importation.
+                    Comparaison entre les fichiers SAP et la base de données avant l'importation.
 
                 </p>
 
@@ -310,6 +348,7 @@
             <button
                 id="btnAnalyse"
                 class="btn btn-dark"
+                type="button"
                 disabled>
 
                 <i class="fas fa-magnifying-glass"></i>
@@ -337,8 +376,8 @@
             <div>
 
                 <span
-                    class="analyse-value"
-                    id="analyseNew">
+                    id="analyseNew"
+                    class="analyse-value">
 
                     0
 
@@ -365,8 +404,8 @@
             <div>
 
                 <span
-                    class="analyse-value"
-                    id="analyseUpdated">
+                    id="analyseUpdated"
+                    class="analyse-value">
 
                     0
 
@@ -393,8 +432,8 @@
             <div>
 
                 <span
-                    class="analyse-value"
-                    id="analyseDeleted">
+                    id="analyseDeleted"
+                    class="analyse-value">
 
                     0
 
@@ -421,8 +460,8 @@
             <div>
 
                 <span
-                    class="analyse-value"
-                    id="analyseSame">
+                    id="analyseSame"
+                    class="analyse-value">
 
                     0
 
@@ -449,8 +488,8 @@
             <div>
 
                 <span
-                    class="analyse-value"
-                    id="analyseStatus">
+                    id="analyseStatus"
+                    class="analyse-value">
 
                     0
 
@@ -469,10 +508,9 @@
     </div>
 
 </section>
-
-<!-- ===================================================== -->
-<!-- Part 4 : Résultats Analyse (Détails) -->
-<!-- ===================================================== -->
+<!-- ==========================================================
+     DÉTAILS DE L'ANALYSE
+========================================================== -->
 
 <section class="details-section">
 
@@ -490,7 +528,13 @@
 
             </div>
 
-            <span class="detail-count" id="modificationCount">0</span>
+            <span
+                id="modificationCount"
+                class="detail-count">
+
+                0
+
+            </span>
 
         </div>
 
@@ -498,18 +542,17 @@
 
             <div class="detail-table-wrapper">
 
-                <table class="detail-table" id="modificationsTable">
+                <table
+                    id="modificationsTable"
+                    class="detail-table">
 
                     <thead>
 
                         <tr>
 
                             <th>N° Commande</th>
-
                             <th>Date</th>
-
                             <th>Quantité</th>
-
                             <th>Statut</th>
 
                         </tr>
@@ -520,7 +563,11 @@
 
                         <tr class="empty-row">
 
-                            <td colspan="4">Aucune modification détectée</td>
+                            <td colspan="4">
+
+                                Aucune modification détectée
+
+                            </td>
 
                         </tr>
 
@@ -532,11 +579,16 @@
 
             <div class="detail-footer">
 
-                <span id="totalModifications">Total : 0</span>
+                <span id="totalModifications">
+
+                    Total : 0
+
+                </span>
 
                 <button
                     id="btnViewModifications"
-                    class="btn btn-light btn-sm hidden">
+                    class="btn btn-light btn-sm hidden"
+                    type="button">
 
                     <i class="fas fa-eye"></i>
 
@@ -564,7 +616,13 @@
 
             </div>
 
-            <span class="detail-count" id="deletedTotal">0</span>
+            <span
+                id="deletedTotal"
+                class="detail-count">
+
+                0
+
+            </span>
 
         </div>
 
@@ -572,7 +630,9 @@
 
             <div class="detail-table-wrapper">
 
-                <table class="detail-table" id="deletedTable">
+                <table
+                    id="deletedTable"
+                    class="detail-table">
 
                     <thead>
 
@@ -588,11 +648,8 @@
                             </th>
 
                             <th>N° Commande</th>
-
                             <th>Date</th>
-
                             <th>Quantité</th>
-
                             <th>Raison</th>
 
                         </tr>
@@ -603,7 +660,11 @@
 
                         <tr class="empty-row">
 
-                            <td colspan="5">Aucune suppression détectée</td>
+                            <td colspan="5">
+
+                                Aucune suppression détectée
+
+                            </td>
 
                         </tr>
 
@@ -618,6 +679,7 @@
                 <button
                     id="btnRestoreDeleted"
                     class="btn btn-warning btn-sm"
+                    type="button"
                     disabled>
 
                     <i class="fas fa-undo"></i>
@@ -629,11 +691,12 @@
                 <button
                     id="btnConfirmDelete"
                     class="btn btn-danger btn-sm"
+                    type="button"
                     disabled>
 
                     <i class="fas fa-trash"></i>
 
-                    Confirmer suppressions
+                    Confirmer les suppressions
 
                 </button>
 
@@ -644,27 +707,41 @@
     </div>
 
 </section>
-
-<!-- ===================================================== -->
-<!-- Part 5 : Workflow/Timeline -->
-<!-- ===================================================== -->
+<!-- ==========================================================
+     WORKFLOW / TIMELINE
+========================================================== -->
 
 <section class="workflow-section">
 
     <div class="section-header">
 
-        <h2>Progression d'importation</h2>
+        <div>
 
-        <p>Suivi des étapes d'importation en temps réel</p>
+            <h2>
+
+                Progression d'importation
+
+            </h2>
+
+            <p>
+
+                Suivi en temps réel des différentes étapes de l'importation.
+
+            </p>
+
+        </div>
 
     </div>
 
     <div class="workflow-timeline">
 
-        <!-- Step 1: Préparation -->
+        <!-- ================= Préparation ================= -->
+
         <div class="timeline-step">
 
-            <div class="step-marker pending" id="stepPrepare">
+            <div
+                id="stepPrepare"
+                class="step-marker pending">
 
                 <i class="fas fa-hourglass-start"></i>
 
@@ -672,18 +749,29 @@
 
             <div class="step-content">
 
-                <h4>Préparation</h4>
+                <h4>
 
-                <p>En attente...</p>
+                    Préparation
+
+                </h4>
+
+                <p>
+
+                    En attente...
+
+                </p>
 
             </div>
 
         </div>
 
-        <!-- Step 2: Validation -->
+        <!-- ================= Validation ================= -->
+
         <div class="timeline-step">
 
-            <div class="step-marker pending" id="stepValidate">
+            <div
+                id="stepValidate"
+                class="step-marker pending">
 
                 <i class="fas fa-check-circle"></i>
 
@@ -691,37 +779,59 @@
 
             <div class="step-content">
 
-                <h4>Validation</h4>
+                <h4>
 
-                <p>En attente...</p>
+                    Validation
+
+                </h4>
+
+                <p>
+
+                    En attente...
+
+                </p>
 
             </div>
 
         </div>
 
-        <!-- Step 3: Synchronisation -->
+        <!-- ================= Synchronisation ================= -->
+
         <div class="timeline-step">
 
-            <div class="step-marker pending" id="stepSync">
+            <div
+                id="stepSync"
+                class="step-marker pending">
 
-                <i class="fas fa-sync"></i>
+                <i class="fas fa-rotate"></i>
 
             </div>
 
             <div class="step-content">
 
-                <h4>Synchronisation</h4>
+                <h4>
 
-                <p>En attente...</p>
+                    Synchronisation
+
+                </h4>
+
+                <p>
+
+                    En attente...
+
+                </p>
 
             </div>
 
         </div>
 
-        <!-- Step 4: Finalisation -->
+        <!-- ================= Finalisation ================= -->
+
         <div class="timeline-step">
 
-            <div class="step-marker pending" id="stepFinalize">
+            <div
+                id="stepFinalize"
+                class="step-marker pending">
 
                 <i class="fas fa-flag-checkered"></i>
 
@@ -729,9 +839,17 @@
 
             <div class="step-content">
 
-                <h4>Finalisation</h4>
+                <h4>
 
-                <p>En attente...</p>
+                    Finalisation
+
+                </h4>
+
+                <p>
+
+                    En attente...
+
+                </p>
 
             </div>
 
@@ -741,19 +859,33 @@
 
 </section>
 
-<!-- ===================================================== -->
-<!-- Part 6 : KPI Dashboard -->
-<!-- ===================================================== -->
+<!-- ==========================================================
+     KPI DASHBOARD
+========================================================== -->
 
 <section class="kpi-section">
 
     <div class="section-header">
 
-        <h2>Résumé de l'importation</h2>
+        <div>
 
-        <p>Statistiques globales du processus</p>
+            <h2>
+
+                Résumé de l'importation
+
+            </h2>
+
+            <p>
+
+                Statistiques globales du processus d'importation.
+
+            </p>
+
+        </div>
 
     </div>
+
+    <!-- ================= KPI Cards ================= -->
 
     <div class="kpi-grid">
 
@@ -767,9 +899,19 @@
 
             <div class="kpi-info">
 
-                <span class="kpi-label">Total traitées</span>
+                <span class="kpi-label">
 
-                <span class="kpi-value" id="kpiTotal">0</span>
+                    Total traitées
+
+                </span>
+
+                <span
+                    id="kpiTotal"
+                    class="kpi-value">
+
+                    0
+
+                </span>
 
             </div>
 
@@ -785,9 +927,19 @@
 
             <div class="kpi-info">
 
-                <span class="kpi-label">Créées</span>
+                <span class="kpi-label">
 
-                <span class="kpi-value" id="kpiInserted">0</span>
+                    Créées
+
+                </span>
+
+                <span
+                    id="kpiInserted"
+                    class="kpi-value">
+
+                    0
+
+                </span>
 
             </div>
 
@@ -803,9 +955,19 @@
 
             <div class="kpi-info">
 
-                <span class="kpi-label">Modifiées</span>
+                <span class="kpi-label">
 
-                <span class="kpi-value" id="kpiUpdated">0</span>
+                    Modifiées
+
+                </span>
+
+                <span
+                    id="kpiUpdated"
+                    class="kpi-value">
+
+                    0
+
+                </span>
 
             </div>
 
@@ -821,9 +983,19 @@
 
             <div class="kpi-info">
 
-                <span class="kpi-label">Supprimées</span>
+                <span class="kpi-label">
 
-                <span class="kpi-value" id="kpiDeleted">0</span>
+                    Supprimées
+
+                </span>
+
+                <span
+                    id="kpiDeleted"
+                    class="kpi-value">
+
+                    0
+
+                </span>
 
             </div>
 
@@ -839,9 +1011,19 @@
 
             <div class="kpi-info">
 
-                <span class="kpi-label">Identiques</span>
+                <span class="kpi-label">
 
-                <span class="kpi-value" id="kpiSame">0</span>
+                    Identiques
+
+                </span>
+
+                <span
+                    id="kpiSame"
+                    class="kpi-value">
+
+                    0
+
+                </span>
 
             </div>
 
@@ -857,9 +1039,19 @@
 
             <div class="kpi-info">
 
-                <span class="kpi-label">Erreurs</span>
+                <span class="kpi-label">
 
-                <span class="kpi-value" id="kpiErrors">0</span>
+                    Erreurs
+
+                </span>
+
+                <span
+                    id="kpiErrors"
+                    class="kpi-value">
+
+                    0
+
+                </span>
 
             </div>
 
@@ -867,7 +1059,7 @@
 
     </div>
 
-    <!-- ================= Dates & User Info ================= -->
+    <!-- ================= Informations ================= -->
 
     <div class="info-grid">
 
@@ -877,9 +1069,17 @@
 
             <div>
 
-                <small>Dernière analyse</small>
+                <small>
 
-                <span id="lastAnalyseDate">-</span>
+                    Dernière analyse
+
+                </small>
+
+                <span id="lastAnalyseDate">
+
+                    -
+
+                </span>
 
             </div>
 
@@ -891,9 +1091,17 @@
 
             <div>
 
-                <small>Dernier import</small>
+                <small>
 
-                <span id="lastImportDate">-</span>
+                    Dernier import
+
+                </small>
+
+                <span id="lastImportDate">
+
+                    -
+
+                </span>
 
             </div>
 
@@ -905,9 +1113,17 @@
 
             <div>
 
-                <small>Opérateur</small>
+                <small>
 
-                <span id="importUser">-</span>
+                    Opérateur
+
+                </small>
+
+                <span id="importUser">
+
+                    -
+
+                </span>
 
             </div>
 
@@ -919,9 +1135,19 @@
 
             <div>
 
-                <small>État</small>
+                <small>
 
-                <span id="importState" class="state-badge">En attente</span>
+                    État
+
+                </small>
+
+                <span
+                    id="importState"
+                    class="state-badge">
+
+                    En attente
+
+                </span>
 
             </div>
 
@@ -931,9 +1157,9 @@
 
 </section>
 
-<!-- ===================================================== -->
-<!-- Part 7 : Progress Bar & Status -->
-<!-- ===================================================== -->
+<!-- ==========================================================
+     IMPORT PROGRESS
+========================================================== -->
 
 <section class="progress-section">
 
@@ -941,31 +1167,49 @@
 
         <div>
 
-            <h3>Progression générale</h3>
+            <h3>
 
-            <p id="currentStatus">En attente...</p>
+                Progression générale
+
+            </h3>
+
+            <p id="currentStatus">
+
+                En attente...
+
+            </p>
 
         </div>
 
         <div class="progress-percent">
 
-            <span id="progressPercent">0%</span>
+            <span id="progressPercent">
+
+                0%
+
+            </span>
 
         </div>
 
     </div>
+
+    <!-- ================= Progress Bar ================= -->
 
     <div class="progress-bar-container">
 
         <div class="progress-bar-track">
 
-            <div class="progress-bar-fill" id="progressBar"></div>
+            <div
+                id="progressBar"
+                class="progress-bar-fill">
+
+            </div>
 
         </div>
 
     </div>
 
-    <!-- ================= Progress Cards ================= -->
+    <!-- ================= Statistiques ================= -->
 
     <div class="progress-cards">
 
@@ -973,9 +1217,17 @@
 
             <i class="fas fa-circle-plus"></i>
 
-            <h3 id="insertedRows">0</h3>
+            <h3 id="insertedRows">
 
-            <span>Importées</span>
+                0
+
+            </h3>
+
+            <span>
+
+                Importées
+
+            </span>
 
         </div>
 
@@ -983,9 +1235,17 @@
 
             <i class="fas fa-pen"></i>
 
-            <h3 id="updatedRows">0</h3>
+            <h3 id="updatedRows">
 
-            <span>Modifiées</span>
+                0
+
+            </h3>
+
+            <span>
+
+                Modifiées
+
+            </span>
 
         </div>
 
@@ -993,9 +1253,17 @@
 
             <i class="fas fa-trash"></i>
 
-            <h3 id="deletedRows">0</h3>
+            <h3 id="deletedRows">
 
-            <span>Supprimées</span>
+                0
+
+            </h3>
+
+            <span>
+
+                Supprimées
+
+            </span>
 
         </div>
 
@@ -1003,9 +1271,17 @@
 
             <i class="fas fa-circle-check"></i>
 
-            <h3 id="sameRows">0</h3>
+            <h3 id="sameRows">
 
-            <span>Identiques</span>
+                0
+
+            </h3>
+
+            <span>
+
+                Identiques
+
+            </span>
 
         </div>
 
@@ -1013,9 +1289,17 @@
 
             <i class="fas fa-triangle-exclamation"></i>
 
-            <h3 id="errorRows">0</h3>
+            <h3 id="errorRows">
 
-            <span>Erreurs</span>
+                0
+
+            </h3>
+
+            <span>
+
+                Erreurs
+
+            </span>
 
         </div>
 
@@ -1037,7 +1321,8 @@
 
             <button
                 id="btnClearLog"
-                class="btn btn-light">
+                class="btn btn-light"
+                type="button">
 
                 <i class="fas fa-broom"></i>
 
@@ -1061,9 +1346,10 @@
 
         <button
             id="btnResetImport"
-            class="btn btn-outline">
+            class="btn btn-outline"
+            type="button">
 
-            <i class="fas fa-redo"></i>
+            <i class="fas fa-rotate-left"></i>
 
             Recommencer
 
@@ -1072,6 +1358,7 @@
         <button
             id="btnStartImport"
             class="btn btn-success"
+            type="button"
             disabled>
 
             <i class="fas fa-cloud-upload-alt"></i>
@@ -1083,6 +1370,7 @@
         <button
             id="btnCancelImport"
             class="btn btn-danger"
+            type="button"
             disabled>
 
             <i class="fas fa-circle-stop"></i>
@@ -1094,7 +1382,6 @@
     </div>
 
 </section>
-
 <!-- ===================================================== -->
 <!-- Part 8 : Loader + Toast + Modals -->
 <!-- ===================================================== -->
