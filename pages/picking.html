@@ -2,184 +2,407 @@
 <html lang="fr">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Picking | SoufStock</title>
+    <title>Picking | SoufStock Enterprise</title>
 
     <link rel="stylesheet" href="../assets/css/picking.css">
+
 </head>
 
 <body>
 
     <div class="picking-page">
 
-        <!-- ================= Header ================= -->
+        <!-- ========================================================= -->
+        <!-- Page Header -->
+        <!-- ========================================================= -->
 
-        <div class="page-header">
+        <header class="page-header">
 
-            <div>
-                <h1>Préparation des Commandes</h1>
-                <p>Gestion du Picking</p>
+            <div class="page-title">
+
+                <h1>
+                    <i class="fas fa-dolly"></i>
+                    Préparation des Commandes
+                </h1>
+
+                <p>
+                    Gestion des opérations de Picking
+                </p>
+
             </div>
 
             <div class="header-actions">
-                <button id="btnSave" class="btn success">
+
+                <button
+                    id="btnSave"
+                    class="btn btn-success">
+
+                    <i class="fas fa-save"></i>
+
                     Enregistrer
+
                 </button>
 
-                <button id="btnValidate" class="btn primary">
+                <button
+                    id="btnValidate"
+                    class="btn btn-primary">
+
+                    <i class="fas fa-check-circle"></i>
+
                     Valider
-                </button>
-            </div>
 
-        </div>
-
-        <!-- ================= Recherche ================= -->
-
-        <section class="card">
-
-            <div class="card-title">
-                Recherche Commande
-            </div>
-
-            <div class="search-box">
-
-                <input
-                    type="text"
-                    id="commandeInput"
-                    placeholder="Numéro de commande">
-
-                <button id="btnSearch">
-                    Charger
                 </button>
 
             </div>
 
-        </section>
+        </header>
 
-        <!-- ================= Informations ================= -->
-
-        <section class="card">
-
-            <div class="card-title">
-                Informations Commande
-            </div>
-
-            <div class="info-grid">
-
-                <div>
-                    <label>Client</label>
-                    <span id="client">-</span>
-                </div>
-
-                <div>
-                    <label>Date Création</label>
-                    <span id="dateCreation">-</span>
-                </div>
-
-                <div>
-                    <label>Date Livraison</label>
-                    <span id="dateLivraison">-</span>
-                </div>
-
-                <div>
-                    <label>Tournée</label>
-                    <span id="tournee">-</span>
-                </div>
-
-                <div>
-                    <label>Statut</label>
-                    <span id="statut">
-                        En préparation
-                    </span>
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ================= Tableau ================= -->
+        <!-- ========================================================= -->
+        <!-- Recherche Commande -->
+        <!-- ========================================================= -->
 
         <section class="card">
 
-            <div class="card-title">
-                Articles à Préparer
+            <div class="card-header">
+
+                <h2>
+
+                    <i class="fas fa-search"></i>
+
+                    Recherche Commande
+
+                </h2>
+
             </div>
 
-            <div class="table-container">
+            <div class="card-body">
 
-                <table id="pickingTable">
+                <div class="search-container">
 
-                    <thead>
+                    <div class="form-group">
 
-                        <tr>
+                        <label for="commandeInput">
 
-                            <th>Article</th>
+                            Numéro Commande
 
-                            <th>Qté</th>
+                        </label>
 
-                            <th>Préparée</th>
+                        <input
+                            type="text"
+                            id="commandeInput"
+                            class="form-control"
+                            placeholder="Ex : 4000790882"
+                            autocomplete="off">
 
-                            <th>Nb Pièces</th>
+                    </div>
 
-                            <th>Lot</th>
+                    <button
+                        id="btnSearch"
+                        class="btn btn-primary">
 
-                            <th>Qté Préparée</th>
+                        <i class="fas fa-search"></i>
 
-                            <th></th>
+                        Charger
 
-                        </tr>
+                    </button>
 
-                    </thead>
+                    <button
+                        id="btnScanner"
+                        class="btn btn-secondary">
 
-                    <tbody id="pickingBody">
+                        <i class="fas fa-barcode"></i>
 
-                    </tbody>
+                        Scanner
 
-                </table>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- Informations Commande -->
+        <!-- ========================================================= -->
+
+        <section class="card">
+
+            <div class="card-header">
+
+                <h2>
+
+                    <i class="fas fa-file-alt"></i>
+
+                    Informations Commande
+
+                </h2>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="info-grid">
+                                        <div class="info-item">
+
+                        <label>Client</label>
+
+                        <span id="clientName">-</span>
+
+                    </div>
+
+                    <div class="info-item">
+
+                        <label>Date Création</label>
+
+                        <span id="dateCreation">-</span>
+
+                    </div>
+
+                    <div class="info-item">
+
+                        <label>Date Livraison</label>
+
+                        <span id="dateLivraison">-</span>
+
+                    </div>
+
+                    <div class="info-item">
+
+                        <label>Tournée</label>
+
+                        <span id="tournee">-</span>
+
+                    </div>
+
+                    <div class="info-item">
+
+                        <label>Chauffeur</label>
+
+                        <span id="chauffeur">-</span>
+
+                    </div>
+
+                    <div class="info-item">
+
+                        <label>Statut</label>
+
+                        <span id="statutCommande"
+                              class="badge badge-warning">
+
+                            En préparation
+
+                        </span>
+
+                    </div>
+
+                </div>
 
             </div>
 
         </section>
 
-        <!-- ================= Résumé ================= -->
+        <!-- ========================================================= -->
+        <!-- Articles à Préparer -->
+        <!-- ========================================================= -->
 
-        <section class="summary">
+        <section class="card">
 
-            <div>
+            <div class="card-header">
 
-                <span>Articles</span>
+                <h2>
 
-                <strong id="totalArticles">
-                    0
-                </strong>
+                    <i class="fas fa-boxes"></i>
 
-            </div>
+                    Articles à Préparer
 
-            <div>
-
-                <span>Qté Totale</span>
-
-                <strong id="totalQte">
-                    0
-                </strong>
+                </h2>
 
             </div>
 
-            <div>
+            <div class="card-body">
 
-                <span>Qté Préparée</span>
+                <div class="table-responsive">
 
-                <strong id="totalPreparee">
-                    0
-                </strong>
+                    <table
+                        id="pickingTable"
+                        class="table table-hover">
+
+                        <thead>
+
+                            <tr>
+
+                                <th style="width:28%;">
+                                    Article
+                                </th>
+
+                                <th style="width:8%;">
+                                    Qté
+                                </th>
+
+                                <th style="width:10%;">
+                                    Préparée
+                                </th>
+
+                                <th style="width:10%;">
+                                    Nb Pièces
+                                </th>
+
+                                <th style="width:20%;">
+                                    Lot
+                                </th>
+
+                                <th style="width:14%;">
+                                    Qté Préparée
+                                </th>
+
+                                <th style="width:10%;">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="pickingBody">
+
+                            <tr class="empty-row">
+
+                                <td colspan="7">
+
+                                    Aucune commande chargée.
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
         </section>
+                <!-- ========================================================= -->
+        <!-- Résumé -->
+        <!-- ========================================================= -->
+
+        <section class="summary-section">
+
+            <div class="summary-card">
+
+                <span class="summary-label">
+
+                    Articles
+
+                </span>
+
+                <span
+                    id="totalArticles"
+                    class="summary-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+            <div class="summary-card">
+
+                <span class="summary-label">
+
+                    Qté Totale
+
+                </span>
+
+                <span
+                    id="totalQuantity"
+                    class="summary-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+            <div class="summary-card">
+
+                <span class="summary-label">
+
+                    Qté Préparée
+
+                </span>
+
+                <span
+                    id="preparedQuantity"
+                    class="summary-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- Footer Actions -->
+        <!-- ========================================================= -->
+
+        <footer class="page-footer">
+
+            <div class="footer-left">
+
+                <button
+                    id="btnRefresh"
+                    class="btn btn-secondary">
+
+                    <i class="fas fa-sync-alt"></i>
+
+                    Actualiser
+
+                </button>
+
+            </div>
+
+            <div class="footer-right">
+
+                <button
+                    id="btnSaveFooter"
+                    class="btn btn-success">
+
+                    <i class="fas fa-save"></i>
+
+                    Enregistrer
+
+                </button>
+
+                <button
+                    id="btnValidateFooter"
+                    class="btn btn-primary">
+
+                    <i class="fas fa-check-circle"></i>
+
+                    Valider le Picking
+
+                </button>
+
+            </div>
+
+        </footer>
 
     </div>
+
+    <!-- ========================================================= -->
+    <!-- JavaScript -->
+    <!-- ========================================================= -->
 
     <script type="module" src="../assets/js/picking.js"></script>
 
