@@ -240,13 +240,16 @@ ol {
    04. PAGE CONTENT
    ========================================================================== */
 
-.page-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xl);
+.page-content{
 
-    width: 100%;
-    padding: var(--space-lg);
+    width:100%;
+
+    max-width:none;
+
+    padding:24px 32px;
+
+    gap:24px;
+
 }
 
 /* ==========================================================================
@@ -1890,7 +1893,7 @@ input[type="checkbox"] {
    19. RESPONSIVE
    ========================================================================== */
 /* ==========================================================
-   ENTERPRISE LAYOUT
+   ENTERPRISE DESKTOP LAYOUT
 ========================================================== */
 
 @media (min-width:1400px){
@@ -1899,54 +1902,64 @@ input[type="checkbox"] {
 
         display:grid;
 
-        grid-template-columns:420px 1fr;
-
-        grid-template-areas:
-
-            "header header"
-
-            "import analyse"
-
-            "import details"
-
-            "workflow workflow"
-
-            "kpi kpi"
-
-            "progress progress";
+        grid-template-columns:430px minmax(0,1fr);
 
         gap:24px;
 
         align-items:start;
+
     }
 
     .page-header{
-        grid-area:header;
+
+        grid-column:1 / -1;
+
     }
 
     .import-grid{
-        grid-area:import;
+
+        display:grid;
+
         grid-template-columns:1fr;
+
+        gap:24px;
+
     }
 
     .analyse-section{
-        grid-area:analyse;
+
+        margin:0;
+
     }
 
     .details-section{
-        grid-area:details;
+
+        grid-column:1 / -1;
+
+        display:grid;
+
+        grid-template-columns:1fr 1fr;
+
+        gap:24px;
+
     }
 
     .workflow-section{
-        grid-area:workflow;
+
+        grid-column:1 / -1;
+
     }
 
     .kpi-section{
-        grid-area:kpi;
+
+        grid-column:1 / -1;
+
     }
 
     .progress-section{
-        grid-area:progress;
+
+        grid-column:1 / -1;
+
     }
 
 }
