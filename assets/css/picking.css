@@ -3,7 +3,6 @@
  * SoufStock Enterprise ERP/WMS
  * File : assets/css/picking.css
  * Module : Picking
- * Part 1
  * ============================================================
  */
 
@@ -31,13 +30,14 @@
     --border: #dfe6e9;
 
     --text: #2c3e50;
+    --text-muted: #6c757d;
 
     --radius: 10px;
 
     --shadow:
-        0 2px 8px rgba(0,0,0,.08);
+        0 2px 8px rgba(0, 0, 0, .08);
 
-    --transition: .25s;
+    --transition: .25s ease;
 
 }
 
@@ -45,7 +45,9 @@
    RESET
 ============================================================ */
 
-* {
+*,
+*::before,
+*::after {
 
     margin: 0;
 
@@ -69,6 +71,21 @@ body {
 
     color: var(--text);
 
+    line-height: 1.5;
+
+    -webkit-font-smoothing: antialiased;
+
+    -moz-osx-font-smoothing: grayscale;
+
+}
+
+button,
+input,
+select,
+textarea {
+
+    font: inherit;
+
 }
 
 /* ============================================================
@@ -78,6 +95,8 @@ body {
 .picking-page {
 
     width: 100%;
+
+    min-height: 100vh;
 
     padding: 25px;
 
@@ -95,23 +114,35 @@ body {
 
     align-items: center;
 
+    gap: 20px;
+
     margin-bottom: 25px;
+
+    flex-wrap: wrap;
 
 }
 
 .page-title h1 {
 
-    font-size: 28px;
+    display: flex;
 
-    color: var(--primary);
+    align-items: center;
+
+    gap: 10px;
 
     margin-bottom: 6px;
+
+    font-size: 28px;
+
+    font-weight: 700;
+
+    color: var(--primary);
 
 }
 
 .page-title p {
 
-    color: #777;
+    color: var(--text-muted);
 
     font-size: 14px;
 
@@ -121,7 +152,11 @@ body {
 
     display: flex;
 
+    align-items: center;
+
     gap: 12px;
+
+    flex-wrap: wrap;
 
 }
 
@@ -131,25 +166,34 @@ body {
 
 .btn {
 
-    border: none;
+    display: inline-flex;
 
-    cursor: pointer;
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 11px 20px;
+
+    border: none;
 
     border-radius: var(--radius);
 
-    padding: 11px 20px;
+    cursor: pointer;
 
     font-size: 14px;
 
     font-weight: 600;
 
-    display: inline-flex;
+    text-decoration: none;
 
-    align-items: center;
+    white-space: nowrap;
 
-    gap: 8px;
-
-    transition: var(--transition);
+    transition:
+        background var(--transition),
+        transform var(--transition),
+        box-shadow var(--transition);
 
 }
 
@@ -159,11 +203,33 @@ body {
 
 }
 
+.btn:hover {
+
+    transform: translateY(-1px);
+
+}
+
+.btn:active {
+
+    transform: translateY(0);
+
+}
+
+.btn:disabled {
+
+    opacity: .6;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+}
+
 .btn-primary {
 
     background: var(--primary);
 
-    color: white;
+    color: var(--white);
 
 }
 
@@ -177,13 +243,13 @@ body {
 
     background: var(--success);
 
-    color: white;
+    color: var(--white);
 
 }
 
 .btn-success:hover {
 
-    opacity: .92;
+    filter: brightness(.95);
 
 }
 
@@ -191,13 +257,13 @@ body {
 
     background: var(--secondary);
 
-    color: white;
+    color: var(--white);
 
 }
 
 .btn-secondary:hover {
 
-    opacity: .92;
+    filter: brightness(.95);
 
 }
 
@@ -207,39 +273,43 @@ body {
 
 .card {
 
-    background: white;
+    margin-bottom: 22px;
+
+    overflow: hidden;
+
+    background: var(--white);
+
+    border: 1px solid var(--border);
 
     border-radius: var(--radius);
 
     box-shadow: var(--shadow);
 
-    margin-bottom: 22px;
-
-    overflow: hidden;
-
 }
 
 .card-header {
+
+    padding: 15px 20px;
 
     background: var(--primary-light);
 
     border-bottom: 1px solid var(--border);
 
-    padding: 15px 20px;
-
 }
 
 .card-header h2 {
-
-    color: var(--primary);
-
-    font-size: 18px;
 
     display: flex;
 
     align-items: center;
 
     gap: 10px;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    color: var(--primary);
 
 }
 
@@ -248,6 +318,7 @@ body {
     padding: 20px;
 
 }
+
 /* ============================================================
    SEARCH CONTAINER
 ============================================================ */
@@ -286,6 +357,12 @@ body {
 
 }
 
+.form-group label::after {
+
+    content: ":";
+
+}
+
 /* ============================================================
    FORM CONTROLS
 ============================================================ */
@@ -302,13 +379,22 @@ body {
 
     border-radius: var(--radius);
 
-    background: #fff;
+    background: var(--white);
 
     color: var(--text);
 
     font-size: 14px;
 
-    transition: var(--transition);
+    transition:
+        border-color var(--transition),
+        box-shadow var(--transition),
+        background var(--transition);
+
+}
+
+.form-control::placeholder {
+
+    color: #9aa0a6;
 
 }
 
@@ -318,7 +404,9 @@ body {
 
     border-color: var(--primary);
 
-    box-shadow: 0 0 0 3px rgba(20,90,50,.12);
+    background: var(--white);
+
+    box-shadow: 0 0 0 3px rgba(20, 90, 50, .12);
 
 }
 
@@ -330,7 +418,7 @@ body {
 
     display: grid;
 
-    grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 
     gap: 18px;
 
@@ -350,31 +438,33 @@ body {
 
     font-size: 12px;
 
-    color: #777;
+    font-weight: 600;
 
     text-transform: uppercase;
 
-    font-weight: 600;
+    color: var(--text-muted);
 
 }
 
 .info-item span {
 
-    min-height: 42px;
-
     display: flex;
 
     align-items: center;
 
+    min-height: 42px;
+
     padding: 0 14px;
+
+    background: #fafafa;
 
     border: 1px solid var(--border);
 
     border-radius: var(--radius);
 
-    background: #fafafa;
-
     font-weight: 600;
+
+    transition: var(--transition);
 
 }
 
@@ -384,7 +474,11 @@ body {
 
 .table-responsive {
 
+    width: 100%;
+
     overflow-x: auto;
+
+    overflow-y: hidden;
 
 }
 
@@ -392,9 +486,9 @@ body {
 
     width: 100%;
 
-    border-collapse: collapse;
-
     min-width: 1100px;
+
+    border-collapse: collapse;
 
 }
 
@@ -406,15 +500,15 @@ body {
 
 .table thead th {
 
-    color: white;
-
     padding: 14px 12px;
+
+    color: var(--white);
 
     text-align: left;
 
     font-size: 13px;
 
-    font-weight: 600;
+    font-weight: 700;
 
     white-space: nowrap;
 
@@ -424,15 +518,16 @@ body {
 
     padding: 12px;
 
-    border-bottom: 1px solid #ececec;
-
     vertical-align: middle;
+
+    border-bottom: 1px solid #ececec;
 
 }
 
 .table tbody tr {
 
-    transition: .20s;
+    transition:
+        background var(--transition);
 
 }
 
@@ -442,11 +537,31 @@ body {
 
 }
 
+.table tbody tr:last-child td {
+
+    border-bottom: none;
+
+}
+
+.empty-row td {
+
+    padding: 30px;
+
+    text-align: center;
+
+    color: var(--text-muted);
+
+    font-style: italic;
+
+}
+
 /* ============================================================
    INPUTS INSIDE TABLE
 ============================================================ */
 
-.table input {
+.table input,
+
+.table select {
 
     width: 100%;
 
@@ -454,23 +569,27 @@ body {
 
     padding: 0 10px;
 
+    background: var(--white);
+
     border: 1px solid var(--border);
 
     border-radius: 6px;
 
-    background: white;
-
-    transition: .2s;
+    transition:
+        border-color var(--transition),
+        box-shadow var(--transition);
 
 }
 
-.table input:focus {
+.table input:focus,
+
+.table select:focus {
 
     outline: none;
 
     border-color: var(--primary);
 
-    box-shadow: 0 0 0 2px rgba(20,90,50,.10);
+    box-shadow: 0 0 0 2px rgba(20, 90, 50, .10);
 
 }
 
@@ -481,6 +600,12 @@ body {
 .btn-add,
 .btn-remove {
 
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
     width: 34px;
 
     height: 34px;
@@ -489,15 +614,11 @@ body {
 
     border-radius: 50%;
 
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
     cursor: pointer;
 
-    transition: .20s;
+    transition:
+        transform var(--transition),
+        opacity var(--transition);
 
 }
 
@@ -505,13 +626,7 @@ body {
 
     background: var(--success);
 
-    color: white;
-
-}
-
-.btn-add:hover {
-
-    transform: scale(1.08);
+    color: var(--white);
 
 }
 
@@ -519,31 +634,35 @@ body {
 
     background: var(--danger);
 
-    color: white;
+    color: var(--white);
 
 }
 
+.btn-add:hover,
 .btn-remove:hover {
 
     transform: scale(1.08);
 
 }
 
-/* ============================================================
-   EMPTY ROW
-============================================================ */
+.btn-add:active,
+.btn-remove:active {
 
-.empty-row td {
-
-    text-align: center;
-
-    padding: 40px;
-
-    color: #888;
-
-    font-style: italic;
+    transform: scale(.96);
 
 }
+
+.btn-add:disabled,
+.btn-remove:disabled {
+
+    opacity: .6;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+}
+
 /* ============================================================
    SUMMARY
 ============================================================ */
@@ -562,17 +681,37 @@ body {
 
 .summary-card {
 
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 20px;
+
     background: var(--white);
+
+    border: 1px solid var(--border);
+
+    border-top: 4px solid var(--primary);
 
     border-radius: var(--radius);
 
     box-shadow: var(--shadow);
 
-    padding: 20px;
+    transition:
+        transform var(--transition),
+        box-shadow var(--transition);
 
-    text-align: center;
+}
 
-    border-top: 4px solid var(--primary);
+.summary-card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
 
 }
 
@@ -580,13 +719,15 @@ body {
 
     display: block;
 
-    font-size: 13px;
-
-    color: #666;
-
     margin-bottom: 10px;
 
+    font-size: 13px;
+
+    font-weight: 600;
+
     text-transform: uppercase;
+
+    color: var(--text-muted);
 
 }
 
@@ -596,7 +737,7 @@ body {
 
     font-size: 30px;
 
-    font-weight: bold;
+    font-weight: 700;
 
     color: var(--primary);
 
@@ -614,9 +755,11 @@ body {
 
     align-items: center;
 
+    gap: 15px;
+
     margin-top: 20px;
 
-    gap: 15px;
+    flex-wrap: wrap;
 
 }
 
@@ -625,9 +768,11 @@ body {
 
     display: flex;
 
+    align-items: center;
+
     gap: 12px;
 
-    align-items: center;
+    flex-wrap: wrap;
 
 }
 
@@ -643,6 +788,8 @@ body {
 
     justify-content: center;
 
+    min-width: 120px;
+
     padding: 6px 12px;
 
     border-radius: 50px;
@@ -651,37 +798,39 @@ body {
 
     font-weight: 600;
 
+    white-space: nowrap;
+
 }
 
 .badge-success {
 
-    background: #d1fae5;
-
     color: #065f46;
+
+    background: #d1fae5;
 
 }
 
 .badge-warning {
 
-    background: #fff3cd;
-
     color: #856404;
+
+    background: #fff3cd;
 
 }
 
 .badge-danger {
 
-    background: #f8d7da;
-
     color: #842029;
+
+    background: #f8d7da;
 
 }
 
 .badge-info {
 
-    background: #d1ecf1;
-
     color: #055160;
+
+    background: #d1ecf1;
 
 }
 
@@ -764,6 +913,16 @@ body {
 
     }
 
+    .header-actions {
+
+        width: 100%;
+
+        justify-content: flex-start;
+
+        flex-wrap: wrap;
+
+    }
+
     .summary-section {
 
         grid-template-columns: 1fr;
@@ -821,6 +980,25 @@ body {
 
     }
 
+    .header-actions {
+
+        width: 100%;
+
+    }
+
+    .header-actions .btn {
+
+        flex: 1;
+
+    }
+
+    .footer-left .btn,
+    .footer-right .btn {
+
+        flex: 1;
+
+    }
+
     .info-grid {
 
         grid-template-columns: 1fr;
@@ -837,15 +1015,47 @@ body {
 
 @media (max-width: 480px) {
 
+    .picking-page {
+
+        padding: 12px;
+
+    }
+
     .page-title h1 {
 
         font-size: 22px;
 
     }
 
+    .page-title p {
+
+        font-size: 13px;
+
+    }
+
+    .card-header h2 {
+
+        font-size: 16px;
+
+    }
+
     .summary-value {
 
         font-size: 24px;
+
+    }
+
+    .summary-label {
+
+        font-size: 12px;
+
+    }
+
+    .btn {
+
+        height: 42px;
+
+        font-size: 13px;
 
     }
 
