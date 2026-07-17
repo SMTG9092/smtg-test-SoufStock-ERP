@@ -1030,15 +1030,11 @@ function resetAnalyse() {
    Analyse des Commandes
 ========================================================== */
 
-async function analyseCommandes(){
+async function analyseCommandes() {
 
-    try{
+    try {
 
-        Loader.show(
-
-            "Analyse des commandes..."
-
-        );
+        Loader.show("Analyse des commandes...");
 
         resetAnalyse();
 
@@ -1046,75 +1042,55 @@ async function analyseCommandes(){
             ? excelData
             : piecesData;
 
-        if(!excelRows.length){
+        if (!excelRows.length) {
 
             Loader.hide();
 
-            Toast.warning(
-
-                "Aucune donnée à analyser."
-
-            );
+            Toast.warning("Aucune donnée à analyser.");
 
             return;
 
         }
 
-        const table =
+        const table = excelData.length
+            ? "commandes_excel"
+            : "commandes_clients_pieces";
 
-            excelData.length
-                ? "commandes_excel"
-                : "commandes_clients_pieces";
-
-        const {
-
-            data,
-
-            error
-
-        } = await supabase
-
+        const { data, error } = await supabase
             .from(table)
-
             .select("*");
 
-        if(error){
+        if (error) {
 
             throw error;
 
         }
 
         compareCommandes(
-
             excelRows,
-
             data
-
         );
 
         updateAnalyseCards();
 
+        // ✅ Activer le bouton Import
+        if (UI.btnStartImport) {
+            UI.btnStartImport.disabled = false;
+        }
+
         Loader.hide();
 
-        Toast.success(
-
-            "Analyse terminée."
-
-        );
+        Toast.success("Analyse terminée.");
 
     }
 
-    catch(error){
+    catch (error) {
 
         Loader.hide();
 
         console.error(error);
 
-        Toast.error(
-
-            error.message
-
-        );
+        Toast.error(error.message);
 
     }
 
