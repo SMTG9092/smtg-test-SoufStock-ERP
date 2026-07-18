@@ -300,13 +300,37 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
 }
 
 function calculatePrepared(articleIndex) {
-    const group = document.getElementById(`group_${articleIndex}`); if (!group) return;
-    let tot = 0; group.querySelectorAll(".qty-input").forEach(i => tot += Number(i.value || 0));
-    const span = document.getElementById(`prepared_${articleIndex}`); if (span) span.textContent = tot.toFixed(3);
 
-    const mainRow = group.querySelector(".article-row");
-    if (mainRow && articles[articleIndex]) {
-        mainRow.style.backgroundColor = tot > articles[articleIndex].quantite ? "rgba(220, 53, 69, 0.08)" : "";
+    const mainRow = document.getElementById(`group_${articleIndex}`);
+    if (!mainRow) return;
+
+    let total = 0;
+    let row = mainRow;
+
+    while (row) {
+
+        const qtyInput = row.querySelector(".qty-input");
+        if (qtyInput) {
+            total += Number(qtyInput.value || 0);
+        }
+
+        row = row.nextElementSibling;
+
+        if (!row || !row.classList.contains("lot-item-row")) {
+            break;
+        }
+    }
+
+    const span = document.getElementById(`prepared_${articleIndex}`);
+    if (span) {
+        span.textContent = total.toFixed(3);
+    }
+
+    if (articles[articleIndex]) {
+        mainRow.style.backgroundColor =
+            total > articles[articleIndex].quantite
+                ? "rgba(220,53,69,.08)"
+                : "";
     }
 }
 
