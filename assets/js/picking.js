@@ -193,9 +193,11 @@ async function buildPickingTable(lignes) {
             <td class="text-end">${art.quantite.toFixed(3)}</td>
             <td><span id="prepared_${index}">0.000</span></td>
             <td>${art.pieces}</td>
-            <td colspan="3" class="bg-light-action" style="text-align: left; padding-left: 10px;">
-                <button type="button" class="btn btn-success btn-add-lot" style="padding: 4px 10px; font-size: 13px;">
-                    <i class="fas fa-plus"></i> Ajouter un Lot
+            <td></td>
+            <td></td>
+            <td class="text-center">
+                <button type="button" class="btn-add-lot-icon" style="background:var(--success, #28a745); border:none; color:white; cursor:pointer; width:30px; height:30px; border-radius:4px; font-weight:bold; font-size:16px;">
+                    +
                 </button>
             </td>
         `;
@@ -204,11 +206,12 @@ async function buildPickingTable(lignes) {
         const artDetails = existingDetails.filter(d => d.article === art.article);
         if (artDetails.length > 0) {
             artDetails.forEach(det => tbodyGroup.appendChild(createLotRow(index, det.lot, det.quantite_preparee)));
-        } else {
-            tbodyGroup.appendChild(createLotRow(index));
         }
 
-        trMain.querySelector(".btn-add-lot").addEventListener("click", () => tbodyGroup.appendChild(createLotRow(index)));
+        trMain.querySelector(".btn-add-lot-icon").addEventListener("click", () => {
+            tbodyGroup.appendChild(createLotRow(index));
+        });
+
         els.pickingBody.appendChild(tbodyGroup);
         calculatePrepared(index);
     });
@@ -223,15 +226,15 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
         <td style="border: none; background: transparent;"></td>
         <td style="border: none; background: transparent;"></td>
         <td style="border: none; background: transparent;"></td>
-        <td>
+        <td style="padding: 4px 8px;">
             <input type="text" class="lot-input form-control" style="width:100%; height:34px;" placeholder="Lot" value="${lotVal}" autocomplete="off">
         </td>
-        <td>
+        <td style="padding: 4px 8px;">
             <input type="number" class="qty-input form-control" style="width:100%; height:34px;" placeholder="Qté" min="0" step="0.001" value="${qtyVal}">
         </td>
-        <td class="text-center">
-            <button type="button" class="btn-remove" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:16px; padding-top:6px;">
-                <i class="fas fa-trash"></i>
+        <td class="text-center" style="padding: 4px 8px;">
+            <button type="button" class="btn-remove" style="background:var(--danger, #dc3545); border:none; color:white; cursor:pointer; width:30px; height:30px; border-radius:4px; font-weight:bold; font-size:14px;">
+                -
             </button>
         </td>
     `;
