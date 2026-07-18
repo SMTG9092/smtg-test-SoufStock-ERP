@@ -165,17 +165,17 @@ body {
 .table-picking {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* Bach les colonnes ib9aw fixes 100% */
+    table-layout: fixed; /* Hada m9add i-khlli l-wase3 d l-colonnes thabet */
 }
 
-/* Alignement exact des largeurs de colonnes (th et td) */
-.table-picking th:nth-child(1), .table-picking td:nth-child(1) { width: 25%; } /* Article */
-.table-picking th:nth-child(2), .table-picking td:nth-child(2) { width: 10%; } /* Qté */
-.table-picking th:nth-child(3), .table-picking td:nth-child(3) { width: 10%; } /* Préparée */
-.table-picking th:nth-child(4), .table-picking td:nth-child(4) { width: 10%; } /* Nb Pièces */
-.table-picking th:nth-child(5), .table-picking td:nth-child(5) { width: 20%; } /* Lot Input */
-.table-picking th:nth-child(6), .table-picking td:nth-child(6) { width: 15%; } /* Qté Input */
-.table-picking th:nth-child(7), .table-picking td:nth-child(7) { width: 10%; } /* Action */
+/* L-wase3 m7ded ghir f l-entête (th) bo7dha bach l-alignement iji s7i7 */
+.table-picking th:nth-child(1) { width: 35%; } /* Article */
+.table-picking th:nth-child(2) { width: 10%; } /* Qté */
+.table-picking th:nth-child(3) { width: 10%; } /* Préparée */
+.table-picking th:nth-child(4) { width: 10%; } /* Nb Pièces */
+.table-picking th:nth-child(5) { width: 15%; } /* Lot Input */
+.table-picking th:nth-child(6) { width: 12%; } /* Qté Input */
+.table-picking th:nth-child(7) { width: 8%; }  /* Action */
 
 .table-picking thead tr {
     background-color: var(--primary);
