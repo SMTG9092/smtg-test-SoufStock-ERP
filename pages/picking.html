@@ -4,290 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoufStock ERP/WMS - Picking & Préparation</title>
-    <!-- Font Awesome for Icons -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary: #0f5132;
-            --primary-light: #d1e7dd;
-            --secondary: #141619;
-            --success: #198754;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --light: #f8f9fa;
-            --border-color: #dee2e6;
-            --dark-card: #0d1117;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Card Style */
-        .card {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        .card-header {
-            background-color: #fff;
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-header h2 {
-            margin: 0;
-            font-size: 18px;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-body {
-            padding: 20px;
-        }
-
-        /* Information Grid */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .info-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .info-group label {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #6c757d;
-            font-weight: 600;
-            margin-bottom: 5px;
-            letter-spacing: 0.5px;
-        }
-
-        .info-group .info-value {
-            background-color: var(--light);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px 12px;
-            font-size: 14px;
-            font-weight: 500;
-            min-height: 20px;
-        }
-
-        /* Search Bar & Actions */
-        .search-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .form-control {
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary);
-        }
-
-        .input-search {
-            flex: 1;
-            max-width: 400px;
-        }
-
-        .btn {
-            border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.2s;
-        }
-
-        .btn-primary { background-color: var(--primary); color: #fff; }
-        .btn-primary:hover { background-color: #0b3d26; }
-        .btn-success { background-color: var(--success); color: #fff; }
-        .btn-success:hover { background-color: #146c43; }
-        .btn-secondary { background-color: #6c757d; color: #fff; }
-        .btn-warning { background-color: var(--warning); color: #212529; }
-        .btn-danger { background-color: var(--danger); color: #fff; }
-
-        /* Progress Bar */
-        .progress-wrapper {
-            margin: 15px 0;
-        }
-        .progress-text-container {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        .progress {
-            background-color: var(--border-color);
-            border-radius: 4px;
-            height: 8px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            background-color: var(--success);
-            width: 0%;
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-
-        /* Table Styling with Table-Layout Fixed for Perfect Alignment */
-        .table-responsive {
-            overflow-x: auto;
-            margin-top: 15px;
-        }
-
-        .table-picking {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed; /* Khllat les colonnes b 3ard ثابت */
-        }
-
-        /* Définition exacte de la largeur des colonnes */
-        .table-picking th:nth-child(1), .table-picking td:nth-child(1) { width: 25%; } /* Article */
-        .table-picking th:nth-child(2), .table-picking td:nth-child(2) { width: 10%; } /* Qté */
-        .table-picking th:nth-child(3), .table-picking td:nth-child(3) { width: 10%; } /* Préparée */
-        .table-picking th:nth-child(4), .table-picking td:nth-child(4) { width: 10%; } /* Nb Pièces */
-        .table-picking th:nth-child(5), .table-picking td:nth-child(5) { width: 20%; } /* Lot Input */
-        .table-picking th:nth-child(6), .table-picking td:nth-child(6) { width: 15%; } /* Qté Input */
-        .table-picking th:nth-child(7), .table-picking td:nth-child(7) { width: 10%; } /* Action */
-
-        .table-picking thead tr {
-            background-color: var(--primary);
-            color: #fff;
-        }
-
-        .table-picking th {
-            padding: 12px 10px;
-            font-size: 14px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        .table-picking th.text-end, .table-picking td.text-end {
-            text-align: right;
-        }
-
-        .table-picking th.text-center, .table-picking td.text-center {
-            text-align: center;
-        }
-
-        /* Tr r2issia dial l'article */
-        .article-row td {
-            padding: 12px 10px;
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
-            vertical-align: middle;
-            background-color: #fff;
-        }
-
-        /* Lignes dial les lots secondary */
-        .lot-item-row td {
-            padding: 6px 10px;
-            border: none !important;
-            vertical-align: middle;
-            background-color: #fff;
-        }
-
-        .article-group-body {
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .badge-warning { background-color: #fff3cd; color: #856404; }
-        .badge-success { background-color: var(--primary-light); color: var(--primary); }
-
-        /* Footer summary */
-        .footer-summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding: 15px;
-            background-color: var(--light);
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .summary-metrics span {
-            margin-right: 20px;
-            color: #495057;
-        }
-
-        .summary-metrics strong {
-            color: var(--secondary);
-        }
-
-        /* Modal Structure */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal.show { display: flex; }
-        .modal-content {
-            background: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            max-width: 450px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-        .modal-actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -380,7 +99,6 @@
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
-                    <!-- L-js ghadi i-remplacer had l-tbodyBody kaml b structures dyal multi-tbody -->
                     <tbody id="pickingBody">
                         <tr>
                             <td colspan="7" class="text-center text-muted py-4">
@@ -391,7 +109,7 @@
                 </table>
             </div>
 
-            <!-- Bottom Actions and Summary Summary -->
+            <!-- Bottom Actions and Summary -->
             <div class="footer-summary">
                 <div class="summary-metrics">
                     <span>Articles distincts: <strong id="totalArticles">0</strong></span>
@@ -428,8 +146,8 @@
     </div>
 </div>
 
-<!-- LINK TO MAIN JAVASCRIPT MODULE -->
-<script type="module" src="/assets/js/picking.js"></script>
+<!-- Link jdid i-rjje3 l-wra direct b (../) hit l-page f pages/ -->
+<script type="module" src="../assets/js/picking.js"></script>
 
 </body>
 </html>
