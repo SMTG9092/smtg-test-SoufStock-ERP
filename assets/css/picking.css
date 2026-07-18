@@ -315,3 +315,34 @@ body {
 .lot-item-row td{
     border-top:none;
 }
+.table-custom{
+    width:100%;
+    table-layout:fixed;
+    border-collapse:collapse;
+}
+
+.col-article{width:30%;}
+.col-qte{width:8%;}
+.col-prepare{width:8%;}
+.col-piece{width:8%;}
+.col-lot{width:18%;}
+.col-qteprepare{width:18%;}
+.col-action{width:10%;}
+
+.col-qte,
+.col-prepare,
+.col-piece,
+.col-action{
+    text-align:center;
+}
+
+.col-lot input,
+.col-qteprepare input{
+    width:100%;
+}
+
+.btn-add-lot-icon,
+.btn-remove{
+    width:32px;
+    height:32px;
+}
