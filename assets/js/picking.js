@@ -14,6 +14,10 @@ let currentUser = null;
 let currentCommande = null;
 let currentPicking = null;
 let articles = [];
+let activeLotInput = null;
+let activeArticle = null;
+let activeDropdown = null;
+let activeIndex = -1;
 
 const els = {
     pickingId: document.getElementById("pickingId"),
@@ -234,19 +238,24 @@ articles.forEach((art, index) => {
         </td>
     `;
 
-    els.pickingBody.appendChild(trMain);
+els.pickingBody.appendChild(trMain);
 
-    if (artDetails.length > 1) {
-        for (let j = 1; j < artDetails.length; j++) {
-            els.pickingBody.appendChild(
-                createLotRow(
-                    index,
-                    artDetails[j].lot,
-                    artDetails[j].quantite_preparee
-                )
-            );
-        }
+bindLotAutocomplete(
+    trMain.querySelector(".lot-input"),
+    art.article
+);
+
+if (artDetails.length > 1) {
+    for (let j = 1; j < artDetails.length; j++) {
+        els.pickingBody.appendChild(
+            createLotRow(
+                index,
+                artDetails[j].lot,
+                artDetails[j].quantite_preparee
+            )
+        );
     }
+}
 
 trMain.querySelector(".qty-input").addEventListener("input", () => {
     calculatePrepared(index);
@@ -295,6 +304,11 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
         calculatePrepared(articleIndex);
         calculateSummary();
     });
+
+    bindLotAutocomplete(
+        trLot.querySelector(".lot-input"),
+        articles[articleIndex].article
+    );
 
     return trLot;
 }
@@ -424,4 +438,150 @@ async function executeFinalValidation() {
         if (els.statutCommande) { els.statutCommande.textContent = "VALIDE"; els.statutCommande.className = "badge badge-success"; }
     } catch (err) { console.error(err); Toast.error("Erreur de validation."); }
     finally { if (Loader && typeof Loader.hide === "function") Loader.hide(); }
+}
+
+/* ============================================================
+   LOT AUTOCOMPLETE
+============================================================ */
+
+function bindLotAutocomplete(input, article) {
+
+    if (!input) return;
+
+    input.addEventListener("input", async () => {
+
+        const value = input.value.trim();
+
+        if (value.length === 0) {
+            hideLotDropdown();
+            return;
+        }
+
+        activeLotInput = input;
+        activeArticle = article;
+
+        await searchLots(article, value);
+
+    });
+
+    input.addEventListener("focus", async () => {
+
+        const value = input.value.trim();
+
+        if (value.length === 0) return;
+
+        activeLotInput = input;
+        activeArticle = article;
+
+        await searchLots(article, value);
+
+    });
+
+    input.addEventListener("blur", () => {
+
+        setTimeout(() => {
+            hideLotDropdown();
+        }, 200);
+
+    });
+
+}
+
+async function searchLots(article, text) {
+
+    try {
+
+        const { data, error } = await supabase
+            .from("stock")
+            .select("lot")
+            .eq("article", article)
+            .gt("quantite", 0)
+            .ilike("lot", `%${text}%`)
+            .order("lot")
+            .limit(10);
+
+        if (error) {
+            console.error(error);
+            hideLotDropdown();
+            return;
+        }
+
+        showLotDropdown(data || []);
+
+    } catch (err) {
+
+        console.error(err);
+        hideLotDropdown();
+
+    }
+
+}
+
+function showLotDropdown(lots) {
+
+    hideLotDropdown();
+
+    if (!activeLotInput) return;
+
+    const wrapper = activeLotInput.parentElement;
+
+    const dropdown = document.createElement("div");
+    dropdown.className = "lot-dropdown show";
+
+    if (!lots.length) {
+
+        dropdown.innerHTML =
+            `<div class="lot-empty">Aucun lot trouvé</div>`;
+
+    } else {
+
+        lots.forEach(item => {
+
+            const div = document.createElement("div");
+
+            div.className = "lot-item";
+
+            div.textContent = item.lot;
+
+            div.addEventListener("mousedown", () => {
+                selectLot(item.lot);
+            });
+
+            dropdown.appendChild(div);
+
+        });
+
+    }
+
+    wrapper.appendChild(dropdown);
+
+    activeDropdown = dropdown;
+    activeIndex = -1;
+
+}
+
+function hideLotDropdown() {
+
+    if (activeDropdown) {
+
+        activeDropdown.remove();
+
+        activeDropdown = null;
+
+    }
+
+    activeIndex = -1;
+
+}
+
+function selectLot(lot) {
+
+    if (!activeLotInput) return;
+
+    activeLotInput.value = lot;
+
+    hideLotDropdown();
+
+    activeLotInput.focus();
+
 }
