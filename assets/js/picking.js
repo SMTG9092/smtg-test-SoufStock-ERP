@@ -430,6 +430,17 @@ function buildPickingTable(lignes) {
 
     articles = [];
 
+    // Map ديال عدد القطع
+    const piecesMap = new Map();
+
+    (currentCommande.pieces || []).forEach(item => {
+
+        const key = `${item.document_vente}_${item.article}`;
+
+        piecesMap.set(key, Number(item.nombre_pieces || 0));
+
+    });
+
     const map = new Map();
 
     lignes.forEach((ligne) => {
@@ -442,8 +453,8 @@ function buildPickingTable(lignes) {
 
                 article: ligne.article,
                 designation: ligne.designation_article,
-                quantite: Number(ligne.quantite || 0),
-                pieces: Number(ligne.nb_pieces || 0),
+                quantite: Number(ligne.quantite_commandee || 0),
+                pieces: piecesMap.get(key) || 0,
                 lots: []
 
             });
@@ -452,9 +463,7 @@ function buildPickingTable(lignes) {
 
             const article = map.get(key);
 
-            article.quantite += Number(ligne.quantite || 0);
-
-            article.pieces += Number(ligne.nb_pieces || 0);
+            article.quantite += Number(ligne.quantite_commandee || 0);
 
         }
 
@@ -479,15 +488,12 @@ function buildPickingTable(lignes) {
     articles.forEach((article, index) => {
 
         els.pickingBody.appendChild(
-
             createArticleRow(article, index)
-
         );
 
     });
 
 }
-
 /* ============================================================
  * ARTICLE ROW
  * ============================================================
