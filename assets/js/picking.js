@@ -178,23 +178,6 @@ function bindEvents() {
 }
 
 /* ============================================================
- * PLACEHOLDERS
- * (Implémentation dans les prochaines parties)
- * ============================================================
- */
-
-async function searchCommande() {}
-
-async function savePicking() {}
-
-async function validatePicking() {}
-
-async function refreshPicking() {}
-
-function openScanner() {}
-
-function closeConfirmModal() {}
-/* ============================================================
  * CHARGER COMMANDE
  * ============================================================
  */
