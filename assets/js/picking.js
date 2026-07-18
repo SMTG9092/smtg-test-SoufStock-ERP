@@ -181,137 +181,87 @@ async function buildPickingTable(lignes) {
         existingDetails = data || [];
     }
 
-articles.forEach((art, index) => {
+    articles.forEach((art, index) => {
+        const tbodyGroup = document.createElement("tbody");
+        tbodyGroup.className = "article-group-body";
+        tbodyGroup.id = `group_${index}`;
 
-    const tbodyGroup = document.createElement("tbody");
-    tbodyGroup.className = "article-group-body";
-    tbodyGroup.id = `group_${index}`;
+        const artDetails = existingDetails.filter(d => d.article === art.article);
 
-    const artDetails = existingDetails.filter(d => d.article === art.article);
+        const firstLot = artDetails.length ? artDetails[0].lot : "";
+        const firstQty = artDetails.length ? artDetails[0].quantite_preparee : "";
 
-    const firstLot = artDetails.length ? artDetails[0].lot : "";
-    const firstQty = artDetails.length ? artDetails[0].quantite_preparee : "";
+        const trMain = document.createElement("tr");
+        trMain.className = "article-row";
 
-    const trMain = document.createElement("tr");
-    trMain.className = "article-row";
+        trMain.innerHTML = `
+            <td class="col-article">
+                <strong>${art.article}</strong><br>
+                <small>${art.designation ?? ""}</small>
+            </td>
+            <td class="col-qte text-end">
+                ${art.quantite.toFixed(3)}
+            </td>
+            <td class="col-prepare text-center">
+                <span id="prepared_${index}">0.000</span>
+            </td>
+            <td class="col-piece text-center">
+                ${art.pieces}
+            </td>
+            <td class="col-lot">
+                <input type="text" class="lot-input form-control" placeholder="Lot" value="${firstLot}" autocomplete="off">
+            </td>
+            <td class="col-qteprepare">
+                <input type="number" class="qty-input form-control" placeholder="Qté" min="0" step="0.001" value="${firstQty}">
+            </td>
+            <td class="col-action text-center">
+                <button type="button" class="btn-add-lot-icon">+</button>
+            </td>
+        `;
 
-    trMain.innerHTML = `
-        <td class="col-article">
-            <strong>${art.article}</strong><br>
-            <small>${art.designation ?? ""}</small>
-        </td>
+        tbodyGroup.appendChild(trMain);
 
-        <td class="col-qte">
-            ${art.quantite.toFixed(3)}
-        </td>
-
-        <td class="col-prepare">
-            <span id="prepared_${index}">0.000</span>
-        </td>
-
-        <td class="col-piece">
-            ${art.pieces}
-        </td>
-
-        <td class="col-lot">
-            <input
-                type="text"
-                class="lot-input form-control"
-                placeholder="Lot"
-                value="${firstLot}"
-                autocomplete="off">
-        </td>
-
-        <td class="col-qteprepare">
-            <input
-                type="number"
-                class="qty-input form-control"
-                placeholder="Qté"
-                min="0"
-                step="0.001"
-                value="${firstQty}">
-        </td>
-
-        <td class="col-action">
-            <button type="button" class="btn-add-lot-icon">
-                +
-            </button>
-        </td>
-    `;
-
-    tbodyGroup.appendChild(trMain);
-
-    if (artDetails.length > 1) {
-        for (let j = 1; j < artDetails.length; j++) {
-            tbodyGroup.appendChild(
-                createLotRow(
-                    index,
-                    artDetails[j].lot,
-                    artDetails[j].quantite_preparee
-                )
-            );
+        if (artDetails.length > 1) {
+            for (let j = 1; j < artDetails.length; j++) {
+                tbodyGroup.appendChild(
+                    createLotRow(index, artDetails[j].lot, artDetails[j].quantite_preparee)
+                );
+            }
         }
-    }
 
-    trMain.querySelector(".qty-input").addEventListener("input", () => {
+        trMain.querySelector(".qty-input").addEventListener("input", () => {
+            calculatePrepared(index);
+            calculateSummary();
+        });
+
+        trMain.querySelector(".btn-add-lot-icon").addEventListener("click", () => {
+            tbodyGroup.appendChild(createLotRow(index));
+        });
+
+        els.pickingBody.appendChild(tbodyGroup);
         calculatePrepared(index);
-        calculateSummary();
     });
 
-    trMain.querySelector(".btn-add-lot-icon").addEventListener("click", () => {
-        tbodyGroup.appendChild(createLotRow(index));
-    });
-
-    els.pickingBody.appendChild(tbodyGroup);
-
-    calculatePrepared(index);
-
-});
-
-calculateSummary();
-
-
+    calculateSummary();
+}
 
 function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
-
     const trLot = document.createElement("tr");
-
     trLot.className = "lot-item-row";
 
     trLot.innerHTML = `
         <td class="col-article"></td>
-
         <td class="col-qte"></td>
-
         <td class="col-prepare"></td>
-
         <td class="col-piece"></td>
-
         <td class="col-lot">
-            <input
-                type="text"
-                class="lot-input form-control"
-                placeholder="Lot"
-                value="${lotVal}"
-                autocomplete="off">
+            <input type="text" class="lot-input form-control" placeholder="Lot" value="${lotVal}" autocomplete="off">
         </td>
-
         <td class="col-qteprepare">
-            <input
-                type="number"
-                class="qty-input form-control"
-                placeholder="Qté"
-                min="0"
-                step="0.001"
-                value="${qtyVal}">
+            <input type="number" class="qty-input form-control" placeholder="Qté" min="0" step="0.001" value="${qtyVal}">
         </td>
-
-        <td class="col-action">
-            <button
-                type="button"
-                class="btn-remove">
-                −
-            </button>
+        <td class="col-action text-center">
+            <button type="button" class="btn-remove">−</button>
         </td>
     `;
 
@@ -328,6 +278,7 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
 
     return trLot;
 }
+
 function calculatePrepared(articleIndex) {
     const group = document.getElementById(`group_${articleIndex}`); if (!group) return;
     let tot = 0; group.querySelectorAll(".qty-input").forEach(i => tot += Number(i.value || 0));
