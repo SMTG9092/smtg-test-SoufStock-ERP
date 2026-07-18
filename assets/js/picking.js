@@ -176,6 +176,110 @@ function bindEvents() {
     els.confirmNo?.addEventListener("click", closeConfirmModal);
 
 }
+/* ============================================================
+ * RESET PICKING
+ * ============================================================
+ */
+
+function resetPicking() {
+
+    currentCommande = null;
+    currentPicking = null;
+    articles = [];
+
+    if (els.pickingId) els.pickingId.value = "";
+    if (els.suiviId) els.suiviId.value = "";
+
+    if (els.clientName) els.clientName.textContent = "-";
+    if (els.dateCreation) els.dateCreation.textContent = "-";
+    if (els.dateLivraison) els.dateLivraison.textContent = "-";
+    if (els.tournee) els.tournee.textContent = "-";
+    if (els.chauffeur) els.chauffeur.textContent = "-";
+    if (els.statutCommande) els.statutCommande.textContent = "En préparation";
+
+    if (els.pickingBody) {
+        els.pickingBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    Aucune commande chargée.
+                </td>
+            </tr>
+        `;
+    }
+
+    if (els.totalArticles) els.totalArticles.textContent = "0";
+    if (els.totalQuantity) els.totalQuantity.textContent = "0.000";
+    if (els.preparedQuantity) els.preparedQuantity.textContent = "0.000";
+
+    if (els.pickingProgress)
+        els.pickingProgress.style.width = "0%";
+
+    if (els.progressText)
+        els.progressText.textContent = "0%";
+
+}
+
+/* ============================================================
+ * FORMAT DATE
+ * ============================================================
+ */
+
+function formatDate(value) {
+
+    if (!value) return "-";
+
+    const date = new Date(value);
+
+    if (isNaN(date)) return value;
+
+    return date.toLocaleDateString("fr-FR");
+
+}
+
+/* ============================================================
+ * REFRESH
+ * ============================================================
+ */
+
+function refreshPicking() {
+
+    if (!currentCommande) {
+
+        resetPicking();
+
+        return;
+
+    }
+
+    searchCommande();
+
+}
+
+/* ============================================================
+ * SCANNER
+ * ============================================================
+ */
+
+function openScanner() {
+
+    Toast.info("Scanner bientôt disponible.");
+
+}
+
+/* ============================================================
+ * MODAL
+ * ============================================================
+ */
+
+function closeConfirmModal() {
+
+    if (!els.confirmModal) return;
+
+    els.confirmModal.classList.remove("show");
+
+    els.confirmModal.style.display = "none";
+
+}
 
 /* ============================================================
  * CHARGER COMMANDE
