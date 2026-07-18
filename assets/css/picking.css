@@ -372,3 +372,80 @@ body {
     display:table-cell !important;
     vertical-align:middle !important;
 }
+/* ============================================================
+   LOT AUTOCOMPLETE
+============================================================ */
+
+.col-lot{
+    position:relative;
+    overflow:visible;
+}
+
+.lot-dropdown{
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+
+    background:#ffffff;
+
+    border:1px solid #ced4da;
+    border-top:none;
+
+    border-radius:0 0 6px 6px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.15);
+
+    max-height:250px;
+    overflow-y:auto;
+
+    z-index:9999;
+
+    display:none;
+}
+
+.lot-dropdown.show{
+    display:block;
+}
+
+.lot-item{
+
+    padding:10px 12px;
+
+    cursor:pointer;
+
+    border-bottom:1px solid #eeeeee;
+
+    transition:.15s;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.lot-item:last-child{
+    border-bottom:none;
+}
+
+.lot-item:hover{
+
+    background:#4e73df;
+    color:#ffffff;
+}
+
+.lot-item.active{
+
+    background:#4e73df;
+    color:#ffffff;
+}
+
+.lot-empty{
+
+    padding:12px;
+
+    color:#999;
+
+    text-align:center;
+
+    font-style:italic;
+}
