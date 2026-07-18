@@ -186,6 +186,12 @@ async function buildPickingTable(lignes) {
         tbodyGroup.className = "article-group-body";
         tbodyGroup.setAttribute("id", `group_${index}`);
 
+        const artDetails = existingDetails.filter(d => d.article === art.article);
+        
+        // L-wl f les lots i-7et l-9yam dyalo nican f ster l-wl, ila makanch i-khali l-inputs khawyin
+        const firstLot = artDetails[0] ? artDetails[0].lot : "";
+        const firstQty = artDetails[0] ? artDetails[0].quantite_preparee : "";
+
         const trMain = document.createElement("tr");
         trMain.className = "article-row";
         trMain.innerHTML = `
@@ -193,21 +199,27 @@ async function buildPickingTable(lignes) {
             <td class="text-end">${art.quantite.toFixed(3)}</td>
             <td><span id="prepared_${index}">0.000</span></td>
             <td>${art.pieces}</td>
-            <td></td>
-            <td></td>
-            <td class="text-center">
-                <button type="button" class="btn-add-lot-icon" style="background:var(--success, #28a745); border:none; color:white; cursor:pointer; width:30px; height:30px; border-radius:4px; font-weight:bold; font-size:16px;">
-                    +
-                </button>
+            <td style="padding: 4px 8px;">
+                <input type="text" class="lot-input form-control" style="width:100%; height:34px;" placeholder="Lot" value="${firstLot}" autocomplete="off">
+            </td>
+            <td style="padding: 4px 8px;">
+                <input type="number" class="qty-input form-control" style="width:100%; height:34px;" placeholder="Qté" min="0" step="0.001" value="${firstQty}">
+            </td>
+            <td class="text-center" style="padding: 4px 8px; display: flex; gap: 4px; justify-content: center; align-items: center; height: 42px; border: none;">
+                <button type="button" class="btn-add-lot-icon" style="background:var(--success, #28a745); border:none; color:white; cursor:pointer; width:28px; height:28px; border-radius:4px; font-weight:bold; font-size:16px;">+</button>
             </td>
         `;
         tbodyGroup.appendChild(trMain);
 
-        const artDetails = existingDetails.filter(d => d.article === art.article);
-        if (artDetails.length > 0) {
-            artDetails.forEach(det => tbodyGroup.appendChild(createLotRow(index, det.lot, det.quantite_preparee)));
+        // Ila kano 3ndo plus d lot wa7ed, n-zidohom l-taht f s-stora d l-lots extra
+        if (artDetails.length > 1) {
+            for (let j = 1; j < artDetails.length; j++) {
+                tbodyGroup.appendChild(createLotRow(index, artDetails[j].lot, artDetails[j].quantite_preparee));
+            }
         }
 
+        // Listeners dial ster l-wl
+        trMain.querySelector(".qty-input").addEventListener("input", () => { calculatePrepared(index); calculateSummary(); });
         trMain.querySelector(".btn-add-lot-icon").addEventListener("click", () => {
             tbodyGroup.appendChild(createLotRow(index));
         });
@@ -233,9 +245,7 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
             <input type="number" class="qty-input form-control" style="width:100%; height:34px;" placeholder="Qté" min="0" step="0.001" value="${qtyVal}">
         </td>
         <td class="text-center" style="padding: 4px 8px;">
-            <button type="button" class="btn-remove" style="background:var(--danger, #dc3545); border:none; color:white; cursor:pointer; width:30px; height:30px; border-radius:4px; font-weight:bold; font-size:14px;">
-                -
-            </button>
+            <button type="button" class="btn-remove" style="background:var(--danger, #dc3545); border:none; color:white; cursor:pointer; width:28px; height:28px; border-radius:4px; font-weight:bold; font-size:14px;">-</button>
         </td>
     `;
     trLot.querySelector(".btn-remove").addEventListener("click", () => { trLot.remove(); calculatePrepared(articleIndex); calculateSummary(); });
@@ -282,10 +292,14 @@ async function savePicking() {
         const details = []; let totalPreparedForOrder = 0;
         for (let i = 0; i < articles.length; i++) {
             const art = articles[i]; const group = document.getElementById(`group_${i}`); if (!group) continue;
-            const rows = group.querySelectorAll(".lot-item-row");
+            const rows = group.querySelectorAll("tr"); // kixml ster l-wl + l-ots l-xtra
             for (const r of rows) {
-                const lot = r.querySelector(".lot-input").value.trim();
-                const qty = Number(r.querySelector(".qty-input").value || 0);
+                const lotInp = r.querySelector(".lot-input");
+                const qtyInp = r.querySelector(".qty-input");
+                if (!lotInp || !qtyInp) continue;
+
+                const lot = lotInp.value.trim();
+                const qty = Number(qtyInp.value || 0);
                 if (!lot || qty <= 0) continue;
                 totalPreparedForOrder += qty;
 
