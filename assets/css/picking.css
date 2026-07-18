@@ -346,3 +346,29 @@ body {
     width:32px;
     height:32px;
 }
+/* ===== Force table layout ===== */
+
+.table-custom{
+    display:table !important;
+    width:100% !important;
+    table-layout:fixed !important;
+    border-collapse:collapse !important;
+}
+
+.table-custom thead{
+    display:table-header-group !important;
+}
+
+.table-custom tbody{
+    display:table-row-group !important;
+}
+
+.table-custom tr{
+    display:table-row !important;
+}
+
+.table-custom th,
+.table-custom td{
+    display:table-cell !important;
+    vertical-align:middle !important;
+}
