@@ -137,11 +137,13 @@ function resetPicking() {
 
     if (els.pickingBody) {
         els.pickingBody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center text-muted py-4">
-                    Aucune commande chargée.
-                </td>
-            </tr>
+            <tbody>
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Aucune commande chargée.
+                    </td>
+                </tr>
+            </tbody>
         `;
     }
 
@@ -189,14 +191,12 @@ async function searchCommande() {
         if (Loader && typeof Loader.show === "function") Loader.show();
         resetPicking();
 
-        // 1. Nzlo l-ma3loumat dyal l-commande mn l-back-end
         currentCommande = await loadCommande(numeroCommande);
         if (!currentCommande) {
             Toast.warning("Commande introuvable.");
             return;
         }
 
-        // 2. Nchofo wch picking déjà khedam ola la
         const { data: pickingData } = await supabase
             .from("picking")
             .select("*")
@@ -270,7 +270,7 @@ function displayCommandeInfo(cmd) {
 }
 
 /* ============================================================
- * CONSTRUIRE TABLEAU DYNAMIQUE
+ * CONSTRUIRE TABLEAU DYNAMIQUE ALIGNÉ
  * ============================================================
  */
 async function buildPickingTable(lignes) {
@@ -302,11 +302,10 @@ async function buildPickingTable(lignes) {
     articles = [...map.values()];
 
     if (!articles.length) {
-        els.pickingBody.innerHTML = `<tr><td colspan="7" class="text-center">Aucune ligne à préparer.</td></tr>`;
+        els.pickingBody.innerHTML = `<tbody><tr><td colspan="7" class="text-center">Aucune ligne à préparer.</td></tr></tbody>`;
         return;
     }
 
-    // Nchoufo wch kaynin details dyal picking khdam sba9 lina hfethnahom
     let existingDetails = [];
     if (currentPicking) {
         const { data } = await supabase
@@ -317,38 +316,45 @@ async function buildPickingTable(lignes) {
     }
 
     articles.forEach((article, index) => {
-        const tr = document.createElement("tr");
-        tr.className = "article-row";
-        tr.dataset.index = index;
-        tr.innerHTML = `
+        // Create un tbody séparé pour chaque groupe d'article + ses lots
+        const tbodyGroup = document.createElement("tbody");
+        tbodyGroup.className = "article-group-body";
+        tbodyGroup.setAttribute("id", `group_${index}`);
+
+        // Ligne Principale de l'Article
+        const trMain = document.createElement("tr");
+        trMain.className = "article-row";
+        trMain.innerHTML = `
             <td><strong>${article.article}</strong><br><small>${article.designation ?? ""}</small></td>
             <td class="text-end">${article.quantite.toFixed(3)}</td>
             <td><span id="prepared_${index}">0.000</span></td>
             <td>${article.pieces}</td>
-            <td colspan="3">
-                <div id="lots_${index}" class="lots-container"></div>
-                <button type="button" class="btn btn-success btn-add-lot" style="padding: 5px 10px; margin-top:5px;">
+            <td colspan="3" class="bg-light-action">
+                <button type="button" class="btn btn-success btn-add-lot" style="padding: 4px 10px; font-size: 13px;">
                     <i class="fas fa-plus"></i> Ajouter un Lot
                 </button>
             </td>
         `;
 
-        const container = tr.querySelector(".lots-container");
+        tbodyGroup.appendChild(trMain);
+
+        // Chargement des lots existants
         const articleDetails = existingDetails.filter(d => d.article === article.article);
 
         if (articleDetails.length > 0) {
             articleDetails.forEach(det => {
-                container.appendChild(createLotRow(index, det.lot, det.quantite_preparee));
+                tbodyGroup.appendChild(createLotRow(index, det.lot, det.quantite_preparee));
             });
         } else {
-            container.appendChild(createLotRow(index));
+            tbodyGroup.appendChild(createLotRow(index));
         }
 
-        tr.querySelector(".btn-add-lot").addEventListener("click", () => {
-            container.appendChild(createLotRow(index));
+        // Action du bouton Ajouter un Lot
+        trMain.querySelector(".btn-add-lot").addEventListener("click", () => {
+            tbodyGroup.appendChild(createLotRow(index));
         });
 
-        els.pickingBody.appendChild(tr);
+        els.pickingBody.appendChild(tbodyGroup);
         calculatePrepared(index);
     });
 
@@ -356,52 +362,56 @@ async function buildPickingTable(lignes) {
 }
 
 function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
-    const row = document.createElement("div");
-    row.className = "lot-row";
-    row.style.marginBottom = "5px";
+    const trLot = document.createElement("tr");
+    trLot.className = "lot-item-row";
 
-    row.innerHTML = `
-        <div class="lot-grid" style="display:flex; gap:8px; align-items:center;">
-            <input type="text" class="lot-input form-control" style="width:140px; height:34px;" placeholder="Lot" value="${lotVal}" autocomplete="off">
-            <input type="number" class="qty-input form-control" style="width:100px; height:34px;" placeholder="Qté" min="0" step="0.001" value="${qtyVal}">
-            <button type="button" class="btn-remove" style="background:none; border:none; color:var(--danger); cursor:pointer;">
-                <i class="fas fa-trash"></i>
+    trLot.innerHTML = `
+        <td colspan="4" style="border: none;"></td>
+        <td>
+            <input type="text" class="lot-input form-control" style="width:100%; height:34px;" placeholder="Lot" value="${lotVal}" autocomplete="off">
+        </td>
+        <td>
+            <input type="number" class="qty-input form-control" style="width:100%; height:34px;" placeholder="Qté" min="0" step="0.001" value="${qtyVal}">
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn-remove" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:16px; padding-top:6px;">
+                <i class="fas = trash"></i> <i class="fas fa-trash"></i>
             </button>
-        </div>
+        </td>
     `;
 
-    row.querySelector(".btn-remove").addEventListener("click", () => {
-        row.remove();
+    trLot.querySelector(".btn-remove").addEventListener("click", () => {
+        trLot.remove();
         calculatePrepared(articleIndex);
         calculateSummary();
     });
 
-    row.querySelector(".qty-input").addEventListener("input", () => {
+    trLot.querySelector(".qty-input").addEventListener("input", () => {
         calculatePrepared(articleIndex);
         calculateSummary();
     });
 
-    return row;
+    return trLot;
 }
 
 function calculatePrepared(articleIndex) {
-    const container = document.getElementById(`lots_${articleIndex}`);
-    if (!container) return;
+    const groupContainer = document.getElementById(`group_${articleIndex}`);
+    if (!groupContainer) return;
 
     let total = 0;
-    container.querySelectorAll(".qty-input").forEach(input => {
+    groupContainer.querySelectorAll(".qty-input").forEach(input => {
         total += Number(input.value || 0);
     });
 
     const span = document.getElementById(`prepared_${articleIndex}`);
     if (span) span.textContent = total.toFixed(3);
 
-    const articleRow = container.closest(".article-row");
-    if (articleRow && articles[articleIndex]) {
+    const mainRow = groupContainer.querySelector(".article-row");
+    if (mainRow && articles[articleIndex]) {
         if (total > articles[articleIndex].quantite) {
-            articleRow.style.backgroundColor = "rgba(220, 53, 69, 0.08)";
+            mainRow.style.backgroundColor = "rgba(220, 53, 69, 0.08)";
         } else {
-            articleRow.style.backgroundColor = "";
+            mainRow.style.backgroundColor = "";
         }
     }
 }
@@ -486,10 +496,10 @@ async function savePicking() {
 
         for (let i = 0; i < articles.length; i++) {
             const article = articles[i];
-            const container = document.getElementById(`lots_${i}`);
-            if (!container) continue;
+            const groupContainer = document.getElementById(`group_${i}`);
+            if (!groupContainer) continue;
 
-            const rows = container.querySelectorAll(".lot-row");
+            const rows = groupContainer.querySelectorAll(".lot-item-row");
             for (const row of rows) {
                 const lot = row.querySelector(".lot-input").value.trim();
                 const qty = Number(row.querySelector(".qty-input").value || 0);
