@@ -181,70 +181,90 @@ async function buildPickingTable(lignes) {
         existingDetails = data || [];
     }
 
-    articles.forEach((art, index) => {
-        const tbodyGroup = document.createElement("tbody");
-        tbodyGroup.className = "article-group-body";
-        tbodyGroup.id = `group_${index}`;
+articles.forEach((art, index) => {
 
-        const artDetails = existingDetails.filter(d => d.article === art.article);
+    const artDetails = existingDetails.filter(d => d.article === art.article);
 
-        const firstLot = artDetails.length ? artDetails[0].lot : "";
-        const firstQty = artDetails.length ? artDetails[0].quantite_preparee : "";
+    const firstLot = artDetails.length ? artDetails[0].lot : "";
+    const firstQty = artDetails.length ? artDetails[0].quantite_preparee : "";
 
-        const trMain = document.createElement("tr");
-        trMain.className = "article-row";
+    const trMain = document.createElement("tr");
+    trMain.className = "article-row";
+    trMain.id = `group_${index}`;
 
-        trMain.innerHTML = `
-            <td class="col-article">
-                <strong>${art.article}</strong><br>
-                <small>${art.designation ?? ""}</small>
-            </td>
-            <td class="col-qte text-end">
-                ${art.quantite.toFixed(3)}
-            </td>
-            <td class="col-prepare text-center">
-                <span id="prepared_${index}">0.000</span>
-            </td>
-            <td class="col-piece text-center">
-                ${art.pieces}
-            </td>
-            <td class="col-lot">
-                <input type="text" class="lot-input form-control" placeholder="Lot" value="${firstLot}" autocomplete="off">
-            </td>
-            <td class="col-qteprepare">
-                <input type="number" class="qty-input form-control" placeholder="Qté" min="0" step="0.001" value="${firstQty}">
-            </td>
-            <td class="col-action text-center">
-                <button type="button" class="btn-add-lot-icon">+</button>
-            </td>
-        `;
+    trMain.innerHTML = `
+        <td class="col-article">
+            <strong>${art.article}</strong><br>
+            <small>${art.designation ?? ""}</small>
+        </td>
 
-        tbodyGroup.appendChild(trMain);
+        <td class="col-qte text-end">
+            ${art.quantite.toFixed(3)}
+        </td>
 
-        if (artDetails.length > 1) {
-            for (let j = 1; j < artDetails.length; j++) {
-                tbodyGroup.appendChild(
-                    createLotRow(index, artDetails[j].lot, artDetails[j].quantite_preparee)
-                );
-            }
+        <td class="col-prepare text-center">
+            <span id="prepared_${index}">0.000</span>
+        </td>
+
+        <td class="col-piece text-center">
+            ${art.pieces}
+        </td>
+
+        <td class="col-lot">
+            <input
+                type="text"
+                class="lot-input form-control"
+                placeholder="Lot"
+                value="${firstLot}"
+                autocomplete="off">
+        </td>
+
+        <td class="col-qteprepare">
+            <input
+                type="number"
+                class="qty-input form-control"
+                placeholder="Qté"
+                min="0"
+                step="0.001"
+                value="${firstQty}">
+        </td>
+
+        <td class="col-action text-center">
+            <button type="button" class="btn-add-lot-icon">+</button>
+        </td>
+    `;
+
+    els.pickingBody.appendChild(trMain);
+
+    if (artDetails.length > 1) {
+        for (let j = 1; j < artDetails.length; j++) {
+            els.pickingBody.appendChild(
+                createLotRow(
+                    index,
+                    artDetails[j].lot,
+                    artDetails[j].quantite_preparee
+                )
+            );
         }
+    }
 
-        trMain.querySelector(".qty-input").addEventListener("input", () => {
-            calculatePrepared(index);
-            calculateSummary();
-        });
-
-        trMain.querySelector(".btn-add-lot-icon").addEventListener("click", () => {
-            tbodyGroup.appendChild(createLotRow(index));
-        });
-
-        els.pickingBody.appendChild(tbodyGroup);
-        calculatePrepared(index);
-    });
-
+trMain.querySelector(".qty-input").addEventListener("input", () => {
+    calculatePrepared(index);
     calculateSummary();
-}
+});
 
+trMain.querySelector(".btn-add-lot-icon").addEventListener("click", () => {
+    trMain.insertAdjacentElement(
+        "afterend",
+        createLotRow(index)
+    );
+});
+
+calculatePrepared(index);
+});
+
+calculateSummary();
+}
 function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
     const trLot = document.createElement("tr");
     trLot.className = "lot-item-row";
