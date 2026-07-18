@@ -587,6 +587,77 @@ function createArticleRow(article, index) {
     return tr;
 
 }
+/* ============================================================
+ * CALCUL PREPARE ARTICLE
+ * ============================================================
+ */
+
+function calculatePrepared(articleIndex) {
+
+    const container = document.getElementById(`lots_${articleIndex}`);
+
+    if (!container) return;
+
+    let total = 0;
+
+    container.querySelectorAll(".qty-input").forEach(input => {
+        total += Number(input.value || 0);
+    });
+
+    const span = document.getElementById(`prepared_${articleIndex}`);
+
+    if (span) {
+        span.textContent = total.toFixed(3);
+    }
+
+}
+
+/* ============================================================
+ * CALCUL RÉSUMÉ
+ * ============================================================
+ */
+
+function calculateSummary() {
+
+    let totalArticles = articles.length;
+
+    let totalCommande = 0;
+
+    let totalPrepare = 0;
+
+    articles.forEach((article, index) => {
+
+        totalCommande += article.quantite;
+
+        const span = document.getElementById(`prepared_${index}`);
+
+        if (span) {
+            totalPrepare += Number(span.textContent || 0);
+        }
+
+    });
+
+    if (els.totalArticles)
+        els.totalArticles.textContent = totalArticles;
+
+    if (els.totalQuantity)
+        els.totalQuantity.textContent = totalCommande.toFixed(3);
+
+    if (els.preparedQuantity)
+        els.preparedQuantity.textContent = totalPrepare.toFixed(3);
+
+    const percent =
+        totalCommande > 0
+            ? (totalPrepare / totalCommande) * 100
+            : 0;
+
+    if (els.pickingProgress)
+        els.pickingProgress.style.width = `${percent}%`;
+
+    if (els.progressText)
+        els.progressText.textContent = `${percent.toFixed(0)}%`;
+
+}
 
 /* ============================================================
  * LOT ROW
