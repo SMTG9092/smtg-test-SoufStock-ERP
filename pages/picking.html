@@ -3,155 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoufStock ERP/WMS - Picking & Préparation</title>
-    
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    
-    <!-- Links s7a7 b ../ bach n-xrjo mn dossier pages/ -->
-    
-    <link rel="stylesheet" href="/assets/css/picking.css">
+    <title>SoufStock - Bon de Picking</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Hna t9dr tzid l-styles dial Bootstrap wla icons ila knti mkhdamhom -->
+    <style>
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .table-custom th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            padding: 12px 8px;
+            border-bottom: 2px solid #dee2e6;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .table-custom td {
+            padding: 12px 8px;
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .article-group-body {
+            border-bottom: 2px solid #ced4da;
+        }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-warning { background-color: #ffeeba; color: #856404; }
+        .badge-success { background-color: #d4edda; color: #155724; }
+        .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 6px 12px;
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-
-    <!-- HIDDEN INPUTS FOR TRACKING -->
-    <input type="hidden" id="pickingId">
-    <input type="hidden" id="suiviId">
-
-    <!-- SEARCH & TOP BAR -->
-    <div class="search-container">
-        <input type="text" id="commandeInput" class="form-control input-search" placeholder="Saisir le n° de commande (Ex: DV26...)" autocomplete="off">
-        <button type="button" id="btnSearch" class="btn btn-primary">
-            <i class="fas fa-search"></i> Rechercher
-        </button>
-        <button type="button" id="btnScanner" class="btn btn-secondary">
-            <i class="fas fa-barcode"></i> Scanner
-        </button>
-        <div style="margin-left: auto; display: flex; gap: 10px;">
-            <button type="button" id="btnSave" class="btn btn-success">
-                <i class="fas fa-save"></i> Enregistrer
-            </button>
-            <button type="button" id="btnValidate" class="btn btn-warning">
-                <i class="fas fa-check-circle"></i> Valider définitivement
-            </button>
-        </div>
-    </div>
-
-    <!-- CARD INFO COMMANDE -->
-    <div class="card">
-        <div class="card-header">
-            <h2><i class="fas fa-file-invoice"></i> Informations Commande</h2>
-            <span id="statutCommande" class="badge badge-warning">En préparation</span>
-        </div>
-        <div class="card-body">
-            <div class="info-grid">
-                <div class="info-group">
-                    <label>Client</label>
-                    <div id="clientName" class="info-value">-</div>
-                </div>
-                <div class="info-group">
-                    <label>Date Création</label>
-                    <div id="dateCreation" class="info-value">-</div>
-                </div>
-                <div class="info-group">
-                    <label>Date Livraison</label>
-                    <div id="dateLivraison" class="info-value">-</div>
-                </div>
-                <div class="info-group">
-                    <label>Tournée</label>
-                    <div id="tournee" class="info-value">-</div>
-                </div>
-                <div class="info-group">
-                    <label>Chauffeur</label>
-                    <div id="chauffeur" class="info-value">-</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- CARD TABLEAU ARTICLES -->
-    <div class="card">
-        <div class="card-header">
-            <h2><i class="fas fa-boxes-stacked"></i> Articles à Préparer</h2>
-        </div>
-        <div class="card-body">
-            
-            <!-- Progression Barre -->
-            <div class="progress-wrapper">
-                <div class="progress-text-container">
-                    <span>Avancement du Picking</span>
-                    <span id="progressText">0%</span>
-                </div>
-                <div class="progress">
-                    <div id="pickingProgress" class="progress-bar"></div>
-                </div>
-            </div>
-
-            <!-- Table Structurée -->
-            <div class="table-responsive">
-                <table class="table-picking">
-                    <thead>
-                        <tr>
-                            <th>Article</th>
-                            <th class="text-end">Qté</th>
-                            <th>Préparée</th>
-                            <th>Nb Pièces</th>
-                            <th>Lot</th>
-                            <th>Qté Préparée</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pickingBody">
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                Aucune commande chargée.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Bottom Actions and Summary -->
-            <div class="footer-summary">
-                <div class="summary-metrics">
-                    <span>Articles distincts: <strong id="totalArticles">0</strong></span>
-                    <span>Total Commandé: <strong id="totalQuantity">0.000</strong> KG</span>
-                    <span>Total Préparé: <strong id="preparedQuantity">0.000</strong> KG</span>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" id="btnRefresh" class="btn btn-secondary">
-                        <i class="fas fa-sync-alt"></i> Actualiser
+    <div class="container-fluid py-4">
+        <!-- Barre de recherche et actions principales -->
+        <div class="card card-custom mb-4">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 500px;">
+                    <input type="text" id="commandeInput" class="form-control" placeholder="Saisir le n° de commande (Ex: DV26...)">
+                    <button type="button" id="btnSearch" class="btn btn-primary d-flex align-items-center gap-1">
+                        <span>🔍</span> Rechercher
                     </button>
-                    <button type="button" id="btnSaveFooter" class="btn btn-success">
-                        <i class="fas fa-save"></i> Enregistrer
+                    <button type="button" id="btnScanner" class="btn btn-secondary d-flex align-items-center gap-1">
+                        <span>║▌║</span> Scanner
                     </button>
-                    <button type="button" id="btnValidateFooter" class="btn btn-warning">
-                        <i class="fas fa-check-circle"></i> Valider
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="hidden" id="pickingId">
+                    <input type="hidden" id="suiviId">
+                    <button type="button" id="btnSave" class="btn btn-success d-flex align-items-center gap-1">
+                        <span>💾</span> Enregistrer
+                    </button>
+                    <button type="button" id="btnValidate" class="btn btn-warning d-flex align-items-center gap-1">
+                        <span>✔</span> Valider définitivement
                     </button>
                 </div>
             </div>
+        </div>
 
+        <!-- Informations de la commande -->
+        <div class="card card-custom mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary">📋 Informations Commande</h5>
+                <span id="statutCommande" class="badge badge-warning">EN PRÉPARATION</span>
+            </div>
+            <div class="card-body">
+                <div class="row text-muted small mb-2">
+                    <div class="col-md-3"><strong>CLIENT</strong></div>
+                    <div class="col-md-2"><strong>DATE CRÉATION</strong></div>
+                    <div class="col-md-2"><strong>DATE LIVRAISON</strong></div>
+                    <div class="col-md-3"><strong>TOURNÉE</strong></div>
+                    <div class="col-md-2"><strong>CHAUFFEUR</strong></div>
+                </div>
+                <div class="row fw-bold text-dark">
+                    <div class="col-md-3 text-truncate" id="clientName">-</div>
+                    <div class="col-md-2" id="dateCreation">-</div>
+                    <div class="col-md-2" id="dateLivraison">-</div>
+                    <div class="col-md-3 text-truncate" id="tournee">-</div>
+                    <div class="col-md-2" id="chauffeur">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Articles à Préparer -->
+        <div class="card card-custom">
+            <div class="card-header">
+                <h5 class="mb-0 text-primary">📦 Articles à Préparer</h5>
+            </div>
+            <div class="card-body">
+                <!-- Barre d'avancement -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Avancement du Picking</span>
+                        <span id="progressText" class="fw-bold">0%</span>
+                    </div>
+                    <div class="progress" style="height: 10px; background-color: #e9ecef; border-radius: 5px; overflow: hidden;">
+                        <div id="pickingProgress" class="progress-bar bg-success" style="width: 0%; height: 10px; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+
+                <!-- Table d'affichage avec alignement exact des colonnes -->
+                <div class="table-responsive">
+                    <table class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">ARTICLE</th>
+                                <th style="width: 8%; text-align: right;">QTÉ</th>
+                                <th style="width: 10%; text-align: center;">PRÉPARÉE</th>
+                                <th style="width: 8%; text-align: center;">NB PIÈCES</th>
+                                <th style="width: 20%;">LOT</th>
+                                <th style="width: 20%;">QTÉ PRÉPARÉE</th>
+                                <th style="width: 9%; text-align: center;">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pickingBody">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">Aucune commande chargée.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer résumé et actions -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center border-top pt-3 mt-3 gap-3">
+                    <div class="d-flex gap-4 text-muted small fw-bold">
+                        <div>Articles distincts: <span id="totalArticles" class="text-dark">0</span></div>
+                        <div>Total Commandé: <span id="totalQuantity" class="text-dark">0.000</span> KG</div>
+                        <div>Total Préparé: <span id="preparedQuantity" class="text-dark">0.000</span> KG</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btnRefresh" class="btn btn-secondary">🔄 Actualiser</button>
+                        <button type="button" id="btnSaveFooter" class="btn btn-success">💾 Enregistrer</button>
+                        <button type="button" id="btnValidateFooter" class="btn btn-warning">✔ Valider</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-</div>
-
-<!-- CONFIRMATION MODAL CUSTOM -->
-<div id="confirmModal" class="modal">
-    <div class="modal-content">
-        <h3 style="margin-top:0; color:var(--secondary);"><i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i> Confirmation</h3>
-        <p id="confirmMessage">Voulez-vous valider définitivement ce picking ?</p>
-        <div class="modal-actions">
-            <button type="button" id="confirmYes" class="btn btn-warning">Oui, Valider</button>
-            <button type="button" id="confirmNo" class="btn btn-secondary">Annuler</button>
+    <!-- Modal Confirmation (Optionnel) -->
+    <div id="confirmModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1050;">
+        <div class="modal-content p-4 bg-white rounded shadow" style="max-width: 400px; width: 100%;">
+            <h5 class="mb-3">Confirmation</h5>
+            <p id="confirmMessage"></p>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" id="confirmNo" class="btn btn-secondary">Non</button>
+                <button type="button" id="confirmYes" class="btn btn-primary">Oui, Valider</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Path s7i7 n-xrjo mn pages/ w n-dxlo straight l js/picking.js -->
-<script type="module" src="/assets/js/picking.js"></script>
-
+    <!-- Script JS -->
+    <script type="module" src="assets/js/picking.js"></script>
 </body>
 </html>
