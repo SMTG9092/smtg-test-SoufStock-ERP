@@ -343,42 +343,56 @@ async function searchCommande() {
 
 async function loadCommande(numeroCommande) {
 
-    const { data, error } = await supabase
+    // ===========================
+    // Commandes KG
+    // ===========================
+
+    const { data: kgData, error: kgError } = await supabase
         .from("commandes_excel")
         .select("*")
         .eq("document_vente", numeroCommande)
         .order("article");
 
-    if (error) throw error;
+    if (kgError) throw kgError;
 
-    if (!data || data.length === 0) {
-
+    if (!kgData || kgData.length === 0) {
         return null;
-
     }
+
+    // ===========================
+    // Commandes Pièces
+    // ===========================
+
+    const { data: piecesData, error: piecesError } = await supabase
+        .from("commandes_clients_pieces")
+        .select("document_vente, article, nombre_pieces")
+        .eq("document_vente", numeroCommande);
+
+    if (piecesError) throw piecesError;
 
     return {
 
         numero: numeroCommande,
 
-        client: data[0].nom_receptionnaire,
+        client: kgData[0].nom_receptionnaire,
 
-        dateCreation: data[0].date_creation,
+        dateCreation: kgData[0].date_creation,
 
-        dateLivraison: data[0].date_livraison,
+        dateLivraison: kgData[0].date_livraison,
 
-        tournee: data[0].tournee,
+        tournee: kgData[0].itineraire,
 
-        chauffeur: data[0].chauffeur,
+        chauffeur: "",
 
-        statut: data[0].statut,
+        statut: kgData[0].statut,
 
-        lignes: data
+        lignes: kgData,
+
+        pieces: piecesData || []
 
     };
 
 }
-
 /* ============================================================
  * INFORMATIONS COMMANDE
  * ============================================================
