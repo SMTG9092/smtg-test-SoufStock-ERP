@@ -113,28 +113,29 @@
                     </div>
                 </div>
 
-                <!-- Table d'affichage avec alignement exact des colonnes -->
-                <div class="table-responsive">
-                    <table class="table table-custom">
-                        <thead>
-                            <tr>
-                                <th style="width: 25%;">ARTICLE</th>
-                                <th style="width: 8%; text-align: right;">QTÉ</th>
-                                <th style="width: 10%; text-align: center;">PRÉPARÉE</th>
-                                <th style="width: 8%; text-align: center;">NB PIÈCES</th>
-                                <th style="width: 20%;">LOT</th>
-                                <th style="width: 20%;">QTÉ PRÉPARÉE</th>
-                                <th style="width: 9%; text-align: center;">ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pickingBody">
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Aucune commande chargée.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+<div class="table-responsive">
+    <table class="table table-custom">
+        <thead>
+            <tr>
+                <th class="col-article">ARTICLE</th>
+                <th class="col-qte">QTÉ</th>
+                <th class="col-prepare">PRÉPARÉE</th>
+                <th class="col-piece">NB PIÈCES</th>
+                <th class="col-lot">LOT</th>
+                <th class="col-qteprepare">QTÉ PRÉPARÉE</th>
+                <th class="col-action">ACTION</th>
+            </tr>
+        </thead>
 
+        <tbody id="pickingBody">
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    Aucune commande chargée.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
                 <!-- Footer résumé et actions -->
                 <div class="d-flex flex-wrap justify-content-between align-items-center border-top pt-3 mt-3 gap-3">
                     <div class="d-flex gap-4 text-muted small fw-bold">
