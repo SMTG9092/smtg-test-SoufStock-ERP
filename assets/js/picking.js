@@ -188,37 +188,34 @@ async function buildPickingTable(lignes) {
 
         const artDetails = existingDetails.filter(d => d.article === art.article);
         
-        // L-wl f les lots i-7et l-9yam dyalo nican f ster l-wl, ila makanch i-khali l-inputs khawyin
         const firstLot = artDetails[0] ? artDetails[0].lot : "";
         const firstQty = artDetails[0] ? artDetails[0].quantite_preparee : "";
 
         const trMain = document.createElement("tr");
         trMain.className = "article-row";
         trMain.innerHTML = `
-            <td><strong>${art.article}</strong><br><small>${art.designation ?? ""}</small></td>
-            <td class="text-end">${art.quantite.toFixed(3)}</td>
-            <td><span id="prepared_${index}">0.000</span></td>
-            <td>${art.pieces}</td>
-            <td style="padding: 4px 8px;">
+            <td style="width: 25%;"><strong>${art.article}</strong><br><small>${art.designation ?? ""}</small></td>
+            <td style="width: 8%; text-align: right; vertical-align: middle;">${art.quantite.toFixed(3)}</td>
+            <td style="width: 10%; text-align: center; vertical-align: middle;"><span id="prepared_${index}">0.000</span></td>
+            <td style="width: 8%; text-align: center; vertical-align: middle;">${art.pieces}</td>
+            <td style="width: 20%; padding: 4px 8px; vertical-align: middle;">
                 <input type="text" class="lot-input form-control" style="width:100%; height:34px;" placeholder="Lot" value="${firstLot}" autocomplete="off">
             </td>
-            <td style="padding: 4px 8px;">
+            <td style="width: 20%; padding: 4px 8px; vertical-align: middle;">
                 <input type="number" class="qty-input form-control" style="width:100%; height:34px;" placeholder="Qté" min="0" step="0.001" value="${firstQty}">
             </td>
-            <td class="text-center" style="padding: 4px 8px; display: flex; gap: 4px; justify-content: center; align-items: center; height: 42px; border: none;">
-                <button type="button" class="btn-add-lot-icon" style="background:var(--success, #28a745); border:none; color:white; cursor:pointer; width:28px; height:28px; border-radius:4px; font-weight:bold; font-size:16px;">+</button>
+            <td style="width: 9%; text-align: center; vertical-align: middle; padding: 4px 8px;">
+                <button type="button" class="btn-add-lot-icon" style="background:var(--success, #28a745); border:none; color:white; cursor:pointer; width:30px; height:30px; border-radius:4px; font-weight:bold; font-size:16px;">+</button>
             </td>
         `;
         tbodyGroup.appendChild(trMain);
 
-        // Ila kano 3ndo plus d lot wa7ed, n-zidohom l-taht f s-stora d l-lots extra
         if (artDetails.length > 1) {
             for (let j = 1; j < artDetails.length; j++) {
                 tbodyGroup.appendChild(createLotRow(index, artDetails[j].lot, artDetails[j].quantite_preparee));
             }
         }
 
-        // Listeners dial ster l-wl
         trMain.querySelector(".qty-input").addEventListener("input", () => { calculatePrepared(index); calculateSummary(); });
         trMain.querySelector(".btn-add-lot-icon").addEventListener("click", () => {
             tbodyGroup.appendChild(createLotRow(index));
@@ -234,18 +231,18 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
     const trLot = document.createElement("tr");
     trLot.className = "lot-item-row";
     trLot.innerHTML = `
-        <td style="border: none; background: transparent;"></td>
-        <td style="border: none; background: transparent;"></td>
-        <td style="border: none; background: transparent;"></td>
-        <td style="border: none; background: transparent;"></td>
-        <td style="padding: 4px 8px;">
+        <td style="width: 25%; border: none; background: transparent;"></td>
+        <td style="width: 8%; border: none; background: transparent;"></td>
+        <td style="width: 10%; border: none; background: transparent;"></td>
+        <td style="width: 8%; border: none; background: transparent;"></td>
+        <td style="width: 20%; padding: 4px 8px; vertical-align: middle;">
             <input type="text" class="lot-input form-control" style="width:100%; height:34px;" placeholder="Lot" value="${lotVal}" autocomplete="off">
         </td>
-        <td style="padding: 4px 8px;">
+        <td style="width: 20%; padding: 4px 8px; vertical-align: middle;">
             <input type="number" class="qty-input form-control" style="width:100%; height:34px;" placeholder="Qté" min="0" step="0.001" value="${qtyVal}">
         </td>
-        <td class="text-center" style="padding: 4px 8px;">
-            <button type="button" class="btn-remove" style="background:var(--danger, #dc3545); border:none; color:white; cursor:pointer; width:28px; height:28px; border-radius:4px; font-weight:bold; font-size:14px;">-</button>
+        <td style="width: 9%; text-align: center; vertical-align: middle; padding: 4px 8px;">
+            <button type="button" class="btn-remove" style="background:var(--danger, #dc3545); border:none; color:white; cursor:pointer; width:30px; height:30px; border-radius:4px; font-weight:bold; font-size:14px;">-</button>
         </td>
     `;
     trLot.querySelector(".btn-remove").addEventListener("click", () => { trLot.remove(); calculatePrepared(articleIndex); calculateSummary(); });
@@ -292,7 +289,7 @@ async function savePicking() {
         const details = []; let totalPreparedForOrder = 0;
         for (let i = 0; i < articles.length; i++) {
             const art = articles[i]; const group = document.getElementById(`group_${i}`); if (!group) continue;
-            const rows = group.querySelectorAll("tr"); // kixml ster l-wl + l-ots l-xtra
+            const rows = group.querySelectorAll("tr");
             for (const r of rows) {
                 const lotInp = r.querySelector(".lot-input");
                 const qtyInp = r.querySelector(".qty-input");
