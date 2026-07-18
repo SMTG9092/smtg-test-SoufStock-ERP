@@ -165,11 +165,11 @@ body {
 .table-picking {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* Hada m9add i-khlli l-wase3 d l-colonnes thabet */
+    table-layout: fixed; 
 }
 
-/* L-wase3 m7ded ghir f l-entête (th) bo7dha bach l-alignement iji s7i7 */
-.table-picking th:nth-child(1) { width: 50%; } /* Article */
+/* Largeurs fixes de colonnes */
+.table-picking th:nth-child(1) { width: 35%; } /* Article */
 .table-picking th:nth-child(2) { width: 10%; } /* Qté */
 .table-picking th:nth-child(3) { width: 10%; } /* Préparée */
 .table-picking th:nth-child(4) { width: 10%; } /* Nb Pièces */
@@ -219,7 +219,7 @@ body {
     border-bottom: 2px solid var(--border-color);
 }
 
-/* --- BADGES & METRICS --- */
+/* --- BADGES & FOOTER --- */
 .badge {
     padding: 4px 8px;
     border-radius: 4px;
