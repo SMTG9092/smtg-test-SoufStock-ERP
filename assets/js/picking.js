@@ -497,9 +497,9 @@ async function searchLots(article, text) {
 
         const response = await supabase
             .from("stock")
-            .select("id, article, lot, quantite")
+            .select("id, article, lot, stock_disponible")
             .eq("article", String(article))
-            .gt("quantite", 0)
+            .gt("stock_disponible", 0)
             .ilike("lot", `%${text}%`)
             .order("lot")
             .limit(10);
@@ -524,9 +524,6 @@ async function searchLots(article, text) {
     }
 
 }
-
-}
-
 function showLotDropdown(lots) {
 
     hideLotDropdown();
@@ -554,8 +551,8 @@ function showLotDropdown(lots) {
             div.textContent = item.lot;
 
             div.addEventListener("mousedown", () => {
-                selectLot(item.lot);
-            });
+             selectLot(item);
+             });
 
             dropdown.appendChild(div);
 
@@ -584,11 +581,13 @@ function hideLotDropdown() {
 
 }
 
-function selectLot(lot) {
+function selectLot(item) {
 
     if (!activeLotInput) return;
 
-    activeLotInput.value = lot;
+    activeLotInput.value = item.lot;
+
+    activeLotInput.dataset.stock = item.stock_disponible;
 
     hideLotDropdown();
 
