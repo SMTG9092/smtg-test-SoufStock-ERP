@@ -491,29 +491,39 @@ async function searchLots(article, text) {
 
     try {
 
-        const { data, error } = await supabase
+        console.log("========== SEARCH LOT ==========");
+        console.log("Article :", article);
+        console.log("Recherche :", text);
+
+        const response = await supabase
             .from("stock")
-            .select("lot")
-            .eq("article", article)
+            .select("id, article, lot, quantite")
+            .eq("article", String(article))
             .gt("quantite", 0)
             .ilike("lot", `%${text}%`)
             .order("lot")
             .limit(10);
 
-        if (error) {
-            console.error(error);
+        console.log("Réponse :", response);
+
+        if (response.error) {
+            console.error("Erreur Supabase :", response.error);
             hideLotDropdown();
             return;
         }
 
-        showLotDropdown(data || []);
+        console.table(response.data);
+
+        showLotDropdown(response.data || []);
 
     } catch (err) {
 
-        console.error(err);
+        console.error("Exception :", err);
         hideLotDropdown();
 
     }
+
+}
 
 }
 
