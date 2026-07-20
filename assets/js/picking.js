@@ -284,11 +284,33 @@ async function buildPickingTable(lignes) {
         }
 
         trMain.querySelector(".btn-add-lot-icon").addEventListener("click", (e) => {
+            // 1. التحقق أولاً من عدم وجود أي خطأ مخزون بالمجموعة الحالية
             if (isGroupInvalid(index)) {
                 e.preventDefault();
                 e.stopPropagation();
                 return;
             }
+
+            // 2. حساب إجمالي الكمية المحضرة حالياً في المجموعة لمنع الإضافة إذا استوفت أو تجاوزت المطلوب
+            let totalPreparedNow = 0;
+            let current = trMain;
+            while (current) {
+                const qInp = current.querySelector(".qty-input");
+                if (qInp) totalPreparedNow += Number(qInp.value || 0);
+                current = current.nextElementSibling;
+                if (!current || !current.classList.contains("lot-item-row")) break;
+            }
+
+            const qtyCommande = Number(art.quantite || 0);
+            const EPSILON = 0.001;
+
+            if (totalPreparedNow >= (qtyCommande - EPSILON)) {
+                e.preventDefault();
+                e.stopPropagation();
+                Toast.warning("La quantité demandée est déjà atteinte ou dépassée. Ajout de Lot bloqué.");
+                return;
+            }
+
             let lastRowOfGroup = trMain;
             while (lastRowOfGroup.nextElementSibling && lastRowOfGroup.nextElementSibling.classList.contains("lot-item-row")) {
                 lastRowOfGroup = lastRowOfGroup.nextElementSibling;
