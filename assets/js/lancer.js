@@ -32,7 +32,6 @@ async function init() {
         }
         
         if (els.userInfo) {
-            // استخدام الاسم المتاح من بيانات المستخدم
             els.userInfo.textContent = `Session: ${currentUser.nom || currentUser.email || 'Logistique'}`;
         }
 
@@ -120,10 +119,33 @@ async function handleLancement(e) {
         return;
     }
 
+    // تحديد النوع بناءً على خط السير: P-T للتورني، P-C للعملاء العاديين
+    const type = routeInput.value.toLowerCase().includes('tournée') ? 'P-T' : 'P-C';
+
     try {
         if (Loader) Loader.show();
 
-        // 1. تسجيل الإطلاق في جدول المتابعة (باستخدام اسم العمود 'client' كما في جدولك)
+        // 1. توليد كود الإطلاق التلقائي (النمط: TYPE-YYYYMM-001)
+        const now = new Date();
+        const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+        const prefix = `${type}-${yearMonth}`;
+
+        const { data: lastRecord } = await supabase
+            .from("suivi_commandes_lancer")
+            .select("num_lancement")
+            .like("num_lancement", `${prefix}-%`)
+            .order("num_lancement", { ascending: false })
+            .limit(1)
+            .single();
+
+        let sequence = 1;
+        if (lastRecord && lastRecord.num_lancement) {
+            const parts = lastRecord.num_lancement.split('-');
+            sequence = parseInt(parts[parts.length - 1]) + 1;
+        }
+        const newNumLancement = `${prefix}-${String(sequence).padStart(3, '0')}`;
+
+        // 2. تسجيل الإطلاق في جدول المتابعة
         const { error: insErr } = await supabase
             .from("suivi_commandes_lancer")
             .insert({
@@ -133,21 +155,22 @@ async function handleLancement(e) {
                 client: cmd.nom_receptionnaire, 
                 itineraire: routeInput.value.trim(),
                 statut: "EN_PICKING",
-                lance_par: currentUser.id, // تسجيل هوية المستخدم
-                date_lancement: new Date().toISOString()
+                lance_par: currentUser.id,
+                date_lancement: new Date().toISOString(),
+                num_lancement: newNumLancement
             });
 
         if (insErr) throw insErr;
 
-        // 2. تحديث حالة الطلب في المصدر
+        // 3. تحديث حالة الطلب في المصدر
         await supabase.from("commandes_excel")
             .update({ statut: "LANCEE" })
             .eq("document_vente", cmd.document_vente);
 
-        Toast.success(`Commande ${cmd.document_vente} lancée avec succès !`);
+        Toast.success(`Commande lancée ! Code: ${newNumLancement}`);
 
-        // 3. فتح سند التحضير في نافذة جديدة
-        const bonUrl = `../pages/print-bon.html?cmd=${cmd.document_vente}&client=${encodeURIComponent(cmd.nom_receptionnaire)}&user=${encodeURIComponent(currentUser.nom || 'Admin')}`;
+        // 4. فتح سند التحضير مع إرسال الكود الجديد
+        const bonUrl = `../pages/print-bon.html?cmd=${cmd.document_vente}&numLancement=${newNumLancement}`;
         window.open(bonUrl, '_blank');
 
         fetchCommandesEnAttente();
