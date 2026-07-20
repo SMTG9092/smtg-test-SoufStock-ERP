@@ -14,10 +14,9 @@
 </head>
 <body class="bg-gray-50 p-6">
 
-    <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
-        <button onclick="window.location.href='commandes.html'" class="bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-gray-700">
-            <i class="fa-solid fa-arrow-left mr-2"></i> Retour aux Commandes
+        <button onclick="window.location.href='../pages/dashboard.html'" class="bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-gray-700">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Retour
         </button>
         <div class="flex gap-2">
             <button id="btn-refresh" class="bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-gray-700">Actualiser</button>
@@ -25,7 +24,6 @@
         </div>
     </div>
 
-    <!-- Filters -->
     <div class="card mb-6 flex gap-4 items-center">
         <input type="date" id="date-filter" class="border border-gray-300 rounded px-3 py-2 text-sm">
         <select id="mode-selector" class="border border-gray-300 rounded px-3 py-2 text-sm">
@@ -34,65 +32,20 @@
         </select>
     </div>
 
-    <!-- Stats Bar -->
     <div class="card mb-6 flex gap-8 text-xs font-bold text-gray-600">
         <span>Articles distincts: <span id="stats-art">0</span></span>
         <span>Total Commandé: <span id="stats-kg">0</span> KG</span>
         <span>Total Préparé: <span id="stats-prep">0</span> KG</span>
     </div>
 
-    <!-- Main Table -->
     <div class="card">
         <div class="section-title"><i class="fa-solid fa-list-ul mr-2"></i> Commandes à Lancer</div>
         <table class="w-full">
-            <thead>
-                <tr id="table-head"></tr>
-            </thead>
+            <thead id="table-head"></thead>
             <tbody id="commandes-table-body"></tbody>
         </table>
     </div>
 
-    <script type="module">
-        import supabase from '/assets/js/core/supabase.js';
-
-        const modeSelector = document.getElementById('mode-selector');
-        const tbody = document.getElementById('commandes-table-body');
-        const head = document.getElementById('table-head');
-
-        async function loadDashboard() {
-            const mode = modeSelector.value;
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10">Chargement...</td></tr>';
-            
-            if (mode === 'tournee') {
-                head.innerHTML = `<th>Tournée</th><th>Nb Commandes</th><th>Total KG</th><th>Statut</th><th>Action</th>`;
-                const { data } = await supabase.from('commandes_excel').select('*').eq('statut', 'IMPORTEE');
-                // Logic de rendu pour Tournée...
-            } else {
-                head.innerHTML = `<th>Doc Vente</th><th>Client</th><th>Date Livraison</th><th>Tournée</th><th>Statut</th><th>Action</th>`;
-                const { data } = await supabase.from('commandes_excel').select('*').eq('statut', 'IMPORTEE');
-                tbody.innerHTML = data.map(cmd => `
-                    <tr class="commande-row" data-id="${cmd.document_vente}">
-                        <td class="font-bold text-blue-600">${cmd.document_vente}</td>
-                        <td>${cmd.client}</td>
-                        <td>${cmd.date_livraison}</td>
-                        <td>${cmd.itineraire}</td>
-                        <td><span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">En attente</span></td>
-                        <td><button class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-blue-700">Lancer</button></td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        document.getElementById('btn-valider-tout').onclick = async () => {
-            const mode = modeSelector.value;
-            if(confirm(`Êtes-vous sûr de vouloir valider tout en mode ${mode} ?`)) {
-                // منطق الإطلاق الجماعي هنا
-            }
-        };
-
-        document.getElementById('btn-refresh').onclick = loadDashboard;
-        modeSelector.onchange = loadDashboard;
-        loadDashboard();
-    </script>
+    <script type="module" src="../assets/js/lancer.js"></script>
 </body>
 </html>
