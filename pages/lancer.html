@@ -2,45 +2,64 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Lancement - SoufStock Enterprise ERP/WMS</title>
+    <title>Lancement - SoufStock ERP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .card { background: white; border: 1px solid #e5e7eb; border-radius: 4px; padding: 1rem; }
-        .section-title { color: #4f46e5; font-size: 0.8rem; font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; }
-        th { background: #f9fafb; padding: 10px; text-align: left; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; }
-        td { padding: 12px 10px; border-bottom: 1px solid #f3f4f6; font-size: 0.85rem; }
-    </style>
 </head>
-<body class="bg-gray-50 p-6">
+<body class="bg-gray-100 p-4">
 
-    <div class="flex justify-between items-center mb-6">
-        <button onclick="window.location.href='dashboard.html'" class="bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-gray-700">
-            <i class="fa-solid fa-arrow-left mr-2"></i> Retour
-        </button>
-        <div class="flex gap-2">
-            <button id="btn-refresh" class="bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-gray-700">Actualiser</button>
-            <button id="btn-valider-tout" class="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-green-700">Valider tout</button>
+    <!-- Header: العنوان، زر التصفح واسم المستخدم -->
+    <header class="flex justify-between items-center bg-white p-4 rounded shadow mb-4">
+        <h1 class="text-xl font-bold text-gray-700">Lancement Commande</h1>
+        <div class="flex items-center gap-4">
+            <button class="bg-blue-600 text-white px-3 py-1 rounded text-sm"><i class="fa-solid fa-list"></i> Page Commande</button>
+            <span class="font-semibold text-gray-600"><i class="fa-solid fa-user"></i> <span id="user-name">...</span></span>
+        </div>
+    </header>
+
+    <!-- Stats Bar: التاريخ، الإحصائيات -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="bg-white p-3 rounded shadow text-center border-l-4 border-indigo-500">
+            <span class="block text-xs text-gray-400">Date Ciblage</span>
+            <input type="text" id="date-display" disabled class="font-bold text-sm text-gray-700 bg-transparent w-full text-center">
+        </div>
+        <div class="bg-white p-3 rounded shadow text-center border-l-4 border-yellow-500">
+            <span class="block text-xs text-gray-400">En attente</span>
+            <span id="stat-attente" class="font-bold text-lg">0</span>
+        </div>
+        <div class="bg-white p-3 rounded shadow text-center border-l-4 border-green-500">
+            <span class="block text-xs text-gray-400">Lancées</span>
+            <span id="stat-lancee" class="font-bold text-lg">0</span>
+        </div>
+        <div class="bg-white p-3 rounded shadow text-center border-l-4 border-blue-500">
+            <span class="block text-xs text-gray-400">En Picking</span>
+            <span id="stat-picking" class="font-bold text-lg">0</span>
         </div>
     </div>
 
-    <div class="card mb-6 flex gap-4 items-center">
-        <!-- حقل التاريخ مقفل للتحكم التلقائي -->
-        <input type="text" id="date-filter" disabled class="border border-gray-300 rounded px-3 py-2 text-sm bg-gray-100">
-        <select id="mode-selector" class="border border-gray-300 rounded px-3 py-2 text-sm">
-            <option value="tournee">Par Tournée</option>
-            <option value="commande">Par Commande</option>
-        </select>
+    <!-- Mode Selector: اختيار الوضع (Radio Buttons) -->
+    <div class="bg-white p-3 rounded shadow mb-4 flex gap-6 items-center">
+        <span class="text-sm font-bold text-gray-600">Mode d'affichage:</span>
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="mode" value="tournee" checked class="w-4 h-4">
+            <span class="text-sm">Par Tournée</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="mode" value="commande" class="w-4 h-4">
+            <span class="text-sm">Par Commande</span>
+        </label>
+        <div class="ml-auto">
+            <button id="btn-lancer-tout" class="bg-green-600 text-white px-6 py-2 rounded font-bold shadow hover:bg-green-700">Lancer tout</button>
+        </div>
     </div>
 
-    <div class="card">
-        <div class="section-title"><i class="fa-solid fa-list-ul mr-2"></i> Commandes à Lancer</div>
-        <table class="w-full">
-            <thead id="table-head"></thead>
+    <!-- Table -->
+    <div class="bg-white p-4 rounded shadow">
+        <table class="w-full text-sm">
+            <thead id="table-head" class="text-gray-500 uppercase text-left border-b"></thead>
             <tbody id="commandes-table-body"></tbody>
         </table>
     </div>
 
-    <script type="module" src="../assets/js/lancer.js"></script>
 </body>
 </html>
