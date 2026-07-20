@@ -293,8 +293,10 @@ async function buildPickingTable(lignes) {
             while (lastRowOfGroup.nextElementSibling && lastRowOfGroup.nextElementSibling.classList.contains("lot-item-row")) {
                 lastRowOfGroup = lastRowOfGroup.nextElementSibling;
             }
-            lastRowOfGroup.insertAdjacentElement("afterend", createLotRow(index));
-            updateRowState(lastRowOfGroup.nextElementSibling, index);
+            const newRow = createLotRow(index);
+            lastRowOfGroup.insertAdjacentElement("afterend", newRow);
+            updateRowState(newRow, index);
+            calculatePrepared(index);
             refreshValidationState();
         });
 
@@ -372,27 +374,6 @@ function clearRowInvalid(row) {
 function updateRowState(row, articleIndex) {
     if (!row || articleIndex === undefined || !articles[articleIndex]) return;
 
-    const lotInput = row.querySelector(".lot-input");
-    const qtyInput = row.querySelector(".qty-input");
-    if (!lotInput || !qtyInput) return;
-
-    /* ===========================================
-       1) Etat de cette ligne uniquement
-    =========================================== */
-    const stockDisp = Number(lotInput.dataset.stock || 0);
-    const qtyPrep   = Number(qtyInput.value || 0);
-
-    const isStockError = lotInput.value.trim() !== "" && qtyPrep > stockDisp;
-
-    if (isStockError) {
-        row.classList.add("row-invalid");
-        row.classList.remove("row-success", "row-warning");
-        qtyInput.classList.add("is-invalid");
-    } else {
-        row.classList.remove("row-invalid");
-        qtyInput.classList.remove("is-invalid");
-    }
-
     /* ===========================================
        Les lignes lot ne deviennent jamais vertes ou jaunes
     =========================================== */
@@ -434,12 +415,14 @@ function updateRowState(row, articleIndex) {
         return;
     }
 
+    const EPSILON = 0.001;
+
     /* Article complètement préparé */
-    if (totalPrepared === qtyCommande) {
+    if (Math.abs(totalPrepared - qtyCommande) <= EPSILON) {
         mainRow.classList.add("row-success");
     }
     /* Préparé > Commandé */
-    else if (totalPrepared > qtyCommande) {
+    else if (totalPrepared > qtyCommande + EPSILON) {
         mainRow.classList.add("row-warning");
     }
 }
@@ -659,9 +642,18 @@ async function validatePicking() {
     if (els.confirmModal && els.confirmMessage) {
         els.confirmMessage.textContent = "Voulez-vous valider définitivement ce picking ?";
         els.confirmModal.classList.add("show"); els.confirmModal.style.display = "flex";
-        const newYes = els.confirmYes.cloneNode(true); els.confirmYes.parentNode.replaceChild(newYes, els.confirmYes); els.confirmYes = newYes;
+        
+        // استبدال الزر بنسخة نظيفة لحذف المستمعين السابقين
+        els.confirmYes.replaceWith(els.confirmYes.cloneNode(true));
+        
+        // تحديث المرجع داخل كائن els لضمان الإشارة دائماً للعنصر النشط في الـ DOM
+        els.confirmYes = document.getElementById("confirmYes");
+        
         els.confirmYes.addEventListener("click", async () => {
-            if (els.confirmModal) { els.confirmModal.classList.remove("show"); els.confirmModal.style.display = "none"; }
+            if (els.confirmModal) { 
+                els.confirmModal.classList.remove("show"); 
+                els.confirmModal.style.display = "none"; 
+            }
             await executeFinalValidation();
         });
     } else {
