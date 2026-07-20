@@ -65,18 +65,28 @@
             
             if (mode === 'tournee') {
                 head.innerHTML = `<th>Tournée</th><th>Nb Commandes</th><th>Total KG</th><th>Statut</th><th>Action</th>`;
-                // هنا logic جلب البيانات وتجميعها حسب الـ Tournée
+                const { data } = await supabase.from('commandes_excel').select('*').eq('statut', 'IMPORTEE');
+                // Logic de rendu pour Tournée...
             } else {
                 head.innerHTML = `<th>Doc Vente</th><th>Client</th><th>Date Livraison</th><th>Tournée</th><th>Statut</th><th>Action</th>`;
-                // هنا logic جلب البيانات بالتفصيل
+                const { data } = await supabase.from('commandes_excel').select('*').eq('statut', 'IMPORTEE');
+                tbody.innerHTML = data.map(cmd => `
+                    <tr class="commande-row" data-id="${cmd.document_vente}">
+                        <td class="font-bold text-blue-600">${cmd.document_vente}</td>
+                        <td>${cmd.client}</td>
+                        <td>${cmd.date_livraison}</td>
+                        <td>${cmd.itineraire}</td>
+                        <td><span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">En attente</span></td>
+                        <td><button class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-blue-700">Lancer</button></td>
+                    </tr>
+                `).join('');
             }
         }
 
         document.getElementById('btn-valider-tout').onclick = async () => {
             const mode = modeSelector.value;
-            if(confirm("Êtes-vous sûr de vouloir valider tout le contenu affiché ?")) {
-                // منطق الإطلاق المتعدد
-                console.log("Lancement en mode:", mode);
+            if(confirm(`Êtes-vous sûr de vouloir valider tout en mode ${mode} ?`)) {
+                // منطق الإطلاق الجماعي هنا
             }
         };
 
