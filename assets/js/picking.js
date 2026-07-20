@@ -606,11 +606,12 @@ async function savePicking() {
         if (Loader && typeof Loader.show === "function") Loader.show();
         
         if (!currentPicking) {
+            // تم تغيير حقل utilisateur إلى user_id ليطابق جدول قاعدة البيانات
             const { data, error } = await supabase
                 .from("picking")
                 .insert({ 
                     document_vente: currentCommande.numero, 
-                    utilisateur: currentUser.id, 
+                    user_id: currentUser.id, 
                     statut: "EN_COURS" 
                 })
                 .select()
@@ -641,7 +642,6 @@ async function savePicking() {
                     if (lot && qtyBesoin > 0) {
                         totalPreparedForOrder += qtyBesoin;
 
-                        // جلب البيانات مع تحديد الأعمدة الصحيحة من جدول stock
                         const { data: stockLines, error: stockErr } = await supabase
                             .from("stock")
                             .select("id, magasin, emplacement, stock_disponible")
@@ -653,7 +653,6 @@ async function savePicking() {
 
                         const records = stockLines || [];
 
-                        // التصفية والمقارنة بناءً على حقل المستودع (magasin) مباشرة كما طلبتم
                         const groupeA = records.filter(r => ["A407", "A408", "A409", "A411"].includes(r.magasin?.toUpperCase()));
                         const groupeABPG = records.filter(r => r.magasin?.toUpperCase() === "ABPG");
                         const groupeAB07 = records.filter(r => r.magasin?.toUpperCase() === "AB07");
@@ -673,7 +672,7 @@ async function savePicking() {
                                         lot: lot, 
                                         quantite_preparee: qtePrelee, 
                                         quantite_commandee: art.quantite, 
-                                        magasin: line.magasin, // تخزين قيمة الـ magasin الحقيقية المأخوذة
+                                        magasin: line.magasin, 
                                         emplacement: line.emplacement || "NON_SPECIFIE", 
                                         stock_id: line.id
                                     });
@@ -682,7 +681,6 @@ async function savePicking() {
                             }
                         };
 
-                        // تطبيق التوزيع حسب ترتيب الأولويات (Magasins)
                         distribuerPourGroupe(groupeA);
 
                         if (qtyBesoin > 0) {
@@ -693,7 +691,6 @@ async function savePicking() {
                             distribuerPourGroupe(groupeAB07);
                         }
 
-                        // في حالة شاطت كمية خارج المخازن المذكورة، تؤخذ من الباقي المتوفر
                         if (qtyBesoin > 0) {
                             const restants = records.filter(r => 
                                 !["A407", "A408", "A409", "A411", "ABPG", "AB07"].includes(r.magasin?.toUpperCase())
