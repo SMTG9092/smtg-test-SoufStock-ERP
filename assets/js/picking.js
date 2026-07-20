@@ -204,19 +204,15 @@ async function buildPickingTable(lignes) {
                 <strong>${art.article}</strong><br>
                 <small>${art.designation ?? ""}</small>
             </td>
-
             <td class="col-qte text-end">
                 ${art.quantite.toFixed(3)}
             </td>
-
             <td class="col-prepare text-center">
                 <span id="prepared_${index}">0.000</span>
             </td>
-
             <td class="col-piece text-center">
                 ${art.pieces}
             </td>
-
             <td class="col-lot">
                 <input
                     type="text"
@@ -225,7 +221,6 @@ async function buildPickingTable(lignes) {
                     value="${firstLot}"
                     autocomplete="off">
             </td>
-
             <td class="col-qteprepare">
                 <input
                     type="number"
@@ -235,7 +230,6 @@ async function buildPickingTable(lignes) {
                     step="0.001"
                     value="${firstQty}">
             </td>
-
             <td class="col-action text-center">
                 <button type="button" class="btn-add-lot-icon">+</button>
             </td>
@@ -284,14 +278,12 @@ async function buildPickingTable(lignes) {
         }
 
         trMain.querySelector(".btn-add-lot-icon").addEventListener("click", (e) => {
-            // 1. التحقق أولاً من عدم وجود أي خطأ مخزون بالمجموعة الحالية
             if (isGroupInvalid(index)) {
                 e.preventDefault();
                 e.stopPropagation();
                 return;
             }
 
-            // 2. حساب إجمالي الكمية المحضرة حالياً في المجموعة لمنع الإضافة إذا استوفت أو تجاوزت المطلوب
             let totalPreparedNow = 0;
             let current = trMain;
             while (current) {
@@ -612,15 +604,30 @@ async function savePicking() {
     if (!runFullStockValidation()) { Toast.error("Stock insuffisant."); return; }
     try {
         if (Loader && typeof Loader.show === "function") Loader.show();
+        
         if (!currentPicking) {
-            const { data, error } = await supabase.from("picking").insert({ document_vente: currentCommande.numero, utilisateur: currentUser.id, statut: "EN_COURS" }).select().single();
-            if (error) throw error; currentPicking = data;
+            const { data, error } = await supabase
+                .from("picking")
+                .insert({ 
+                    document_vente: currentCommande.numero, 
+                    utilisateur: currentUser.id, 
+                    statut: "EN_COURS" 
+                })
+                .select()
+                .single();
+                
+            if (error) throw error;
+            currentPicking = data;
             if (els.pickingId) els.pickingId.value = data.id;
         }
 
-        const details = []; let totalPreparedForOrder = 0;
+        const details = []; 
+        let totalPreparedForOrder = 0;
+        
         for (let i = 0; i < articles.length; i++) {
-            const art = articles[i]; const group = document.getElementById(`group_${i}`); if (!group) continue;
+            const art = articles[i]; 
+            const group = document.getElementById(`group_${i}`); 
+            if (!group) continue;
             
             let row = group;
             while (row) {
@@ -629,15 +636,84 @@ async function savePicking() {
                 
                 if (lotInp && qtyInp) {
                     const lot = lotInp.value.trim();
-                    const qty = Number(qtyInp.value || 0);
-                    if (lot && qty > 0) {
-                        totalPreparedForOrder += qty;
-                        const { data: st } = await supabase.from("stock").select("id, emplacement").eq("article", art.article).eq("lot", lot).gt("stock_disponible", 0).maybeSingle();
-                        details.push({
-                            picking_id: currentPicking.id, article: art.article, designation_article: art.designation || "",
-                            lot: lot, quantite_preparee: qty, quantite_commandee: art.quantite, magasin: "MAG_DEFAULT",
-                            emplacement: st?.emplacement || "N/A", stock_id: st?.id || null
-                        });
+                    let qtyBesoin = Number(qtyInp.value || 0);
+                    
+                    if (lot && qtyBesoin > 0) {
+                        totalPreparedForOrder += qtyBesoin;
+
+                        // جلب البيانات مع تحديد الأعمدة الصحيحة من جدول stock
+                        const { data: stockLines, error: stockErr } = await supabase
+                            .from("stock")
+                            .select("id, magasin, emplacement, stock_disponible")
+                            .eq("article", art.article)
+                            .eq("lot", lot)
+                            .gt("stock_disponible", 0);
+
+                        if (stockErr) throw stockErr;
+
+                        const records = stockLines || [];
+
+                        // التصفية والمقارنة بناءً على حقل المستودع (magasin) مباشرة كما طلبتم
+                        const groupeA = records.filter(r => ["A407", "A408", "A409", "A411"].includes(r.magasin?.toUpperCase()));
+                        const groupeABPG = records.filter(r => r.magasin?.toUpperCase() === "ABPG");
+                        const groupeAB07 = records.filter(r => r.magasin?.toUpperCase() === "AB07");
+
+                        const distribuerPourGroupe = (groupe) => {
+                            for (const line of groupe) {
+                                if (qtyBesoin <= 0) break;
+                                
+                                const dispo = Number(line.stock_disponible || 0);
+                                const qtePrelee = Math.min(qtyBesoin, dispo);
+
+                                if (qtePrelee > 0) {
+                                    details.push({
+                                        picking_id: currentPicking.id, 
+                                        article: art.article, 
+                                        designation_article: art.designation || "",
+                                        lot: lot, 
+                                        quantite_preparee: qtePrelee, 
+                                        quantite_commandee: art.quantite, 
+                                        magasin: line.magasin, // تخزين قيمة الـ magasin الحقيقية المأخوذة
+                                        emplacement: line.emplacement || "NON_SPECIFIE", 
+                                        stock_id: line.id
+                                    });
+                                    qtyBesoin -= qtePrelee;
+                                }
+                            }
+                        };
+
+                        // تطبيق التوزيع حسب ترتيب الأولويات (Magasins)
+                        distribuerPourGroupe(groupeA);
+
+                        if (qtyBesoin > 0) {
+                            distribuerPourGroupe(groupeABPG);
+                        }
+
+                        if (qtyBesoin > 0) {
+                            distribuerPourGroupe(groupeAB07);
+                        }
+
+                        // في حالة شاطت كمية خارج المخازن المذكورة، تؤخذ من الباقي المتوفر
+                        if (qtyBesoin > 0) {
+                            const restants = records.filter(r => 
+                                !["A407", "A408", "A409", "A411", "ABPG", "AB07"].includes(r.magasin?.toUpperCase())
+                            );
+                            distribuerPourGroupe(restants);
+                        }
+
+                        if (qtyBesoin > 0) {
+                            details.push({
+                                picking_id: currentPicking.id, 
+                                article: art.article, 
+                                designation_article: art.designation || "",
+                                lot: lot, 
+                                quantite_preparee: qtyBesoin, 
+                                quantite_commandee: art.quantite, 
+                                magasin: records[0]?.magasin || "NON_SPECIFIE",
+                                emplacement: records[0]?.emplacement || "NON_SPECIFIE", 
+                                stock_id: records[0]?.id || null
+                            });
+                        }
                     }
                 }
                 
@@ -645,17 +721,41 @@ async function savePicking() {
                 if (!row || !row.classList.contains("lot-item-row")) break;
             }
         }
+        
         await supabase.from("picking_details").delete().eq("picking_id", currentPicking.id);
-        if (details.length > 0) { const { error: insErr } = await supabase.from("picking_details").insert(details); if (insErr) throw insErr; }
+        
+        if (details.length > 0) { 
+            const { error: insErr } = await supabase.from("picking_details").insert(details); 
+            if (insErr) throw insErr; 
+        }
 
         const totalQty = articles.reduce((acc, c) => acc + c.quantite, 0);
         const prog = totalQty > 0 ? (totalPreparedForOrder / totalQty) * 100 : 0;
 
-        await supabase.from("picking").update({ total_articles: articles.length, total_prepare: totalPreparedForOrder, progression: Math.round(prog) }).eq("id", currentPicking.id);
-        await supabase.from("suivi_commandes_lancer").update({ statut: "EN_PICKING", picking_par: currentUser.id }).eq("document_vente", currentCommande.numero);
-        Toast.success("Picking sauvegardé.");
-    } catch (err) { console.error(err); Toast.error("Erreur de sauvegarde."); }
-    finally { if (Loader && typeof Loader.hide === "function") Loader.hide(); }
+        await supabase
+            .from("picking")
+            .update({ 
+                total_articles: articles.length, 
+                total_prepare: totalPreparedForOrder, 
+                progression: Math.round(prog) 
+            })
+            .eq("id", currentPicking.id);
+            
+        await supabase
+            .from("suivi_commandes_lancer")
+            .update({ 
+                statut: "EN_PICKING", 
+                picking_par: currentUser.id 
+            })
+            .eq("document_vente", currentCommande.numero);
+            
+        Toast.success("Picking sauvegardé avec succès avec répartition intelligente.");
+    } catch (err) { 
+        console.error(err); 
+        Toast.error("Erreur de sauvegarde lors de la répartition du stock."); 
+    } finally { 
+        if (Loader && typeof Loader.hide === "function") Loader.hide(); 
+    }
 }
 
 async function validatePicking() {
@@ -732,7 +832,6 @@ function bindLotAutocomplete(input, article) {
 
 async function searchLots(article, text) {
     try {
-        console.log("========== SEARCH LOT ==========");
         const response = await supabase
             .from("stock")
             .select("id, article, lot, stock_disponible")
@@ -820,9 +919,10 @@ async function selectLot(item) {
                 prev = prev.previousElementSibling;
             }
         }
-        checkRowStock(tr, groupIdx);
+        if (groupIdx !== -1) {
+            checkRowStock(tr, groupIdx);
+            calculatePrepared(groupIdx);
+            calculateSummary();
+        }
     }
-
-    hideLotDropdown();
-    activeLotInput.focus();
 }
