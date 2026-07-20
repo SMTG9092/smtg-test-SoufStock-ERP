@@ -12,9 +12,9 @@
         .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 5px; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background-color: #e5e7eb; font-weight: bold; font-size: 10px; padding: 4px; border: 1px solid black; }
-        td { border: 1px solid black; padding: 12px 2px; text-align: center; font-size: 12px; }
+        td { border: 1px solid black; padding: 8px 2px; text-align: center; font-size: 12px; }
         .col-article { width: 40%; } .col-kg { width: 10%; } .col-pieces { width: 10%; } .col-lot { width: 25%; } .col-prep { width: 10%; } .col-ctrl { width: 5%; }
-        .product-name { font-weight: bold; font-size: 12px; text-align: left; overflow: hidden; padding-left: 5px; }
+        .product-name { font-weight: bold; font-size: 12px; text-align: left; padding-left: 5px; }
     </style>
 </head>
 <body>
@@ -76,33 +76,21 @@
         async function loadData() {
             try {
                 // 1. جلب بيانات التتبع
-                const { data: suiviData } = await supabase
-                    .from('suivi_commandes_lancer')
-                    .select('num_lancement, client, itineraire, date_lancement, date_livraison, user_profiles:lance_par(nom_complet)')
-                    .eq('document_vente', cmd)
-                    .single();
-
-                // 2. جلب تاريخ الإنشاء من جدول commandes_excel
-                const { data: cmdData } = await supabase
-                    .from('commandes_excel')
-                    .select('date_creation')
-                    .eq('document_vente', cmd)
-                    .not('date_creation', 'is', null)
-                    .maybeSingle();
+                const { data: suiviData } = await supabase.from('suivi_commandes_lancer').select('num_lancement, client, itineraire, date_lancement, date_livraison, user_profiles:lance_par(nom_complet)').eq('document_vente', cmd).single();
+                
+                // 2. جلب تاريخ الإنشاء من جدول الطلبيات
+                const { data: cmdData } = await supabase.from('commandes_excel').select('date_creation').eq('document_vente', cmd).not('date_creation', 'is', null).maybeSingle();
 
                 if (suiviData) {
                     document.getElementById('val-num-lancement').innerText = suiviData.num_lancement || '-';
                     document.getElementById('val-client').innerText = suiviData.client || '-';
                     document.getElementById('val-itineraire').innerText = suiviData.itineraire || '-';
-                    
-                    // تعبئة تاريخ الإنشاء (من جدول الطلبيات)
                     document.getElementById('val-date-creation').innerText = cmdData?.date_creation ? new Date(cmdData.date_creation).toLocaleDateString() : '-';
                     
-                    // تعبئة تاريخ وساعة الإطلاق (من جدول التتبع)
                     if (suiviData.date_lancement) {
-                        const dateObj = new Date(suiviData.date_lancement);
-                        document.getElementById('val-date-lancement').innerText = dateObj.toLocaleDateString();
-                        document.getElementById('val-time-lancement').innerText = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const d = new Date(suiviData.date_lancement);
+                        document.getElementById('val-date-lancement').innerText = d.toLocaleDateString();
+                        document.getElementById('val-time-lancement').innerText = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     }
                     
                     document.getElementById('val-date-livraison').innerText = suiviData.date_livraison ? new Date(suiviData.date_livraison).toLocaleDateString() : '-';
@@ -122,7 +110,13 @@
                     const kg = Number(item.quantite_commandee || 0);
                     const pieces = Number(item.nombre_pieces || 0);
                     totalKg += kg; totalPieces += pieces;
-                    tbody.innerHTML += `<tr><td class="product-name">${item.designation_article}</td><td>${kg.toFixed(2)}</td><td>${pieces}</td><td></td><td></td><td></td></tr>`;
+                    tbody.innerHTML += `<tr>
+                        <td class="product-name text-left">
+                            <span class="text-[10px] text-gray-500 font-mono block">${item.article}</span>
+                            ${item.designation_article}
+                        </td>
+                        <td>${kg.toFixed(2)}</td><td>${pieces}</td><td></td><td></td><td></td>
+                    </tr>`;
                 });
                 document.getElementById('total-kg').innerText = totalKg.toFixed(2);
                 document.getElementById('total-pieces').innerText = totalPieces;
