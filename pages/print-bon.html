@@ -28,15 +28,15 @@
         .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
-        th { background-color: #e5e7eb; font-weight: bold; font-size: 11px; }
-        td { border: 1px solid black; padding: 4px; text-align: center; font-size: 11px; }
+        th { background-color: #e5e7eb; font-weight: bold; font-size: 12px; }
+        td { border: 1px solid black; padding: 6px; text-align: center; font-size: 12px; }
 
-        /* توزيع العرض الجديد */
-        .col-article { width: 30%; } /* العمود 1 */
-        .col-qte { width: 10%; }     /* العمود 2 و 3 */
-        .col-lot { width: 25%; }     /* العمود 4 */
-        .col-info { width: 15%; }    /* العمود 5 */
-        .col-ctrl { width: 10%; }    /* العمود 6 (Control) */
+        /* تعديلات العرض الجديدة */
+        .col-article { width: 40%; } /* العمود 1 موسع */
+        .col-qte { width: 10%; }     /* الأعمدة 2 و 3 */
+        .col-lot { width: 20%; }     /* العمود 4 */
+        .col-info { width: 12%; }    /* العمود 5 */
+        .col-ctrl { width: 8%; }     /* العمود 6 مصغر */
     </style>
 </head>
 <body>
@@ -122,14 +122,14 @@
                 tbody.innerHTML += `
                     <tr>
                         <td class="text-left">
-                            <span class="font-bold">${item.article}</span><br>
-                            <small class="text-gray-600">${item.designation_article}</small>
+                            <span class="font-bold text-lg">${item.article}</span><br>
+                            <span class="text-md font-medium text-black">${item.designation_article}</span>
                         </td>
                         <td>${Number(item.quantite_commandee).toFixed(2)}</td>
                         <td>${item.nombre_pieces}</td>
-                        <td></td> <!-- Lot -->
-                        <td></td> <!-- العمود 5 -->
-                        <td>□</td> <!-- العمود 6: Control -->
+                        <td></td>
+                        <td></td>
+                        <td></td> <!-- خانة Control فارغة -->
                     </tr>`;
             });
 
