@@ -31,12 +31,12 @@
                 <p><strong>N° Lancement:</strong> <span id="val-num-lancement" class="font-bold text-blue-700"></span></p>
                 <p><strong>Tournée:</strong> <span id="val-itineraire"></span></p>
             </div>
-            <!-- المعلومات الجديدة هنا -->
             <div class="text-right text-sm">
                 <p><strong>Création:</strong> <span id="val-date-creation"></span></p>
-                <p><strong>Lancement:</strong> <span id="val-date-lancement"></span></p>
+                <!-- هنا زدنا الساعة -->
+                <p><strong>Lancement:</strong> <span id="val-date-lancement"></span> <span id="val-time-lancement" class="text-gray-600"></span></p>
                 <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
-                <p id="lancer-info" class="text-xs italic font-bold mt-1"></p>
+                <p class="mt-1 font-bold italic">Lancé par: <span id="val-lance-par"></span></p>
             </div>
         </div>
 
@@ -76,7 +76,6 @@
 
         async function loadData() {
             try {
-                // تأكد أن أسماء الأعمدة (created_at, date_lancement, date_livraison) مطابقة لما لديك في قاعدة البيانات
                 const { data: suiviData } = await supabase
                     .from('suivi_commandes_lancer')
                     .select('num_lancement, client, itineraire, created_at, date_lancement, date_livraison, user_profiles:lance_par(nom_complet)')
@@ -88,16 +87,21 @@
                     document.getElementById('val-client').innerText = suiviData.client || '-';
                     document.getElementById('val-itineraire').innerText = suiviData.itineraire || '-';
                     
-                    // عرض التواريخ
                     document.getElementById('val-date-creation').innerText = suiviData.created_at ? new Date(suiviData.created_at).toLocaleDateString() : '-';
-                    document.getElementById('val-date-lancement').innerText = suiviData.date_lancement ? new Date(suiviData.date_lancement).toLocaleDateString() : '-';
-                    document.getElementById('val-date-livraison').innerText = suiviData.date_livraison ? new Date(suiviData.date_livraison).toLocaleDateString() : '-';
                     
-                    if (suiviData.user_profiles) document.getElementById('lancer-info').innerText = "Lancé par: " + suiviData.user_profiles.nom_complet;
+                    // التعديل هنا: التاريخ + الساعة
+                    if (suiviData.date_lancement) {
+                        const dateObj = new Date(suiviData.date_lancement);
+                        document.getElementById('val-date-lancement').innerText = dateObj.toLocaleDateString();
+                        document.getElementById('val-time-lancement').innerText = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
+                    
+                    document.getElementById('val-date-livraison').innerText = suiviData.date_livraison ? new Date(suiviData.date_livraison).toLocaleDateString() : '-';
+                    document.getElementById('val-lance-par').innerText = suiviData.user_profiles?.nom_complet || '-';
+                    
                     QRCode.toCanvas(document.getElementById('qrcode'), `Cmd: ${cmd} | Lancement: ${suiviData.num_lancement}`, { width: 64, margin: 0 });
                 }
                 
-                // ... باقي كود جلب المنتجات يبقى كما هو ...
                 const [resExcel, resPieces] = await Promise.all([
                     supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
                     supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
