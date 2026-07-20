@@ -5,66 +5,90 @@
     <title>Bon de Préparation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @media print { .no-print { display: none; } }
-        table, th, td { border: 1px solid black; border-collapse: collapse; }
+        /* إعدادات الطباعة للـ A4 */
+        @media print {
+            @page { size: A4; margin: 10mm; }
+            body { background: white; }
+            .no-print { display: none; }
+            #bon-content { box-shadow: none; border: none; width: 100%; }
+        }
+
+        body { background-color: #f3f4f6; padding: 20px; }
+        
+        /* الورقة */
+        #bon-content {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            padding: 15mm;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+        }
+
+        /* الجدول */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td { border: 1px solid black; padding: 8px; word-wrap: break-word; }
+        
+        /* تخلي التوقيعات ديما في التحت */
+        .footer-section { margin-top: auto; }
     </style>
 </head>
-<body class="p-4 bg-gray-100">
-    <div id="bon-content" class="bg-white p-8 max-w-4xl mx-auto border border-black shadow-sm">
+<body>
+
+    <div id="bon-content">
         <!-- العنوان -->
-        <div class="border-2 border-black p-2 mb-6">
+        <div class="border-2 border-black p-3 mb-6">
             <h1 class="text-3xl font-bold text-center">BON DE PRÉPARATION</h1>
         </div>
 
-        <!-- معلومات الرأس -->
-        <div class="flex justify-between items-start mb-6">
+        <!-- معلومات -->
+        <div class="flex justify-between mb-8 text-sm">
             <div>
                 <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
                 <p><strong>Client:</strong> <span id="val-client"></span></p>
-                <p><strong>Date / Heure:</strong> <span id="val-date"></span></p>
             </div>
-            <div class="w-24 h-24 border border-black flex items-center justify-center text-xs">QR Code</div>
+            <div class="w-20 h-20 border border-black flex items-center justify-center">QR</div>
         </div>
 
-        <!-- جدول التحضير -->
-        <table class="w-full mb-8">
+        <!-- الجدول -->
+        <table class="w-full">
             <thead>
-                <tr class="bg-gray-100">
-                    <th class="p-2">Article</th>
-                    <th class="p-2">Qté KG</th>
-                    <th class="p-2">NB Pieces</th>
-                    <th class="p-2">Lot</th>
-                    <th class="p-2">Qté Préparée</th>
+                <tr class="bg-gray-200">
+                    <th style="width: 40%;">Article</th>
+                    <th>Qté KG</th>
+                    <th>NB Pieces</th>
+                    <th>Lot</th>
+                    <th>Qté Préparée</th>
                 </tr>
             </thead>
-            <tbody id="table-body" class="text-center"></tbody>
+            <tbody id="table-body">
+                <!-- الصفوف ستضاف هنا -->
+            </tbody>
         </table>
 
-        <!-- التذييل والمجموع -->
-        <div class="flex justify-between items-end">
-            <table class="w-1/3">
-                <tr>
-                    <th class="p-2 bg-gray-100">TOTAL</th>
-                    <th class="p-2 bg-gray-100">Qté KG</th>
-                    <th class="p-2 bg-gray-100">Qté Pièces</th>
-                </tr>
-                <tr>
-                    <td class="p-2"></td>
-                    <td id="total-kg" class="p-2 text-center font-bold">0.00</td>
-                    <td id="total-pieces" class="p-2 text-center font-bold">0</td>
-                </tr>
-            </table>
-
-            <div class="flex gap-4">
-                <div class="border border-black p-2 w-48 h-20 text-xs font-bold text-center">Signature Préparateur</div>
-                <div class="border border-black p-2 w-48 h-20 text-xs font-bold text-center">Signature Contrôle</div>
+        <!-- التذييل -->
+        <div class="footer-section">
+            <div class="flex justify-between mt-8">
+                <table class="w-1/3">
+                    <tr><th>TOTAL</th><th>Qté KG</th><th>Qté Pièces</th></tr>
+                    <tr>
+                        <td class="h-10"></td>
+                        <td id="total-kg" class="text-center font-bold">0</td>
+                        <td id="total-pieces" class="text-center font-bold">0</td>
+                    </tr>
+                </table>
+                <div class="flex gap-4">
+                    <div class="border border-black w-48 h-24 text-xs font-bold text-center pt-2">Signature Préparateur</div>
+                    <div class="border border-black w-48 h-24 text-xs font-bold text-center pt-2">Signature Contrôle</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- زر الطباعة -->
     <div class="text-center mt-6 no-print">
-        <button onclick="window.print()" class="bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700">Imprimer</button>
+        <button onclick="window.print()" class="bg-blue-600 text-white px-8 py-3 rounded">Imprimer le Bon</button>
     </div>
 
     <script type="module">
@@ -72,67 +96,47 @@
         
         const params = new URLSearchParams(window.location.search);
         const cmd = params.get('cmd');
-        const client = params.get('client');
-        
-        document.getElementById('val-cmd').innerText = cmd || 'N/A';
-        document.getElementById('val-client').innerText = client || 'N/A';
-        document.getElementById('val-date').innerText = new Date().toLocaleString();
+        document.getElementById('val-cmd').innerText = cmd;
+        document.getElementById('val-client').innerText = params.get('client');
 
         async function loadData() {
-            try {
-                // جلب البيانات من الجدولين بالتوازي
-                const [resExcel, resPieces] = await Promise.all([
-                    supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
-                    supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
-                ]);
+            const [resExcel, resPieces] = await Promise.all([
+                supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
+                supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
+            ]);
 
-                if (resExcel.error) throw resExcel.error;
-                if (resPieces.error) throw resPieces.error;
+            const combined = (resExcel.data || []).map(item => ({
+                ...item,
+                nombre_pieces: (resPieces.data || []).find(p => p.article === item.article)?.nombre_pieces || 0
+            }));
 
-                const dataExcel = resExcel.data || [];
-                const dataPieces = resPieces.data || [];
+            const tbody = document.getElementById('table-body');
+            let totalKg = 0, totalPieces = 0;
 
-                // دمج البيانات
-                const combinedData = dataExcel.map(item => {
-                    const pieceInfo = dataPieces.find(p => p.article === item.article);
-                    return {
-                        ...item,
-                        nombre_pieces: pieceInfo ? pieceInfo.nombre_pieces : 0
-                    };
-                });
-
-                let totalKg = 0;
-                let totalPieces = 0;
-                const tbody = document.getElementById('table-body');
-                tbody.innerHTML = ''; 
-
-                combinedData.forEach(item => {
-                    const qte = Number(item.quantite_commandee || 0);
-                    const nbPieces = Number(item.nombre_pieces || 0);
-                    
-                    totalKg += qte;
-                    totalPieces += nbPieces;
-                    
-                    tbody.innerHTML += `
-                        <tr class="h-10">
-                            <td class="p-2 text-left">${item.article} - ${item.designation_article}</td>
-                            <td class="p-2">${qte.toFixed(3)}</td>
-                            <td class="p-2">${nbPieces}</td>
-                            <td class="p-2"></td>
-                            <td class="p-2"></td>
-                        </tr>`;
-                });
+            combined.forEach(item => {
+                totalKg += Number(item.quantite_commandee || 0);
+                totalPieces += Number(item.nombre_pieces || 0);
                 
-                document.getElementById('total-kg').innerText = totalKg.toFixed(2);
-                document.getElementById('total-pieces').innerText = totalPieces;
-
-            } catch (err) {
-                console.error("Erreur:", err);
-                alert("Erreur lors de la récupération des données.");
+                tbody.innerHTML += `
+                    <tr class="h-12">
+                        <td class="text-left text-sm">${item.article}<br><small>${item.designation_article}</small></td>
+                        <td class="text-center">${Number(item.quantite_commandee).toFixed(2)}</td>
+                        <td class="text-center">${item.nombre_pieces}</td>
+                        <td></td>
+                        <td></td>
+                    </tr>`;
+            });
+            
+            // إضافة صفوف فارغة إذا كان العدد أقل من 10 ليبقى التصميم متماسكاً
+            for(let i = combined.length; i < 10; i++) {
+                tbody.innerHTML += `<tr class="h-12"><td></td><td></td><td></td><td></td><td></td></tr>`;
             }
+
+            document.getElementById('total-kg').innerText = totalKg.toFixed(2);
+            document.getElementById('total-pieces').innerText = totalPieces;
         }
         
-        if (cmd) loadData();
+        loadData();
     </script>
 </body>
 </html>
