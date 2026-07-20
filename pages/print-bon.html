@@ -29,14 +29,14 @@
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
         th { background-color: #e5e7eb; font-weight: bold; font-size: 12px; }
-        td { border: 1px solid black; padding: 6px; text-align: center; font-size: 12px; }
+        td { border: 1px solid black; padding: 8px; text-align: center; font-size: 14px; }
 
         /* تعديلات العرض الجديدة */
-        .col-article { width: 40%; } /* العمود 1 موسع */
-        .col-qte { width: 10%; }     /* الأعمدة 2 و 3 */
-        .col-lot { width: 20%; }     /* العمود 4 */
-        .col-info { width: 12%; }    /* العمود 5 */
-        .col-ctrl { width: 8%; }     /* العمود 6 مصغر */
+        .col-article { width: 45%; } 
+        .col-qte { width: 10%; }     
+        .col-lot { width: 15%; }     
+        .col-info { width: 12%; }    
+        .col-ctrl { width: 8%; }     
     </style>
 </head>
 <body>
@@ -64,7 +64,7 @@
                         <th class="col-qte">Qté KG</th>
                         <th class="col-qte">NB Pieces</th>
                         <th class="col-lot">Lot</th>
-                        <th class="col-info">Infos</th>
+                        <th class="col-info">QTÉ PRÉPARÉE</th>
                         <th class="col-ctrl">Control</th>
                     </tr>
                 </thead>
@@ -72,6 +72,7 @@
             </table>
         </div>
 
+        <!-- ... (باقي التذييل كما هو) ... -->
         <div class="flex justify-between items-end mt-auto">
             <table class="w-1/3">
                 <tr><th>TOTAL</th><th>Qté KG</th><th>Qté Pièces</th></tr>
@@ -86,10 +87,6 @@
                 <div class="border border-black w-40 h-16 text-xs font-bold text-center pt-1">Signature Contrôle</div>
             </div>
         </div>
-    </div>
-
-    <div class="text-center mt-4 no-print">
-        <button onclick="window.print()" class="bg-blue-600 text-white px-8 py-2 rounded hover:bg-blue-700">Imprimer</button>
     </div>
 
     <script type="module">
@@ -113,28 +110,18 @@
             }));
 
             const tbody = document.getElementById('table-body');
-            let totalKg = 0, totalPieces = 0;
-
+            
             combined.forEach(item => {
-                totalKg += Number(item.quantite_commandee || 0);
-                totalPieces += Number(item.nombre_pieces || 0);
-                
                 tbody.innerHTML += `
                     <tr>
-                        <td class="text-left">
-                            <span class="font-bold text-lg">${item.article}</span><br>
-                            <span class="text-md font-medium text-black">${item.designation_article}</span>
-                        </td>
+                        <td class="text-left font-bold text-lg">${item.designation_article}</td>
                         <td>${Number(item.quantite_commandee).toFixed(2)}</td>
                         <td>${item.nombre_pieces}</td>
                         <td></td>
-                        <td></td>
-                        <td></td> <!-- خانة Control فارغة -->
+                        <td></td> <!-- QTÉ PRÉPARÉE -->
+                        <td></td> <!-- Control -->
                     </tr>`;
             });
-
-            document.getElementById('total-kg').innerText = totalKg.toFixed(2);
-            document.getElementById('total-pieces').innerText = totalPieces;
         }
         
         if (cmd) loadData();
