@@ -75,18 +75,19 @@
 
         async function loadData() {
             try {
-                // جلب بيانات التتبع
+                // 1. جلب بيانات التتبع
                 const { data: suiviData } = await supabase
                     .from('suivi_commandes_lancer')
                     .select('num_lancement, client, itineraire, date_lancement, date_livraison, user_profiles:lance_par(nom_complet)')
                     .eq('document_vente', cmd)
                     .single();
 
-                // جلب تاريخ الإنشاء من جدول الطلبيات (تأكد من اسم العمود date_creation)
+                // 2. جلب تاريخ الإنشاء من جدول commandes_excel
                 const { data: cmdData } = await supabase
                     .from('commandes_excel')
                     .select('date_creation')
                     .eq('document_vente', cmd)
+                    .not('date_creation', 'is', null)
                     .maybeSingle();
 
                 if (suiviData) {
@@ -94,8 +95,10 @@
                     document.getElementById('val-client').innerText = suiviData.client || '-';
                     document.getElementById('val-itineraire').innerText = suiviData.itineraire || '-';
                     
+                    // تعبئة تاريخ الإنشاء (من جدول الطلبيات)
                     document.getElementById('val-date-creation').innerText = cmdData?.date_creation ? new Date(cmdData.date_creation).toLocaleDateString() : '-';
                     
+                    // تعبئة تاريخ وساعة الإطلاق (من جدول التتبع)
                     if (suiviData.date_lancement) {
                         const dateObj = new Date(suiviData.date_lancement);
                         document.getElementById('val-date-lancement').innerText = dateObj.toLocaleDateString();
