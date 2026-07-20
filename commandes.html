@@ -2,30 +2,56 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Commandes - SoufStock ERP</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100">
+
     <!-- Navigation -->
-    <nav class="bg-white p-4 shadow">
-        <a href="dashboard.html" class="text-blue-600 font-bold">Dashboard</a>
-        <span class="mx-2">/</span>
-        <span class="font-bold">Gestion des Commandes</span>
+    <nav class="bg-white p-4 shadow flex justify-between items-center">
+        <div>
+            <a href="dashboard.html" class="text-blue-600 font-bold hover:underline">Dashboard</a>
+            <span class="mx-2 text-gray-400">/</span>
+            <span class="font-bold text-gray-700">Gestion des Commandes</span>
+        </div>
+        <div class="text-sm text-gray-500 italic">SoufStock Enterprise ERP/WMS</div>
     </nav>
 
     <main class="p-6">
+        <!-- Header -->
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">Liste des Commandes</h2>
-            <!-- الزر الذي يربطك بصفحة Lancer -->
-            <a href="lancer.html" class="bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700">
+            <h2 class="text-2xl font-bold text-gray-800">Liste des Commandes</h2>
+            <a href="pages/lancer.html" class="bg-indigo-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-indigo-700 transition">
                 <i class="fa-solid fa-rocket mr-2"></i> Aller au Lancement
             </a>
         </div>
         
-        <!-- هنا سيتم عرض الجدول الخاص بالطلبيات (commandes_excel) -->
+        <!-- Table Card -->
         <div class="bg-white rounded shadow p-4">
-            <!-- الجدول هنا -->
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-600 uppercase text-xs">
+                        <th class="p-3 border-b">Doc Vente</th>
+                        <th class="p-3 border-b">Client</th>
+                        <th class="p-3 border-b">Date Livraison</th>
+                        <th class="p-3 border-b">Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="commandes-table-body" class="text-sm text-gray-700">
+                    <!-- البيانات سيتم تحميلها بواسطة JavaScript -->
+                    <tr>
+                        <td colspan="4" class="p-6 text-center text-gray-400">
+                            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement des données...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </main>
+
+    <!-- الربط مع ملف المنطق الخاص بصفحة الطلبيات -->
+    <script type="module" src="assets/js/commandes.js"></script>
 </body>
 </html>
