@@ -25,27 +25,18 @@
             box-sizing: border-box;
         }
 
-        .table-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
+        .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            table-layout: fixed;
-        }
+        th { background-color: #e5e7eb; font-weight: bold; font-size: 11px; }
+        td { border: 1px solid black; padding: 4px; text-align: center; font-size: 11px; }
 
-        th { background-color: #e5e7eb; font-weight: bold; }
-        td, th { 
-            border: 1px solid black; 
-            padding: 4px; 
-            text-align: center; 
-            font-size: 13px; 
-        }
+        /* توزيع العرض الجديد */
+        .col-article { width: 30%; } /* العمود 1 */
+        .col-qte { width: 10%; }     /* العمود 2 و 3 */
+        .col-lot { width: 25%; }     /* العمود 4 */
+        .col-info { width: 15%; }    /* العمود 5 */
+        .col-ctrl { width: 10%; }    /* العمود 6 (Control) */
     </style>
 </head>
 <body>
@@ -69,11 +60,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 40%;">Article</th>
-                        <th>Qté KG</th>
-                        <th>NB Pieces</th>
-                        <th>Lot</th>
-                        <th>Qté Préparée</th>
+                        <th class="col-article">Article</th>
+                        <th class="col-qte">Qté KG</th>
+                        <th class="col-qte">NB Pieces</th>
+                        <th class="col-lot">Lot</th>
+                        <th class="col-info">Infos</th>
+                        <th class="col-ctrl">Control</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -110,42 +102,39 @@
         document.getElementById('val-date').innerText = new Date().toLocaleDateString();
 
         async function loadData() {
-            try {
-                const [resExcel, resPieces] = await Promise.all([
-                    supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
-                    supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
-                ]);
+            const [resExcel, resPieces] = await Promise.all([
+                supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
+                supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
+            ]);
 
-                const dataExcel = resExcel.data || [];
-                const dataPieces = resPieces.data || [];
+            const combined = (resExcel.data || []).map(item => ({
+                ...item,
+                nombre_pieces: (resPieces.data || []).find(p => p.article === item.article)?.nombre_pieces || 0
+            }));
 
-                const combined = dataExcel.map(item => ({
-                    ...item,
-                    nombre_pieces: dataPieces.find(p => p.article === item.article)?.nombre_pieces || 0
-                }));
+            const tbody = document.getElementById('table-body');
+            let totalKg = 0, totalPieces = 0;
 
-                const tbody = document.getElementById('table-body');
-                let totalKg = 0, totalPieces = 0;
+            combined.forEach(item => {
+                totalKg += Number(item.quantite_commandee || 0);
+                totalPieces += Number(item.nombre_pieces || 0);
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="text-left">
+                            <span class="font-bold">${item.article}</span><br>
+                            <small class="text-gray-600">${item.designation_article}</small>
+                        </td>
+                        <td>${Number(item.quantite_commandee).toFixed(2)}</td>
+                        <td>${item.nombre_pieces}</td>
+                        <td></td> <!-- Lot -->
+                        <td></td> <!-- العمود 5 -->
+                        <td>□</td> <!-- العمود 6: Control -->
+                    </tr>`;
+            });
 
-                combined.forEach(item => {
-                    totalKg += Number(item.quantite_commandee || 0);
-                    totalPieces += Number(item.nombre_pieces || 0);
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="text-left">${item.article}<br><small>${item.designation_article}</small></td>
-                            <td>${Number(item.quantite_commandee).toFixed(2)}</td>
-                            <td>${item.nombre_pieces}</td>
-                            <td></td>
-                            <td></td>
-                        </tr>`;
-                });
-
-                document.getElementById('total-kg').innerText = totalKg.toFixed(2);
-                document.getElementById('total-pieces').innerText = totalPieces;
-            } catch (err) {
-                console.error("Erreur:", err);
-            }
+            document.getElementById('total-kg').innerText = totalKg.toFixed(2);
+            document.getElementById('total-pieces').innerText = totalPieces;
         }
         
         if (cmd) loadData();
