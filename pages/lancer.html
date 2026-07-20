@@ -2,69 +2,84 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lancement des Commandes - SoufStock</title>
-    <!-- Tailwind CSS -->
+    <title>Lancement - SoufStock ERP/WMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+<body class="bg-gray-100 font-sans">
 
     <!-- Header -->
-    <header class="bg-blue-600 text-white shadow-md px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <i class="fa-solid fa-rocket text-2xl"></i>
-            <h1 class="text-xl font-bold tracking-wide">SoufStock Enterprise ERP/WMS</h1>
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-lg">
+        <div>
+            <h1 class="text-xl font-bold">SoufStock ERP/WMS</h1>
+            <p class="text-xs">Utilisateur: <span id="user-display">Yahya Soufiane</span></p>
         </div>
-        <div id="user-info" class="text-sm font-medium"></div>
+        <button onclick="history.back()" class="bg-blue-700 px-4 py-2 rounded hover:bg-blue-800">Retour</button>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
-        
-        <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div>
-                <h2 class="text-lg font-bold text-gray-800">Commandes en attente de lancement</h2>
-                <p class="text-gray-500 text-sm">Gestion des tournées et lancement du picking.</p>
-            </div>
-            <button id="btn-refresh" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg flex items-center transition">
-                <i class="fa-solid fa-rotate mr-2"></i> Actualiser
-            </button>
+    <!-- Stats Section -->
+    <section class="p-6">
+        <div class="flex gap-4 items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
+            <input type="date" id="date-filter" class="border p-2 rounded w-40">
+            <select id="mode-selector" class="border p-2 rounded" onchange="loadDashboard()">
+                <option value="tournee">Par Tournée</option>
+                <option value="commande">Par Commande</option>
+            </select>
         </div>
-
-        <!-- Table -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-150 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
-                    <thead class="bg-gray-50 text-gray-700 font-semibold uppercase text-xs tracking-wider">
-                        <tr>
-                            <th class="py-3 px-4">Doc Vente</th>
-                            <th class="py-3 px-4">Client</th>
-                            <th class="py-3 px-4">Date Création</th>
-                            <th class="py-3 px-4">Date Livraison</th>
-                            <th class="py-3 px-4">Itinéraire / Tournée</th>
-                            <th class="py-3 px-4 text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="commandes-table-body" class="divide-y divide-gray-200 text-gray-800">
-                        <!-- Loading State -->
-                        <tr>
-                            <td colspan="6" class="py-8 text-center text-gray-400">
-                                <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
-                                <p>Chargement...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="grid grid-cols-3 gap-4 text-center mb-6">
+            <div class="p-4 bg-white rounded-lg shadow">Commandes: <span id="stats-cmd" class="font-bold">0</span></div>
+            <div class="p-4 bg-white rounded-lg shadow">Total KG: <span id="stats-kg" class="font-bold">0</span></div>
+            <div class="p-4 bg-white rounded-lg shadow">Picking: <span id="stats-picking" class="font-bold">0</span></div>
         </div>
-    </main>
+    </section>
 
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+    <!-- Main Table -->
+    <div class="p-6">
+        <table class="w-full bg-white rounded-xl shadow-md overflow-hidden">
+            <thead class="bg-gray-50 uppercase text-xs text-gray-700">
+                <tr id="table-head"></tr>
+            </thead>
+            <tbody id="commandes-table-body" class="divide-y text-sm"></tbody>
+        </table>
+    </div>
 
-    <!-- Script منطق الإطلاق -->
-    <script type="module" src="/assets/js/lancer.js"></script>
+    <!-- Modal Détails -->
+    <div id="modal-details" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-xl w-3/4 max-h-[80vh] overflow-y-auto">
+            <h3 class="text-lg font-bold mb-4">Détails Commande</h3>
+            <div id="modal-content"></div>
+            <button onclick="document.getElementById('modal-details').classList.add('hidden')" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded">Fermer</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import supabase from '/assets/js/core/supabase.js';
+
+        // تاريخ اليوم + 1 للـ Livraison
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('date-filter').value = tomorrow.toISOString().split('T')[0];
+
+        window.loadDashboard = async () => {
+            const mode = document.getElementById('mode-selector').value;
+            const head = document.getElementById('table-head');
+            const tbody = document.getElementById('commandes-table-body');
+            
+            if (mode === 'tournee') {
+                head.innerHTML = `<th class="py-3 px-4">Tournée</th><th class="py-3 px-4">Nb</th><th class="py-3 px-4">KG</th><th class="py-3 px-4">Action</th>`;
+                // هنا يتم تنفيذ Query التجميع Group By Itineraire
+            } else {
+                head.innerHTML = `<th class="py-3 px-4">Commande</th><th class="py-3 px-4">Client</th><th class="py-3 px-4">KG</th><th class="py-3 px-4">Statut</th><th class="py-3 px-4">Action</th>`;
+                // هنا يتم تنفيذ Query لجلب الطلبيات بالتفصيل
+            }
+        };
+
+        window.showDetails = (doc) => {
+            // كود عرض التفاصيل للقراءة فقط (Read Only)
+            document.getElementById('modal-details').classList.remove('hidden');
+        };
+
+        loadDashboard();
+    </script>
 </body>
 </html>
