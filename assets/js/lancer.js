@@ -119,16 +119,17 @@ async function handleLancement(e) {
         return;
     }
 
-    // تحديد النوع بناءً على خط السير: P-T للتورني، P-C للعملاء العاديين
+    // تحديد النوع: P-T للتورني، P-C للعملاء العاديين
     const type = routeInput.value.toLowerCase().includes('tournée') ? 'P-T' : 'P-C';
 
     try {
         if (Loader) Loader.show();
 
-        // 1. توليد كود الإطلاق التلقائي (النمط: TYPE-YYYYMM-001)
+        // 1. توليد كود الإطلاق التلقائي: TYPE-YYMM-001
         const now = new Date();
-        const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-        const prefix = `${type}-${yearMonth}`;
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const prefix = `${type}-${yy}${mm}`;
 
         const { data: lastRecord } = await supabase
             .from("suivi_commandes_lancer")
@@ -162,14 +163,14 @@ async function handleLancement(e) {
 
         if (insErr) throw insErr;
 
-        // 3. تحديث حالة الطلب في المصدر
+        // 3. تحديث حالة الطلب
         await supabase.from("commandes_excel")
             .update({ statut: "LANCEE" })
             .eq("document_vente", cmd.document_vente);
 
-        Toast.success(`Commande lancée ! Code: ${newNumLancement}`);
+        Toast.success(`Lancée ! Code: ${newNumLancement}`);
 
-        // 4. فتح سند التحضير مع إرسال الكود الجديد
+        // 4. فتح سند التحضير
         const bonUrl = `../pages/print-bon.html?cmd=${cmd.document_vente}&numLancement=${newNumLancement}`;
         window.open(bonUrl, '_blank');
 
