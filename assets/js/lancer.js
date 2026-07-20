@@ -32,14 +32,15 @@ async function init() {
         }
         
         if (els.userInfo) {
-            els.userInfo.textContent = `Session: ${currentUser.nom || 'Logistique'}`;
+            // استخدام الاسم المتاح من بيانات المستخدم
+            els.userInfo.textContent = `Session: ${currentUser.nom || currentUser.email || 'Logistique'}`;
         }
 
         bindEvents();
         await fetchCommandesEnAttente();
     } catch (error) {
         console.error("Init Lancement :", error);
-        Toast.error("Erreur d'initialisation.");
+        Toast.error("Erreur lors de l'initialisation.");
     } finally {
         if (Loader && typeof Loader.hide === "function") Loader.hide();
     }
@@ -51,9 +52,8 @@ function bindEvents() {
 
 async function fetchCommandesEnAttente() {
     try {
-        els.tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center">Chargement...</td></tr>`;
+        els.tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</td></tr>`;
         
-        // جلب البيانات مع الـ id و historique_import_id الضروريين للربط
         const { data: commandes, error: errCmd } = await supabase
             .from("commandes_excel")
             .select("id, document_vente, nom_receptionnaire, date_creation, date_livraison, itineraire, historique_import_id")
@@ -67,7 +67,6 @@ async function fetchCommandesEnAttente() {
             return;
         }
 
-        // تصفية الأسطر الفريدة
         const uniqueMap = new Map();
         commandesEnAttente = [];
         for (const item of commandes) {
@@ -79,8 +78,8 @@ async function fetchCommandesEnAttente() {
 
         renderTable(commandesEnAttente);
     } catch (error) {
-        console.error("fetchCommandesEnAttente :", error);
-        Toast.error("Erreur de chargement.");
+        console.error("Fetch Error :", error);
+        Toast.error("Erreur lors du chargement.");
     }
 }
 
@@ -91,15 +90,15 @@ function renderTable(commandes) {
         tr.innerHTML = `
             <td class="py-3 px-4 font-semibold text-blue-600">${cmd.document_vente}</td>
             <td class="py-3 px-4">${cmd.nom_receptionnaire || '-'}</td>
-            <td class="py-3 px-4">${formatDate(cmd.date_creation)}</td>
-            <td class="py-3 px-4">${formatDate(cmd.date_livraison)}</td>
+            <td class="py-3 px-4 text-gray-500">${formatDate(cmd.date_creation)}</td>
+            <td class="py-3 px-4 text-gray-500">${formatDate(cmd.date_livraison)}</td>
             <td class="py-3 px-4">
                 <input type="text" id="route-${cmd.document_vente}" value="${cmd.itineraire || ''}" 
-                    class="w-full border rounded px-2 py-1 text-sm">
+                    class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
             </td>
             <td class="py-3 px-4 text-center">
-                <button data-index="${index}" class="btn-lancer bg-green-600 text-white py-1 px-3 rounded text-xs">
-                    Lancer
+                <button data-index="${index}" class="btn-lancer bg-green-600 hover:bg-green-700 text-white font-medium py-1 px-4 rounded text-xs transition">
+                    <i class="fa-solid fa-paper-plane mr-1"></i> Lancer
                 </button>
             </td>
         `;
@@ -117,38 +116,45 @@ async function handleLancement(e) {
     
     if (!routeInput.value.trim()) {
         Toast.warning("Veuillez saisir un itinéraire.");
+        routeInput.focus();
         return;
     }
 
     try {
         if (Loader) Loader.show();
 
-        // إدراج البيانات مع الحقول المطلوبة (commande_id و historique_import_id)
+        // 1. تسجيل الإطلاق في جدول المتابعة (باستخدام اسم العمود 'client' كما في جدولك)
         const { error: insErr } = await supabase
             .from("suivi_commandes_lancer")
             .insert({
                 commande_id: cmd.id,
                 historique_import_id: cmd.historique_import_id,
                 document_vente: cmd.document_vente,
-                client: cmd.nom_receptionnaire,
+                client: cmd.nom_receptionnaire, 
                 itineraire: routeInput.value.trim(),
                 statut: "EN_PICKING",
+                lance_par: currentUser.id, // تسجيل هوية المستخدم
                 date_lancement: new Date().toISOString()
             });
 
         if (insErr) throw insErr;
 
-        // تحديث حالة الطلب الأصلي
+        // 2. تحديث حالة الطلب في المصدر
         await supabase.from("commandes_excel")
             .update({ statut: "LANCEE" })
             .eq("document_vente", cmd.document_vente);
 
-        Toast.success(`Commande ${cmd.document_vente} lancée !`);
+        Toast.success(`Commande ${cmd.document_vente} lancée avec succès !`);
+
+        // 3. فتح سند التحضير في نافذة جديدة
+        const bonUrl = `../pages/print-bon.html?cmd=${cmd.document_vente}&client=${encodeURIComponent(cmd.nom_receptionnaire)}&user=${encodeURIComponent(currentUser.nom || 'Admin')}`;
+        window.open(bonUrl, '_blank');
+
         fetchCommandesEnAttente();
 
     } catch (error) {
-        console.error(error);
-        Toast.error("Erreur lors du lancement.");
+        console.error("Lancement Error :", error);
+        Toast.error("Échec du lancement.");
     } finally {
         if (Loader) Loader.hide();
     }
