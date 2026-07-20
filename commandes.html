@@ -1,30 +1,65 @@
-<!-- dashboard.html -->
-<div class="p-6">
-    <!-- العنوان -->
-    <h2 class="text-2xl font-bold text-white mb-6">Centre de Commandes</h2>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Commandes - SoufStock ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
 
-    <!-- Actions Rapides (مركز التحكم) -->
-    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-        <h3 class="text-lg font-semibold text-gray-300 mb-4">Navigation Rapide</h3>
+    <!-- Navigation Header -->
+    <nav class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center gap-3">
+            <a href="dashboard.html" class="text-indigo-400 font-bold hover:underline">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Dashboard
+            </a>
+            <span class="text-gray-500">/</span>
+            <span class="font-bold text-gray-200">Gestion des Commandes</span>
+        </div>
         
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <!-- زر الطلبيات (هذا هو الأهم) -->
-            <a href="commandes.html" class="bg-indigo-600 hover:bg-indigo-700 p-6 rounded-lg flex flex-col items-center transition">
-                <i class="fa-solid fa-list-check text-2xl mb-2"></i>
-                <span class="font-bold">Gestion Commandes</span>
+        <!-- أزرار التنقل السريعة الخاصة بالطلبيات -->
+        <div class="flex gap-2">
+            <a href="gestion_commandes.html" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold shadow">
+                <i class="fa-solid fa-list mr-1"></i> Liste Commandes
             </a>
-            
-            <!-- زر الإطلاق (Lancement) -->
-            <a href="pages/lancer.html" class="bg-green-600 hover:bg-green-700 p-6 rounded-lg flex flex-col items-center transition">
-                <i class="fa-solid fa-rocket text-2xl mb-2"></i>
-                <span class="font-bold">Lancement</span>
-            </a>
-
-            <!-- بقية الأزرار... -->
-            <a href="stock.html" class="bg-gray-700 hover:bg-gray-600 p-6 rounded-lg flex flex-col items-center transition">
-                <i class="fa-solid fa-warehouse text-2xl mb-2"></i>
-                <span class="font-bold">Stock</span>
+            <a href="pages/lancer.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold shadow transition">
+                <i class="fa-solid fa-rocket mr-1"></i> Module Lancement
             </a>
         </div>
-    </div>
-</div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-100">Liste Globale des Commandes</h2>
+            <span class="text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded border border-gray-700">SoufStock Enterprise ERP/WMS</span>
+        </div>
+        
+        <!-- Table Card -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-900 text-gray-400 uppercase text-xs">
+                        <th class="p-3 border-b border-gray-700">Doc Vente</th>
+                        <th class="p-3 border-b border-gray-700">Client</th>
+                        <th class="p-3 border-b border-gray-700">Date Livraison</th>
+                        <th class="p-3 border-b border-gray-700">Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="commandes-table-body" class="text-sm text-gray-300">
+                    <tr>
+                        <td colspan="4" class="p-6 text-center text-gray-500">
+                            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement des données...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Script de logique -->
+    <script type="module" src="assets/js/commandes.js"></script>
+</body>
+</html>
