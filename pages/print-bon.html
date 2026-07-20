@@ -27,9 +27,9 @@
         th { background-color: #e5e7eb; font-weight: bold; font-size: 12px; padding: 6px; border: 1px solid black; }
         td { border: 1px solid black; padding: 8px; text-align: center; font-size: 14px; }
         .col-article { width: 45%; } 
-        .col-qte { width: 10%; min-width: 60px; }     
+        .col-qte { width: 10%; min-width: 60px; }    
         .col-lot { width: 15%; }     
-        .col-info { width: 12%; }    
+        .col-info { width: 12%; }   
         .col-ctrl { width: 8%; }     
         .product-name { font-weight: bold; font-size: 14px; line-height: 1.2; text-align: left; }
     </style>
@@ -45,6 +45,7 @@
             <div>
                 <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
                 <p><strong>Client:</strong> <span id="val-client"></span></p>
+                <p><strong>N° Lancement:</strong> <span id="val-num-lancement" class="font-bold text-blue-700"></span></p>
             </div>
             <div class="text-right">
                 <p><strong>Date:</strong> <span id="val-date"></span></p>
@@ -94,27 +95,30 @@
         const params = new URLSearchParams(window.location.search);
         const cmd = params.get('cmd');
         document.getElementById('val-cmd').innerText = cmd;
-        document.getElementById('val-client').innerText = params.get('client');
         document.getElementById('val-date').innerText = new Date().toLocaleDateString();
 
         async function loadData() {
             try {
-                // 1. جلب بيانات المنتجات
+                // 1. جلب البيانات من جدول المتابعة (الكود، اسم العميل، والمسؤول)
+                const { data: suiviData } = await supabase
+                    .from('suivi_commandes_lancer')
+                    .select('num_lancement, client, user_profiles:lance_par(nom_complet)')
+                    .eq('document_vente', cmd)
+                    .single();
+
+                if (suiviData) {
+                    document.getElementById('val-num-lancement').innerText = suiviData.num_lancement || '-';
+                    document.getElementById('val-client').innerText = suiviData.client || '-';
+                    if (suiviData.user_profiles) {
+                        document.getElementById('lancer-info').innerText = "Lancé par: " + suiviData.user_profiles.nom_complet;
+                    }
+                }
+
+                // 2. جلب تفاصيل الطلبية
                 const [resExcel, resPieces] = await Promise.all([
                     supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
                     supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
                 ]);
-
-                // 2. جلب اسم المستخدم الذي قام بالـ Lancement
-                const { data: suiviData } = await supabase
-                    .from('suivi_commandes_lancer')
-                    .select('user_profiles:lance_par(nom_complet)')
-                    .eq('document_vente', cmd)
-                    .single();
-
-                if (suiviData?.user_profiles) {
-                    document.getElementById('lancer-info').innerText = "Lancé par: " + suiviData.user_profiles.nom_complet;
-                }
 
                 const combined = (resExcel.data || []).map(item => ({
                     ...item,
