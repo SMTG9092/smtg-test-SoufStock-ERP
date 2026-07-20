@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Commandes - SoufStock ERP</title>
+    <title>Analyse Commandes - SoufStock ERP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -16,13 +16,12 @@
                 <i class="fa-solid fa-arrow-left mr-1"></i> Dashboard
             </a>
             <span class="text-gray-500">/</span>
-            <span class="font-bold text-gray-200">Gestion des Commandes</span>
+            <span class="font-bold text-gray-200">Analyse & Gestion des Commandes</span>
         </div>
         
-        <!-- أزرار التنقل السريعة الخاصة بالطلبيات -->
         <div class="flex gap-2">
             <a href="gestion_commandes.html" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold shadow">
-                <i class="fa-solid fa-list mr-1"></i> Liste Commandes
+                <i class="fa-solid fa-chart-line mr-1"></i> Analyse Commandes
             </a>
             <a href="pages/lancer.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold shadow transition">
                 <i class="fa-solid fa-rocket mr-1"></i> Module Lancement
@@ -31,35 +30,108 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-100">Liste Globale des Commandes</h2>
-            <span class="text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded border border-gray-700">SoufStock Enterprise ERP/WMS</span>
-        </div>
+    <main class="p-6 space-y-6">
         
-        <!-- Table Card -->
-        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden">
-            <table class="w-full text-left border-collapse">
+        <!-- قسم المؤشرات الإحصائية العامة -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow">
+                <span class="text-xs text-gray-400 block">Total Commandes</span>
+                <span id="stat-total-cmd" class="text-2xl font-bold text-indigo-400">0</span>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow">
+                <span class="text-xs text-gray-400 block">Commandes par Jour</span>
+                <span id="stat-cmd-jour" class="text-xl font-bold text-green-400">0</span>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow">
+                <span class="text-xs text-gray-400 block">Commandes par Semaine</span>
+                <span id="stat-cmd-semaine" class="text-xl font-bold text-yellow-400">0</span>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow">
+                <span class="text-xs text-gray-400 block">Commandes par Mois</span>
+                <span id="stat-cmd-mois" class="text-xl font-bold text-blue-400">0</span>
+            </div>
+        </div>
+
+        <!-- قسم الترتيب حسب الوزن (Tranches de Poids) -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow">
+            <h3 class="text-md font-bold text-gray-200 mb-3"><i class="fa-solid fa-scale-balanced mr-2 text-indigo-400"></i> Répartition par Tranches de Poids</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="bg-gray-900 p-3 rounded border border-gray-700">
+                    <span class="text-xs text-gray-400 block">&lt; 100 KG</span>
+                    <span id="poids-inf-100" class="text-lg font-bold text-gray-200">0</span>
+                </div>
+                <div class="bg-gray-900 p-3 rounded border border-gray-700">
+                    <span class="text-xs text-gray-400 block">100 KG - 300 KG</span>
+                    <span id="poids-100-300" class="text-lg font-bold text-gray-200">0</span>
+                </div>
+                <div class="bg-gray-900 p-3 rounded border border-gray-700">
+                    <span class="text-xs text-gray-400 block">300 KG - 500 KG</span>
+                    <span id="poids-300-500" class="text-lg font-bold text-gray-200">0</span>
+                </div>
+                <div class="bg-gray-900 p-3 rounded border border-gray-700">
+                    <span class="text-xs text-gray-400 block">&gt; 500 KG</span>
+                    <span id="poids-sup-500" class="text-lg font-bold text-gray-200">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- قسم الجداول التحليلية (Top 10 Clients & Top 10 Articles / Mouvements) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Top 10 Clients -->
+            <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden p-4">
+                <h3 class="text-md font-bold text-gray-200 mb-3"><i class="fa-solid fa-users mr-2 text-green-400"></i> Top 10 Meilleurs Clients</h3>
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="bg-gray-900 text-gray-400 text-xs uppercase">
+                            <th class="p-2 border-b border-gray-700">Client</th>
+                            <th class="p-2 border-b border-gray-700">Total Commandes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-clients-body" class="text-gray-300">
+                        <tr><td colspan="2" class="p-4 text-center text-gray-500">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Top 10 Produits Sortants -->
+            <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden p-4">
+                <h3 class="text-md font-bold text-gray-200 mb-3"><i class="fa-solid fa-boxes-stacked mr-2 text-yellow-400"></i> Top 10 Produits les plus Sortants</h3>
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="bg-gray-900 text-gray-400 text-xs uppercase">
+                            <th class="p-2 border-b border-gray-700">Article / Produit</th>
+                            <th class="p-2 border-b border-gray-700">Quantité / Sortie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-produits-body" class="text-gray-300">
+                        <tr><td colspan="2" class="p-4 text-center text-gray-500">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- جدول الترتيب الزمني اليومي (Par Jour: Nb Commandes & Total KG) -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden p-4">
+            <h3 class="text-md font-bold text-gray-200 mb-3"><i class="fa-solid fa-calendar-days mr-2 text-blue-400"></i> Suivi Quotidien (Commandes & Poids Total)</h3>
+            <table class="w-full text-left text-sm">
                 <thead>
                     <tr class="bg-gray-900 text-gray-400 uppercase text-xs">
-                        <th class="p-3 border-b border-gray-700">Doc Vente</th>
-                        <th class="p-3 border-b border-gray-700">Client</th>
-                        <th class="p-3 border-b border-gray-700">Date Livraison</th>
-                        <th class="p-3 border-b border-gray-700">Statut</th>
+                        <th class="p-3 border-b border-gray-700">Date</th>
+                        <th class="p-3 border-b border-gray-700">Nombre de Commandes</th>
+                        <th class="p-3 border-b border-gray-700">Poids Total (KG)</th>
                     </tr>
                 </thead>
-                <tbody id="commandes-table-body" class="text-sm text-gray-300">
-                    <tr>
-                        <td colspan="4" class="p-6 text-center text-gray-500">
-                            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement des données...
-                        </td>
-                    </tr>
+                <tbody id="suivi-journalier-body" class="text-gray-300">
+                    <tr><td colspan="3" class="p-6 text-center text-gray-500">Chargement des données...</td></tr>
                 </tbody>
             </table>
         </div>
+
     </main>
 
     <!-- Script de logique -->
-    <script type="module" src="assets/js/commandes.js"></script>
+    <script type="module" src="assets/js/gestion_commandes.js"></script>
 </body>
 </html>
