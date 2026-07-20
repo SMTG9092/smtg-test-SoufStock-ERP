@@ -19,6 +19,8 @@ let activeArticle = null;
 let activeDropdown = null;
 let activeIndex = -1;
 
+const stockCache = new Map();
+
 const els = {
     pickingId: document.getElementById("pickingId"),
     suiviId: document.getElementById("suiviId"),
@@ -96,6 +98,7 @@ function resetPicking() {
     if (els.statutCommande) { els.statutCommande.textContent = "En préparation"; els.statutCommande.className = "badge badge-warning"; }
     if (els.pickingBody) els.pickingBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Aucune commande chargée.</td></tr>`;
     calculateSummary();
+    refreshValidationState();
 }
 
 function formatDate(v) {
@@ -185,95 +188,123 @@ async function buildPickingTable(lignes) {
         existingDetails = data || [];
     }
 
-articles.forEach((art, index) => {
+    for (let index = 0; index < articles.length; index++) {
+        const art = articles[index];
+        const artDetails = existingDetails.filter(d => d.article === art.article);
 
-    const artDetails = existingDetails.filter(d => d.article === art.article);
+        const firstLot = artDetails.length ? artDetails[0].lot : "";
+        const firstQty = artDetails.length ? artDetails[0].quantite_preparee : "";
 
-    const firstLot = artDetails.length ? artDetails[0].lot : "";
-    const firstQty = artDetails.length ? artDetails[0].quantite_preparee : "";
+        const trMain = document.createElement("tr");
+        trMain.className = "article-row";
+        trMain.id = `group_${index}`;
 
-    const trMain = document.createElement("tr");
-    trMain.className = "article-row";
-    trMain.id = `group_${index}`;
+        trMain.innerHTML = `
+            <td class="col-article">
+                <strong>${art.article}</strong><br>
+                <small>${art.designation ?? ""}</small>
+            </td>
 
-    trMain.innerHTML = `
-        <td class="col-article">
-            <strong>${art.article}</strong><br>
-            <small>${art.designation ?? ""}</small>
-        </td>
+            <td class="col-qte text-end">
+                ${art.quantite.toFixed(3)}
+            </td>
 
-        <td class="col-qte text-end">
-            ${art.quantite.toFixed(3)}
-        </td>
+            <td class="col-prepare text-center">
+                <span id="prepared_${index}">0.000</span>
+            </td>
 
-        <td class="col-prepare text-center">
-            <span id="prepared_${index}">0.000</span>
-        </td>
+            <td class="col-piece text-center">
+                ${art.pieces}
+            </td>
 
-        <td class="col-piece text-center">
-            ${art.pieces}
-        </td>
+            <td class="col-lot">
+                <input
+                    type="text"
+                    class="lot-input form-control"
+                    placeholder="Lot"
+                    value="${firstLot}"
+                    autocomplete="off">
+            </td>
 
-        <td class="col-lot">
-            <input
-                type="text"
-                class="lot-input form-control"
-                placeholder="Lot"
-                value="${firstLot}"
-                autocomplete="off">
-        </td>
+            <td class="col-qteprepare">
+                <input
+                    type="number"
+                    class="qty-input form-control"
+                    placeholder="Qté"
+                    min="0"
+                    step="0.001"
+                    value="${firstQty}">
+            </td>
 
-        <td class="col-qteprepare">
-            <input
-                type="number"
-                class="qty-input form-control"
-                placeholder="Qté"
-                min="0"
-                step="0.001"
-                value="${firstQty}">
-        </td>
+            <td class="col-action text-center">
+                <button type="button" class="btn-add-lot-icon">+</button>
+            </td>
+        `;
 
-        <td class="col-action text-center">
-            <button type="button" class="btn-add-lot-icon">+</button>
-        </td>
-    `;
+        els.pickingBody.appendChild(trMain);
 
-els.pickingBody.appendChild(trMain);
+        const lotInp = trMain.querySelector(".lot-input");
 
-bindLotAutocomplete(
-    trMain.querySelector(".lot-input"),
-    art.article
-);
+        if (firstLot) {
+            const cacheKey = `${art.article}|${firstLot}`;
+            if (stockCache.has(cacheKey)) {
+                lotInp.dataset.stock = stockCache.get(cacheKey);
+            } else {
+                const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", art.article).eq("lot", firstLot).gt("stock_disponible", 0).maybeSingle();
+                const stockVal = st ? st.stock_disponible : 0;
+                stockCache.set(cacheKey, stockVal);
+                lotInp.dataset.stock = stockVal;
+            }
+        }
 
-if (artDetails.length > 1) {
-    for (let j = 1; j < artDetails.length; j++) {
-        els.pickingBody.appendChild(
-            createLotRow(
-                index,
-                artDetails[j].lot,
-                artDetails[j].quantite_preparee
-            )
-        );
+        bindLotAutocomplete(lotInp, art.article);
+        setupRowValidationListeners(trMain, index);
+
+        if (artDetails.length > 1) {
+            let currentLastRow = trMain;
+            for (let j = 1; j < artDetails.length; j++) {
+                const subRow = createLotRow(index, artDetails[j].lot, artDetails[j].quantite_preparee);
+                currentLastRow.insertAdjacentElement("afterend", subRow);
+                currentLastRow = subRow;
+                
+                if (artDetails[j].lot) {
+                    const cacheKey = `${art.article}|${artDetails[j].lot}`;
+                    const subLotInp = subRow.querySelector(".lot-input");
+                    if (stockCache.has(cacheKey)) {
+                        subLotInp.dataset.stock = stockCache.get(cacheKey);
+                    } else {
+                        const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", art.article).eq("lot", artDetails[j].lot).gt("stock_disponible", 0).maybeSingle();
+                        const stockVal = st ? st.stock_disponible : 0;
+                        stockCache.set(cacheKey, stockVal);
+                        subLotInp.dataset.stock = stockVal;
+                    }
+                }
+                checkRowStock(subRow, index);
+            }
+        }
+
+        trMain.querySelector(".btn-add-lot-icon").addEventListener("click", (e) => {
+            if (isGroupInvalid(index)) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            let lastRowOfGroup = trMain;
+            while (lastRowOfGroup.nextElementSibling && lastRowOfGroup.nextElementSibling.classList.contains("lot-item-row")) {
+                lastRowOfGroup = lastRowOfGroup.nextElementSibling;
+            }
+            lastRowOfGroup.insertAdjacentElement("afterend", createLotRow(index));
+            refreshValidationState();
+        });
+
+        checkRowStock(trMain, index);
+        calculatePrepared(index);
     }
-}
 
-trMain.querySelector(".qty-input").addEventListener("input", () => {
-    calculatePrepared(index);
     calculateSummary();
-});
-
-trMain.querySelector(".btn-add-lot-icon").addEventListener("click", () => {
-    trMain.insertAdjacentElement(
-        "afterend",
-        createLotRow(index)
-    );
-});
-
-calculatePrepared(index);
-});
-
-calculateSummary();
+    refreshValidationState();
 }
+
 function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
     const trLot = document.createElement("tr");
     trLot.className = "lot-item-row";
@@ -298,11 +329,7 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
         trLot.remove();
         calculatePrepared(articleIndex);
         calculateSummary();
-    });
-
-    trLot.querySelector(".qty-input").addEventListener("input", () => {
-        calculatePrepared(articleIndex);
-        calculateSummary();
+        refreshValidationState();
     });
 
     bindLotAutocomplete(
@@ -310,11 +337,140 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
         articles[articleIndex].article
     );
 
+    setupRowValidationListeners(trLot, articleIndex);
+
     return trLot;
 }
 
-function calculatePrepared(articleIndex) {
+function setRowInvalid(row) {
+    if (!row.classList.contains("row-invalid")) {
+        row.classList.add("row-invalid");
+        const qtyInput = row.querySelector(".qty-input");
+        if (qtyInput) qtyInput.classList.add("is-invalid");
+        row.style.setProperty("background-color", "rgba(220, 53, 69, 0.2)", "important");
+        Toast.error("Stock insuffisant.");
+    }
+}
 
+function clearRowInvalid(row) {
+    if (row.classList.contains("row-invalid")) {
+        row.classList.remove("row-invalid");
+        const qtyInput = row.querySelector(".qty-input");
+        if (qtyInput) qtyInput.classList.remove("is-invalid");
+        row.style.backgroundColor = "";
+    }
+}
+
+function setupRowValidationListeners(row, articleIndex) {
+    const lotInput = row.querySelector(".lot-input");
+    const qtyInput = row.querySelector(".qty-input");
+
+    const blockKeys = (e) => {
+        if (row.classList.contains("row-invalid") && (e.key === "Tab" || e.key === "Enter")) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    };
+
+    lotInput.addEventListener("keydown", blockKeys);
+    qtyInput.addEventListener("keydown", blockKeys);
+
+    const handleLotChange = async () => {
+        const lotVal = lotInput.value.trim();
+        const artVal = articles[articleIndex].article;
+        if (lotVal) {
+            const cacheKey = `${artVal}|${lotVal}`;
+            if (stockCache.has(cacheKey)) {
+                lotInput.dataset.stock = stockCache.get(cacheKey);
+            } else {
+                const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", artVal).eq("lot", lotVal).gt("stock_disponible", 0).maybeSingle();
+                const stockVal = st ? st.stock_disponible : 0;
+                stockCache.set(cacheKey, stockVal);
+                lotInput.dataset.stock = stockVal;
+            }
+        } else {
+            lotInput.dataset.stock = 0;
+        }
+        checkRowStock(row, articleIndex);
+    };
+
+    lotInput.addEventListener("input", handleLotChange);
+    lotInput.addEventListener("change", handleLotChange);
+    lotInput.addEventListener("blur", handleLotChange);
+
+    qtyInput.addEventListener("input", () => {
+        checkRowStock(row, articleIndex);
+        calculatePrepared(articleIndex);
+        calculateSummary();
+    });
+}
+
+function checkRowStock(row, articleIndex) {
+    const lotInput = row.querySelector(".lot-input");
+    const qtyInput = row.querySelector(".qty-input");
+    if (!lotInput || !qtyInput) return;
+
+    const stockDisp = Number(lotInput.dataset.stock || 0);
+    const qtyPrep = Number(qtyInput.value || 0);
+
+    if (lotInput.value.trim() && qtyPrep > stockDisp) {
+        setRowInvalid(row);
+    } else {
+        clearRowInvalid(row);
+    }
+    refreshValidationState();
+}
+
+function isGroupInvalid(articleIndex) {
+    const mainRow = document.getElementById(`group_${articleIndex}`);
+    if (!mainRow) return false;
+    let row = mainRow;
+    while (row) {
+        if (row.classList.contains("row-invalid")) return true;
+        row = row.nextElementSibling;
+        if (!row || !row.classList.contains("lot-item-row")) break;
+    }
+    return false;
+}
+
+function refreshValidationState() {
+    const invalidRows = els.pickingBody.querySelectorAll("tr.row-invalid, .qty-input.is-invalid");
+    const hasInvalid = invalidRows.length > 0;
+
+    if (els.btnSave) els.btnSave.disabled = hasInvalid;
+    if (els.btnSaveFooter) els.btnSaveFooter.disabled = hasInvalid;
+    if (els.btnValidate) els.btnValidate.disabled = hasInvalid;
+    if (els.btnValidateFooter) els.btnValidateFooter.disabled = hasInvalid;
+}
+
+function runFullStockValidation() {
+    let isValid = true;
+    for (let i = 0; i < articles.length; i++) {
+        const group = document.getElementById(`group_${i}`);
+        if (!group) continue;
+        let row = group;
+        while (row) {
+            const lotInput = row.querySelector(".lot-input");
+            const qtyInput = row.querySelector(".qty-input");
+            if (lotInput && qtyInput) {
+                const stockDisp = Number(lotInput.dataset.stock || 0);
+                const qtyPrep = Number(qtyInput.value || 0);
+                if (lotInput.value.trim() && qtyPrep > stockDisp) {
+                    setRowInvalid(row);
+                    isValid = false;
+                } else {
+                    clearRowInvalid(row);
+                }
+            }
+            row = row.nextElementSibling;
+            if (!row || !row.classList.contains("lot-item-row")) break;
+        }
+    }
+    refreshValidationState();
+    return isValid;
+}
+
+function calculatePrepared(articleIndex) {
     const mainRow = document.getElementById(`group_${articleIndex}`);
     if (!mainRow) return;
 
@@ -322,14 +478,11 @@ function calculatePrepared(articleIndex) {
     let row = mainRow;
 
     while (row) {
-
         const qtyInput = row.querySelector(".qty-input");
         if (qtyInput) {
             total += Number(qtyInput.value || 0);
         }
-
         row = row.nextElementSibling;
-
         if (!row || !row.classList.contains("lot-item-row")) {
             break;
         }
@@ -341,10 +494,13 @@ function calculatePrepared(articleIndex) {
     }
 
     if (articles[articleIndex]) {
-        mainRow.style.backgroundColor =
-            total > articles[articleIndex].quantite
-                ? "rgba(220,53,69,.08)"
-                : "";
+        const isStockInvalid = mainRow.classList.contains("row-invalid");
+        if (!isStockInvalid) {
+            mainRow.style.backgroundColor =
+                total > articles[articleIndex].quantite
+                    ? "rgba(220,53,69,.08)"
+                    : "";
+        }
     }
 }
 
@@ -365,6 +521,7 @@ function calculateSummary() {
 
 async function savePicking() {
     if (!currentCommande) { Toast.warning("Aucune commande chargée."); return; }
+    if (!runFullStockValidation()) { Toast.error("Stock insuffisant."); return; }
     try {
         if (Loader && typeof Loader.show === "function") Loader.show();
         if (!currentPicking) {
@@ -376,23 +533,28 @@ async function savePicking() {
         const details = []; let totalPreparedForOrder = 0;
         for (let i = 0; i < articles.length; i++) {
             const art = articles[i]; const group = document.getElementById(`group_${i}`); if (!group) continue;
-            const rows = group.querySelectorAll("tr");
-            for (const r of rows) {
-                const lotInp = r.querySelector(".lot-input");
-                const qtyInp = r.querySelector(".qty-input");
-                if (!lotInp || !qtyInp) continue;
-
-                const lot = lotInp.value.trim();
-                const qty = Number(qtyInp.value || 0);
-                if (!lot || qty <= 0) continue;
-                totalPreparedForOrder += qty;
-
-                const { data: st } = await supabase.from("stock").select("id, emplacement").eq("article", art.article).eq("lot", lot).gt("quantite", 0).maybeSingle();
-                details.push({
-                    picking_id: currentPicking.id, article: art.article, designation_article: art.designation || "",
-                    lot: lot, quantite_preparee: qty, quantite_commandee: art.quantite, magasin: "MAG_DEFAULT",
-                    emplacement: st?.emplacement || "N/A", stock_id: st?.id || null
-                });
+            
+            let row = group;
+            while (row) {
+                const lotInp = row.querySelector(".lot-input");
+                const qtyInp = row.querySelector(".qty-input");
+                
+                if (lotInp && qtyInp) {
+                    const lot = lotInp.value.trim();
+                    const qty = Number(qtyInp.value || 0);
+                    if (lot && qty > 0) {
+                        totalPreparedForOrder += qty;
+                        const { data: st } = await supabase.from("stock").select("id, emplacement").eq("article", art.article).eq("lot", lot).gt("stock_disponible", 0).maybeSingle();
+                        details.push({
+                            picking_id: currentPicking.id, article: art.article, designation_article: art.designation || "",
+                            lot: lot, quantite_preparee: qty, quantite_commandee: art.quantite, magasin: "MAG_DEFAULT",
+                            emplacement: st?.emplacement || "N/A", stock_id: st?.id || null
+                        });
+                    }
+                }
+                
+                row = row.nextElementSibling;
+                if (!row || !row.classList.contains("lot-item-row")) break;
             }
         }
         await supabase.from("picking_details").delete().eq("picking_id", currentPicking.id);
@@ -410,6 +572,7 @@ async function savePicking() {
 
 async function validatePicking() {
     if (!currentPicking) { Toast.warning("Veuillez enregistrer le picking avant de valider."); return; }
+    if (!runFullStockValidation()) { Toast.error("Stock insuffisant."); return; }
     let isOver = false;
     articles.forEach((art, idx) => { const span = document.getElementById(`prepared_${idx}`); if (span && Number(span.textContent || 0) > art.quantite) isOver = true; });
     if (isOver) { Toast.error("Quantité préparée supérieure à la commande."); return; }
@@ -512,9 +675,14 @@ async function searchLots(article, text) {
             return;
         }
 
-        console.table(response.data);
+        const responseData = response.data || [];
+        responseData.forEach(item => {
+            stockCache.set(`${article}|${item.lot}`, item.stock_disponible);
+        });
 
-        showLotDropdown(response.data || []);
+        console.table(responseData);
+
+        showLotDropdown(responseData);
 
     } catch (err) {
 
@@ -588,6 +756,24 @@ function selectLot(item) {
     activeLotInput.value = item.lot;
 
     activeLotInput.dataset.stock = item.stock_disponible;
+
+    const tr = activeLotInput.closest("tr");
+    if (tr) {
+        let groupIdx = -1;
+        if (tr.classList.contains("article-row")) {
+            groupIdx = Number(tr.id.replace("group_", ""));
+        } else {
+            let prev = tr.previousElementSibling;
+            while (prev) {
+                if (prev.classList.contains("article-row")) {
+                    groupIdx = Number(prev.id.replace("group_", ""));
+                    break;
+                }
+                prev = prev.previousElementSibling;
+            }
+        }
+        checkRowStock(tr, groupIdx);
+    }
 
     hideLotDropdown();
 
