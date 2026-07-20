@@ -19,7 +19,6 @@
             <div>
                 <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
                 <p><strong>Client:</strong> <span id="val-client"></span></p>
-                <p><strong>N° Lancement:</strong> <span id="val-lancement"></span></p>
                 <p><strong>Date / Heure:</strong> <span id="val-date"></span></p>
             </div>
             <div class="w-24 h-24 border border-black flex items-center justify-center">QR Code</div>
@@ -29,7 +28,7 @@
             <thead>
                 <tr class="bg-gray-100">
                     <th class="p-2">Article</th>
-                    <th class="p-2">Qté</th>
+                    <th class="p-2">Qté KG</th>
                     <th class="p-2">NB Pieces</th>
                     <th class="p-2">Lot</th>
                     <th class="p-2">Qté Préparée</th>
@@ -48,7 +47,7 @@
                 <tr>
                     <td class="p-2"></td>
                     <td id="total-kg" class="p-2 text-center font-bold">0</td>
-                    <td class="p-2 text-center font-bold">0</td>
+                    <td id="total-pieces" class="p-2 text-center font-bold">0</td>
                 </tr>
             </table>
 
@@ -64,44 +63,63 @@
     </div>
 
     <script type="module">
+        // استيراد Supabase من المسار الصحيح
         import supabase from '/assets/js/core/supabase.js';
         
         const params = new URLSearchParams(window.location.search);
         const cmd = params.get('cmd');
+        const client = params.get('client');
         
-        document.getElementById('val-cmd').innerText = cmd;
-        document.getElementById('val-client').innerText = params.get('client');
+        document.getElementById('val-cmd').innerText = cmd || 'N/A';
+        document.getElementById('val-client').innerText = client || 'N/A';
         document.getElementById('val-date').innerText = new Date().toLocaleString();
 
         async function loadData() {
-            // جلب البيانات من جدول commandes_excel
+            // جلب البيانات من جدول commandes_clients_pieces
             const { data, error } = await supabase
-                .from('commandes_excel')
-                .select('article, designation_article, quantite_commandee')
+                .from('commandes_clients_pieces')
+                .select('article, designation_article, quantite_commandee, nombre_pieces')
                 .eq('document_vente', cmd);
+
+            if (error) {
+                console.error("Erreur Supabase:", error);
+                alert("Erreur lors du chargement des données.");
+                return;
+            }
 
             if (data && data.length > 0) {
                 let totalKg = 0;
+                let totalPieces = 0;
                 const tbody = document.getElementById('table-body');
                 tbody.innerHTML = ''; 
 
                 data.forEach(item => {
                     const qte = Number(item.quantite_commandee || 0);
+                    const nbPieces = Number(item.nombre_pieces || 0);
+                    
                     totalKg += qte;
+                    totalPieces += nbPieces;
                     
                     tbody.innerHTML += `
                         <tr class="h-10">
                             <td class="p-2 text-left">${item.article} - ${item.designation_article}</td>
-                            <td class="p-2">${qte}</td>
-                            <td class="p-2">0</td>
+                            <td class="p-2">${qte.toFixed(3)}</td>
+                            <td class="p-2">${nbPieces}</td>
                             <td class="p-2"></td>
                             <td class="p-2"></td>
                         </tr>`;
                 });
+                
                 document.getElementById('total-kg').innerText = totalKg.toFixed(2);
+                document.getElementById('total-pieces').innerText = totalPieces;
             }
         }
-        loadData();
+        
+        if (cmd) {
+            loadData();
+        } else {
+            alert("Aucune commande spécifiée dans l'URL.");
+        }
     </script>
 </body>
 </html>
