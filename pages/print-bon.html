@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Bon de Préparation</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- مكتبة QR Code -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
         @media print {
@@ -14,30 +13,24 @@
         }
         body { background-color: #f3f4f6; margin: 0; padding: 10px; }
         #bon-content {
-            width: 280mm;
-            height: 190mm;
-            margin: 0 auto;
-            background: white;
-            padding: 5mm;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #000;
-            box-sizing: border-box;
+            width: 280mm; height: 190mm; margin: 0 auto;
+            background: white; padding: 5mm; display: flex;
+            flex-direction: column; border: 1px solid #000; box-sizing: border-box;
         }
-        .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 10px; }
+        .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 5px; }
         table { width: 100%; border-collapse: collapse; }
-        th { background-color: #e5e7eb; font-weight: bold; font-size: 12px; padding: 6px; border: 1px solid black; }
-        td { border: 1px solid black; padding: 8px; text-align: center; font-size: 14px; }
-        .col-article { width: 45%; } 
-        .product-name { font-weight: bold; font-size: 14px; text-align: left; }
+        th { background-color: #e5e7eb; font-weight: bold; font-size: 11px; padding: 4px; border: 1px solid black; }
+        td { border: 1px solid black; padding: 6px; text-align: center; font-size: 13px; }
+        .col-article { width: 45%; }
+        .product-name { font-weight: bold; font-size: 13px; text-align: left; }
     </style>
 </head>
 <body>
-
     <div id="bon-content">
-        <div class="border-2 border-black p-2 mb-2 flex justify-between items-center">
-            <h1 class="text-2xl font-bold uppercase">Bon de Préparation</h1>
-            <canvas id="qrcode" class="w-20 h-20"></canvas>
+        <!-- Header معدل: العنوان في الوسط والـ QR في الجانب -->
+        <div class="border-2 border-black p-2 mb-2 flex items-center">
+            <h1 class="text-2xl font-bold uppercase flex-1 text-center">Bon de Préparation</h1>
+            <canvas id="qrcode" class="w-16 h-16"></canvas>
         </div>
 
         <div class="flex justify-between mb-2 text-sm">
@@ -58,11 +51,7 @@
                 <thead>
                     <tr>
                         <th class="col-article">Article</th>
-                        <th>Qté KG</th>
-                        <th>NB Pieces</th>
-                        <th>Lot</th>
-                        <th>QTÉ PRÉPARÉE</th>
-                        <th>Control</th>
+                        <th>Qté KG</th><th>NB Pieces</th><th>Lot</th><th>QTÉ PRÉPARÉE</th><th>Control</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -72,15 +61,11 @@
         <div class="flex justify-between items-end mt-auto">
             <table class="w-1/3">
                 <tr class="bg-gray-100"><th>TOTAL</th><th>Qté KG</th><th>Qté Pièces</th></tr>
-                <tr>
-                    <td class="p-2 font-bold">TOTAL</td>
-                    <td id="total-kg" class="font-bold">0.00</td>
-                    <td id="total-pieces" class="font-bold">0</td>
-                </tr>
+                <tr><td class="p-1 font-bold">TOTAL</td><td id="total-kg" class="font-bold">0.00</td><td id="total-pieces" class="font-bold">0</td></tr>
             </table>
             <div class="flex gap-4">
-                <div class="border border-black w-40 h-16 text-xs font-bold text-center pt-1">Signature Préparateur</div>
-                <div class="border border-black w-40 h-16 text-xs font-bold text-center pt-1">Signature Contrôle</div>
+                <div class="border border-black w-32 h-12 text-[10px] font-bold text-center pt-1">Signature Préparateur</div>
+                <div class="border border-black w-32 h-12 text-[10px] font-bold text-center pt-1">Signature Contrôle</div>
             </div>
         </div>
     </div>
@@ -91,7 +76,6 @@
 
     <script type="module">
         import supabase from '/assets/js/core/supabase.js';
-        
         const params = new URLSearchParams(window.location.search);
         const cmd = params.get('cmd');
         document.getElementById('val-cmd').innerText = cmd;
@@ -99,7 +83,7 @@
 
         async function loadData() {
             try {
-                // 1. جلب البيانات من جدول المتابعة
+                // جلب بيانات الطلبية من جدول المتابعة
                 const { data: suiviData } = await supabase
                     .from('suivi_commandes_lancer')
                     .select('num_lancement, client, itineraire, user_profiles:lance_par(nom_complet)')
@@ -110,52 +94,35 @@
                     document.getElementById('val-num-lancement').innerText = suiviData.num_lancement || '-';
                     document.getElementById('val-client').innerText = suiviData.client || '-';
                     document.getElementById('val-itineraire').innerText = suiviData.itineraire || '-';
+                    if (suiviData.user_profiles) document.getElementById('lancer-info').innerText = "Lancé par: " + suiviData.user_profiles.nom_complet;
                     
-                    if (suiviData.user_profiles) {
-                        document.getElementById('lancer-info').innerText = "Lancé par: " + suiviData.user_profiles.nom_complet;
-                    }
-
-                    // 2. توليد الـ QR Code
-                    const qrText = `Cmd: ${cmd}\nLancement: ${suiviData.num_lancement}\nClient: ${suiviData.client}\nDest: ${suiviData.itineraire}`;
-                    QRCode.toCanvas(document.getElementById('qrcode'), qrText, { width: 100, margin: 1 });
+                    // توليد الـ QR Code
+                    QRCode.toCanvas(document.getElementById('qrcode'), `Cmd: ${cmd} | Lancement: ${suiviData.num_lancement}`, { width: 64, margin: 0 });
                 }
 
-                // 3. جلب تفاصيل المنتجات
+                // جلب تفاصيل المنتجات
                 const [resExcel, resPieces] = await Promise.all([
                     supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
                     supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
                 ]);
 
-                const combined = (resExcel.data || []).map(item => ({
-                    ...item,
-                    nombre_pieces: (resPieces.data || []).find(p => p.article === item.article)?.nombre_pieces || 0
+                const combined = (resExcel.data || []).map(item => ({ 
+                    ...item, 
+                    nombre_pieces: (resPieces.data || []).find(p => p.article === item.article)?.nombre_pieces || 0 
                 }));
 
                 const tbody = document.getElementById('table-body');
                 let totalKg = 0, totalPieces = 0;
-                
                 combined.forEach(item => {
                     const kg = Number(item.quantite_commandee || 0);
                     const pieces = Number(item.nombre_pieces || 0);
-                    totalKg += kg;
-                    totalPieces += pieces;
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="product-name">${item.designation_article}</td>
-                            <td>${kg.toFixed(2)}</td>
-                            <td>${pieces}</td>
-                            <td></td><td></td><td></td>
-                        </tr>`;
+                    totalKg += kg; totalPieces += pieces;
+                    tbody.innerHTML += `<tr><td class="product-name">${item.designation_article}</td><td>${kg.toFixed(2)}</td><td>${pieces}</td><td></td><td></td><td></td></tr>`;
                 });
-
                 document.getElementById('total-kg').innerText = totalKg.toFixed(2);
                 document.getElementById('total-pieces').innerText = totalPieces;
-            } catch (err) {
-                console.error("Erreur:", err);
-            }
+            } catch (err) { console.error("Erreur:", err); }
         }
-        
         if (cmd) loadData();
     </script>
 </body>
