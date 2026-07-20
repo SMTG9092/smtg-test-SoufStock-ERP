@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bon de Préparation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+    <div id="bon-content" class="border-2 border-black p-6 max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center border-b-2 border-black mb-6">BON DE PRÉPARATION</h1>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
+            <p><strong>Client:</strong> <span id="val-client"></span></p>
+            <p><strong>Lancé par:</strong> <span id="val-user"></span></p>
+            <p><strong>Date / Heure:</strong> <span id="val-date"></span></p>
+        </div>
+        <!-- هنا غاتجي الطبلة ديال السلعة اللي غاتعمر بالـ JS -->
+        <table class="w-full border-collapse border border-black mb-10">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border border-black p-2">Article</th>
+                    <th class="border border-black p-2">Qté</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+    <button onclick="window.print()" class="no-print mt-4 bg-blue-600 text-white px-4 py-2">Imprimer</button>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('val-cmd').innerText = params.get('cmd');
+        document.getElementById('val-client').innerText = params.get('client');
+        document.getElementById('val-user').innerText = params.get('user');
+        document.getElementById('val-date').innerText = new Date().toLocaleString();
+    </script>
+</body>
+</html>
