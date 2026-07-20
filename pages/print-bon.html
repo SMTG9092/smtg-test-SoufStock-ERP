@@ -6,31 +6,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
-        @media print {
-            @page { size: A4 landscape; margin: 5mm; }
-            body { background: white; }
-            .no-print { display: none; }
-        }
+        @media print { @page { size: A4 landscape; margin: 5mm; } body { background: white; } .no-print { display: none; } }
         body { background-color: #f3f4f6; margin: 0; padding: 10px; }
-        #bon-content { 
-            width: 280mm; height: 190mm; margin: 0 auto; 
-            background: white; padding: 5mm; display: flex; 
-            flex-direction: column; border: 1px solid #000; box-sizing: border-box; 
-        }
+        #bon-content { width: 280mm; height: 190mm; margin: 0 auto; background: white; padding: 5mm; display: flex; flex-direction: column; border: 1px solid #000; box-sizing: border-box; }
         .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 5px; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background-color: #e5e7eb; font-weight: bold; font-size: 10px; padding: 4px; border: 1px solid black; }
         td { border: 1px solid black; padding: 12px 2px; text-align: center; font-size: 12px; }
-        
-        /* توزيع عرض الأعمدة الجديد */
-        .col-article { width: 40%; } /* اسم المنتج */
-        .col-kg { width: 10%; }      /* KG */
-        .col-pieces { width: 10%; }   /* NB Pieces - مصغرة */
-        .col-lot { width: 25%; }     /* Lot - موسعة جداً للكتابة */
-        .col-prep { width: 10%; }     /* QTÉ PRÉPARÉE - مصغرة */
-        .col-ctrl { width: 5%; }     /* Control - مصغرة */
-        
-        .product-name { font-weight: bold; font-size: 12px; text-align: left; overflow: hidden; }
+        .col-article { width: 40%; } .col-kg { width: 10%; } .col-pieces { width: 10%; } .col-lot { width: 25%; } .col-prep { width: 10%; } .col-ctrl { width: 5%; }
+        .product-name { font-weight: bold; font-size: 12px; text-align: left; overflow: hidden; padding-left: 5px; }
     </style>
 </head>
 <body>
@@ -40,16 +24,19 @@
             <canvas id="qrcode" class="w-16 h-16"></canvas>
         </div>
 
-        <div class="flex justify-between mb-2 text-sm">
-            <div>
+        <div class="flex justify-between mb-2">
+            <div class="text-sm">
                 <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
                 <p><strong>Client:</strong> <span id="val-client"></span></p>
                 <p><strong>N° Lancement:</strong> <span id="val-num-lancement" class="font-bold text-blue-700"></span></p>
                 <p><strong>Tournée:</strong> <span id="val-itineraire"></span></p>
             </div>
-            <div class="text-right">
-                <p><strong>Date:</strong> <span id="val-date"></span></p>
-                <p id="lancer-info" class="text-xs italic font-bold"></p>
+            <!-- المعلومات الجديدة هنا -->
+            <div class="text-right text-sm">
+                <p><strong>Création:</strong> <span id="val-date-creation"></span></p>
+                <p><strong>Lancement:</strong> <span id="val-date-lancement"></span></p>
+                <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
+                <p id="lancer-info" class="text-xs italic font-bold mt-1"></p>
             </div>
         </div>
 
@@ -57,12 +44,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th class="col-article">Article</th>
-                        <th class="col-kg">KG</th>
-                        <th class="col-pieces">Nb</th>
-                        <th class="col-lot">Lot</th>
-                        <th class="col-prep">QTÉ Prép.</th>
-                        <th class="col-ctrl">Control</th>
+                        <th class="col-article">Article</th><th class="col-kg">KG</th><th class="col-pieces">Nb</th>
+                        <th class="col-lot">Lot</th><th class="col-prep">QTÉ Prép.</th><th class="col-ctrl">Control</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -90,18 +73,31 @@
         const params = new URLSearchParams(window.location.search);
         const cmd = params.get('cmd');
         document.getElementById('val-cmd').innerText = cmd;
-        document.getElementById('val-date').innerText = new Date().toLocaleDateString();
 
         async function loadData() {
             try {
-                const { data: suiviData } = await supabase.from('suivi_commandes_lancer').select('num_lancement, client, itineraire, user_profiles:lance_par(nom_complet)').eq('document_vente', cmd).single();
+                // تأكد أن أسماء الأعمدة (created_at, date_lancement, date_livraison) مطابقة لما لديك في قاعدة البيانات
+                const { data: suiviData } = await supabase
+                    .from('suivi_commandes_lancer')
+                    .select('num_lancement, client, itineraire, created_at, date_lancement, date_livraison, user_profiles:lance_par(nom_complet)')
+                    .eq('document_vente', cmd)
+                    .single();
+
                 if (suiviData) {
                     document.getElementById('val-num-lancement').innerText = suiviData.num_lancement || '-';
                     document.getElementById('val-client').innerText = suiviData.client || '-';
                     document.getElementById('val-itineraire').innerText = suiviData.itineraire || '-';
+                    
+                    // عرض التواريخ
+                    document.getElementById('val-date-creation').innerText = suiviData.created_at ? new Date(suiviData.created_at).toLocaleDateString() : '-';
+                    document.getElementById('val-date-lancement').innerText = suiviData.date_lancement ? new Date(suiviData.date_lancement).toLocaleDateString() : '-';
+                    document.getElementById('val-date-livraison').innerText = suiviData.date_livraison ? new Date(suiviData.date_livraison).toLocaleDateString() : '-';
+                    
                     if (suiviData.user_profiles) document.getElementById('lancer-info').innerText = "Lancé par: " + suiviData.user_profiles.nom_complet;
                     QRCode.toCanvas(document.getElementById('qrcode'), `Cmd: ${cmd} | Lancement: ${suiviData.num_lancement}`, { width: 64, margin: 0 });
                 }
+                
+                // ... باقي كود جلب المنتجات يبقى كما هو ...
                 const [resExcel, resPieces] = await Promise.all([
                     supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
                     supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
