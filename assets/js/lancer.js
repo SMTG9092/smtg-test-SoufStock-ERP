@@ -119,17 +119,16 @@ async function handleLancement(e) {
         return;
     }
 
-    // تحديد النوع: P-T للتورني، P-C للعملاء العاديين
     const type = routeInput.value.toLowerCase().includes('tournée') ? 'P-T' : 'P-C';
 
     try {
         if (Loader) Loader.show();
 
-        // 1. توليد كود الإطلاق التلقائي: TYPE-YYMM-001
+        // 1. توليد كود الإطلاق التلقائي: TYPE-MMDD-001
         const now = new Date();
-        const yy = String(now.getFullYear()).slice(-2);
         const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const prefix = `${type}-${yy}${mm}`;
+        const dd = String(now.getDate()).padStart(2, '0');
+        const prefix = `${type}-${mm}${dd}`;
 
         const { data: lastRecord } = await supabase
             .from("suivi_commandes_lancer")
@@ -146,7 +145,7 @@ async function handleLancement(e) {
         }
         const newNumLancement = `${prefix}-${String(sequence).padStart(3, '0')}`;
 
-        // 2. تسجيل الإطلاق في جدول المتابعة
+        // 2. تسجيل الإطلاق في جدول المتابعة (بـ الحالة LANCEE والتواريخ)
         const { error: insErr } = await supabase
             .from("suivi_commandes_lancer")
             .insert({
@@ -155,7 +154,9 @@ async function handleLancement(e) {
                 document_vente: cmd.document_vente,
                 client: cmd.nom_receptionnaire, 
                 itineraire: routeInput.value.trim(),
-                statut: "EN_PICKING",
+                statut: "LANCEE", 
+                date_creation: cmd.date_creation,
+                date_livraison: cmd.date_livraison,
                 lance_par: currentUser.id,
                 date_lancement: new Date().toISOString(),
                 num_lancement: newNumLancement
