@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Bon de Préparation</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- مكتبة QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
         @media print {
             @page { size: A4 landscape; margin: 5mm; }
@@ -23,22 +25,19 @@
             box-sizing: border-box;
         }
         .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; table-layout: auto; }
+        table { width: 100%; border-collapse: collapse; }
         th { background-color: #e5e7eb; font-weight: bold; font-size: 12px; padding: 6px; border: 1px solid black; }
         td { border: 1px solid black; padding: 8px; text-align: center; font-size: 14px; }
         .col-article { width: 45%; } 
-        .col-qte { width: 10%; min-width: 60px; }    
-        .col-lot { width: 15%; }     
-        .col-info { width: 12%; }   
-        .col-ctrl { width: 8%; }     
-        .product-name { font-weight: bold; font-size: 14px; line-height: 1.2; text-align: left; }
+        .product-name { font-weight: bold; font-size: 14px; text-align: left; }
     </style>
 </head>
 <body>
 
     <div id="bon-content">
-        <div class="border-2 border-black p-2 mb-2">
-            <h1 class="text-2xl font-bold text-center">BON DE PRÉPARATION</h1>
+        <div class="border-2 border-black p-2 mb-2 flex justify-between items-center">
+            <h1 class="text-2xl font-bold uppercase">Bon de Préparation</h1>
+            <canvas id="qrcode" class="w-20 h-20"></canvas>
         </div>
 
         <div class="flex justify-between mb-2 text-sm">
@@ -46,6 +45,7 @@
                 <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
                 <p><strong>Client:</strong> <span id="val-client"></span></p>
                 <p><strong>N° Lancement:</strong> <span id="val-num-lancement" class="font-bold text-blue-700"></span></p>
+                <p><strong>Itinéraire:</strong> <span id="val-itineraire"></span></p>
             </div>
             <div class="text-right">
                 <p><strong>Date:</strong> <span id="val-date"></span></p>
@@ -58,11 +58,11 @@
                 <thead>
                     <tr>
                         <th class="col-article">Article</th>
-                        <th class="col-qte">Qté KG</th>
-                        <th class="col-qte">NB Pieces</th>
-                        <th class="col-lot">Lot</th>
-                        <th class="col-info">QTÉ PRÉPARÉE</th>
-                        <th class="col-ctrl">Control</th>
+                        <th>Qté KG</th>
+                        <th>NB Pieces</th>
+                        <th>Lot</th>
+                        <th>QTÉ PRÉPARÉE</th>
+                        <th>Control</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -99,22 +99,28 @@
 
         async function loadData() {
             try {
-                // 1. جلب البيانات من جدول المتابعة (الكود، اسم العميل، والمسؤول)
+                // 1. جلب البيانات من جدول المتابعة
                 const { data: suiviData } = await supabase
                     .from('suivi_commandes_lancer')
-                    .select('num_lancement, client, user_profiles:lance_par(nom_complet)')
+                    .select('num_lancement, client, itineraire, user_profiles:lance_par(nom_complet)')
                     .eq('document_vente', cmd)
                     .single();
 
                 if (suiviData) {
                     document.getElementById('val-num-lancement').innerText = suiviData.num_lancement || '-';
                     document.getElementById('val-client').innerText = suiviData.client || '-';
+                    document.getElementById('val-itineraire').innerText = suiviData.itineraire || '-';
+                    
                     if (suiviData.user_profiles) {
                         document.getElementById('lancer-info').innerText = "Lancé par: " + suiviData.user_profiles.nom_complet;
                     }
+
+                    // 2. توليد الـ QR Code
+                    const qrText = `Cmd: ${cmd}\nLancement: ${suiviData.num_lancement}\nClient: ${suiviData.client}\nDest: ${suiviData.itineraire}`;
+                    QRCode.toCanvas(document.getElementById('qrcode'), qrText, { width: 100, margin: 1 });
                 }
 
-                // 2. جلب تفاصيل الطلبية
+                // 3. جلب تفاصيل المنتجات
                 const [resExcel, resPieces] = await Promise.all([
                     supabase.from('commandes_excel').select('*').eq('document_vente', cmd),
                     supabase.from('commandes_clients_pieces').select('article, nombre_pieces').eq('document_vente', cmd)
@@ -139,9 +145,7 @@
                             <td class="product-name">${item.designation_article}</td>
                             <td>${kg.toFixed(2)}</td>
                             <td>${pieces}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td></td><td></td><td></td>
                         </tr>`;
                 });
 
