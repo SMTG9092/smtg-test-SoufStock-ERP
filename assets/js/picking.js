@@ -28,7 +28,9 @@ const els = {
     btnSearch: document.getElementById("btnSearch"),
     btnScanner: document.getElementById("btnScanner"),
     btnSave: document.getElementById("btnSave"),
+    btnSaveFooter: document.getElementById("btnSaveFooter"),
     btnValidate: document.getElementById("btnValidate"),
+    btnValidateFooter: document.getElementById("btnValidateFooter"),
     clientName: document.getElementById("clientName"),
     dateCreation: document.getElementById("dateCreation"),
     dateLivraison: document.getElementById("dateLivraison"),
@@ -42,8 +44,6 @@ const els = {
     totalQuantity: document.getElementById("totalQuantity"),
     preparedQuantity: document.getElementById("preparedQuantity"),
     btnRefresh: document.getElementById("btnRefresh"),
-    btnSaveFooter: document.getElementById("btnSaveFooter"),
-    btnValidateFooter: document.getElementById("btnValidateFooter"),
     confirmModal: document.getElementById("confirmModal"),
     confirmMessage: document.getElementById("confirmMessage"),
     confirmYes: document.getElementById("confirmYes"),
@@ -294,6 +294,7 @@ async function buildPickingTable(lignes) {
                 lastRowOfGroup = lastRowOfGroup.nextElementSibling;
             }
             lastRowOfGroup.insertAdjacentElement("afterend", createLotRow(index));
+            updateRowState(lastRowOfGroup.nextElementSibling, index);
             refreshValidationState();
         });
 
@@ -326,9 +327,18 @@ function createLotRow(articleIndex, lotVal = "", qtyVal = "") {
     `;
 
     trLot.querySelector(".btn-remove").addEventListener("click", () => {
+        const nextRows = [];
+        let sib = trLot.nextElementSibling;
+        while (sib && sib.classList.contains("lot-item-row")) {
+            nextRows.push(sib);
+            sib = sib.nextElementSibling;
+        }
         trLot.remove();
         calculatePrepared(articleIndex);
         calculateSummary();
+        const mainRow = document.getElementById(`group_${articleIndex}`);
+        if (mainRow) updateRowState(mainRow, articleIndex);
+        nextRows.forEach(r => updateRowState(r, articleIndex));
         refreshValidationState();
     });
 
@@ -347,7 +357,6 @@ function setRowInvalid(row) {
         row.classList.add("row-invalid");
         const qtyInput = row.querySelector(".qty-input");
         if (qtyInput) qtyInput.classList.add("is-invalid");
-        row.style.setProperty("background-color", "rgba(220, 53, 69, 0.2)", "important");
         Toast.error("Stock insuffisant.");
     }
 }
@@ -357,7 +366,81 @@ function clearRowInvalid(row) {
         row.classList.remove("row-invalid");
         const qtyInput = row.querySelector(".qty-input");
         if (qtyInput) qtyInput.classList.remove("is-invalid");
-        row.style.backgroundColor = "";
+    }
+}
+
+function updateRowState(row, articleIndex) {
+    if (!row || articleIndex === undefined || !articles[articleIndex]) return;
+
+    const lotInput = row.querySelector(".lot-input");
+    const qtyInput = row.querySelector(".qty-input");
+    if (!lotInput || !qtyInput) return;
+
+    /* ===========================================
+       1) Etat de cette ligne uniquement
+    =========================================== */
+    const stockDisp = Number(lotInput.dataset.stock || 0);
+    const qtyPrep   = Number(qtyInput.value || 0);
+
+    const isStockError = lotInput.value.trim() !== "" && qtyPrep > stockDisp;
+
+    if (isStockError) {
+        row.classList.add("row-invalid");
+        row.classList.remove("row-success", "row-warning");
+        qtyInput.classList.add("is-invalid");
+    } else {
+        row.classList.remove("row-invalid");
+        qtyInput.classList.remove("is-invalid");
+    }
+
+    /* ===========================================
+       Les lignes lot ne deviennent jamais vertes ou jaunes
+    =========================================== */
+    if (row.classList.contains("lot-item-row")) {
+        row.classList.remove("row-success", "row-warning");
+    }
+
+    /* ===========================================
+       2) Etat de l'article principal
+    =========================================== */
+    const mainRow = document.getElementById(`group_${articleIndex}`);
+    if (!mainRow) return;
+
+    let totalPrepared = 0;
+    let groupHasError = false;
+    let current = mainRow;
+
+    while (current) {
+        const q = current.querySelector(".qty-input");
+        if (q) {
+            totalPrepared += Number(q.value || 0);
+        }
+        if (current.classList.contains("row-invalid")) {
+            groupHasError = true;
+        }
+        current = current.nextElementSibling;
+        if (!current || !current.classList.contains("lot-item-row")) {
+            break;
+        }
+    }
+
+    const qtyCommande = Number(articles[articleIndex].quantite || 0);
+
+    /* Nettoyage */
+    mainRow.classList.remove("row-success", "row-warning");
+
+    /* Si un lot est rouge => jamais vert ou jaune */
+    if (groupHasError) {
+        return;
+    }
+
+    /* Article complètement préparé */
+    if (totalPrepared === qtyCommande) {
+        mainRow.classList.add("row-success");
+    }
+    /* Préparé > Commandé */
+    else if (totalPrepared > qtyCommande) {
+        mainRow.classList.add("row-warning");
     }
 }
 
@@ -418,6 +501,7 @@ function checkRowStock(row, articleIndex) {
     } else {
         clearRowInvalid(row);
     }
+    updateRowState(row, articleIndex);
     refreshValidationState();
 }
 
@@ -461,6 +545,7 @@ function runFullStockValidation() {
                 } else {
                     clearRowInvalid(row);
                 }
+                updateRowState(row, i);
             }
             row = row.nextElementSibling;
             if (!row || !row.classList.contains("lot-item-row")) break;
@@ -476,8 +561,10 @@ function calculatePrepared(articleIndex) {
 
     let total = 0;
     let row = mainRow;
+    const groupRows = [];
 
     while (row) {
+        groupRows.push(row);
         const qtyInput = row.querySelector(".qty-input");
         if (qtyInput) {
             total += Number(qtyInput.value || 0);
@@ -493,15 +580,7 @@ function calculatePrepared(articleIndex) {
         span.textContent = total.toFixed(3);
     }
 
-    if (articles[articleIndex]) {
-        const isStockInvalid = mainRow.classList.contains("row-invalid");
-        if (!isStockInvalid) {
-            mainRow.style.backgroundColor =
-                total > articles[articleIndex].quantite
-                    ? "rgba(220,53,69,.08)"
-                    : "";
-        }
-    }
+    groupRows.forEach(r => updateRowState(r, articleIndex));
 }
 
 function calculateSummary() {
