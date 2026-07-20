@@ -25,17 +25,12 @@
     </div>
 
     <div class="card mb-6 flex gap-4 items-center">
-        <input type="date" id="date-filter" class="border border-gray-300 rounded px-3 py-2 text-sm">
+        <!-- حقل التاريخ مقفل للتحكم التلقائي -->
+        <input type="text" id="date-filter" disabled class="border border-gray-300 rounded px-3 py-2 text-sm bg-gray-100">
         <select id="mode-selector" class="border border-gray-300 rounded px-3 py-2 text-sm">
             <option value="tournee">Par Tournée</option>
             <option value="commande">Par Commande</option>
         </select>
-    </div>
-
-    <div class="card mb-6 flex gap-8 text-xs font-bold text-gray-600">
-        <span>Articles distincts: <span id="stats-art">0</span></span>
-        <span>Total Commandé: <span id="stats-kg">0</span> KG</span>
-        <span>Total Préparé: <span id="stats-prep">0</span> KG</span>
     </div>
 
     <div class="card">
