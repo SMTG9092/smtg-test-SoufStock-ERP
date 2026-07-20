@@ -1,57 +1,30 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commandes - SoufStock ERP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-gray-100">
+<!-- dashboard.html -->
+<div class="p-6">
+    <!-- العنوان -->
+    <h2 class="text-2xl font-bold text-white mb-6">Centre de Commandes</h2>
 
-    <!-- Navigation -->
-    <nav class="bg-white p-4 shadow flex justify-between items-center">
-        <div>
-            <a href="dashboard.html" class="text-blue-600 font-bold hover:underline">Dashboard</a>
-            <span class="mx-2 text-gray-400">/</span>
-            <span class="font-bold text-gray-700">Gestion des Commandes</span>
-        </div>
-        <div class="text-sm text-gray-500 italic">SoufStock Enterprise ERP/WMS</div>
-    </nav>
+    <!-- Actions Rapides (مركز التحكم) -->
+    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
+        <h3 class="text-lg font-semibold text-gray-300 mb-4">Navigation Rapide</h3>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- زر الطلبيات (هذا هو الأهم) -->
+            <a href="commandes.html" class="bg-indigo-600 hover:bg-indigo-700 p-6 rounded-lg flex flex-col items-center transition">
+                <i class="fa-solid fa-list-check text-2xl mb-2"></i>
+                <span class="font-bold">Gestion Commandes</span>
+            </a>
+            
+            <!-- زر الإطلاق (Lancement) -->
+            <a href="pages/lancer.html" class="bg-green-600 hover:bg-green-700 p-6 rounded-lg flex flex-col items-center transition">
+                <i class="fa-solid fa-rocket text-2xl mb-2"></i>
+                <span class="font-bold">Lancement</span>
+            </a>
 
-    <main class="p-6">
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Liste des Commandes</h2>
-            <a href="pages/lancer.html" class="bg-indigo-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-indigo-700 transition">
-                <i class="fa-solid fa-rocket mr-2"></i> Aller au Lancement
+            <!-- بقية الأزرار... -->
+            <a href="stock.html" class="bg-gray-700 hover:bg-gray-600 p-6 rounded-lg flex flex-col items-center transition">
+                <i class="fa-solid fa-warehouse text-2xl mb-2"></i>
+                <span class="font-bold">Stock</span>
             </a>
         </div>
-        
-        <!-- Table Card -->
-        <div class="bg-white rounded shadow p-4">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 text-gray-600 uppercase text-xs">
-                        <th class="p-3 border-b">Doc Vente</th>
-                        <th class="p-3 border-b">Client</th>
-                        <th class="p-3 border-b">Date Livraison</th>
-                        <th class="p-3 border-b">Statut</th>
-                    </tr>
-                </thead>
-                <tbody id="commandes-table-body" class="text-sm text-gray-700">
-                    <!-- البيانات سيتم تحميلها بواسطة JavaScript -->
-                    <tr>
-                        <td colspan="4" class="p-6 text-center text-gray-400">
-                            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement des données...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
-
-    <!-- الربط مع ملف المنطق الخاص بصفحة الطلبيات -->
-    <script type="module" src="assets/js/commandes.js"></script>
-</body>
-</html>
+    </div>
+</div>
