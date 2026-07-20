@@ -250,8 +250,8 @@ async function buildPickingTable(lignes) {
             if (stockCache.has(cacheKey)) {
                 lotInp.dataset.stock = stockCache.get(cacheKey);
             } else {
-                const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", art.article).eq("lot", firstLot).gt("stock_disponible", 0).maybeSingle();
-                const stockVal = st ? st.stock_disponible : 0;
+                const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", art.article).eq("lot", firstLot);
+                const stockVal = st ? st.reduce((sum, item) => sum + Number(item.stock_disponible || 0), 0) : 0;
                 stockCache.set(cacheKey, stockVal);
                 lotInp.dataset.stock = stockVal;
             }
@@ -273,8 +273,8 @@ async function buildPickingTable(lignes) {
                     if (stockCache.has(cacheKey)) {
                         subLotInp.dataset.stock = stockCache.get(cacheKey);
                     } else {
-                        const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", art.article).eq("lot", artDetails[j].lot).gt("stock_disponible", 0).maybeSingle();
-                        const stockVal = st ? st.stock_disponible : 0;
+                        const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", art.article).eq("lot", artDetails[j].lot);
+                        const stockVal = st ? st.reduce((sum, item) => sum + Number(item.stock_disponible || 0), 0) : 0;
                         stockCache.set(cacheKey, stockVal);
                         subLotInp.dataset.stock = stockVal;
                     }
@@ -374,16 +374,10 @@ function clearRowInvalid(row) {
 function updateRowState(row, articleIndex) {
     if (!row || articleIndex === undefined || !articles[articleIndex]) return;
 
-    /* ===========================================
-       Les lignes lot ne deviennent jamais vertes ou jaunes
-    =========================================== */
     if (row.classList.contains("lot-item-row")) {
         row.classList.remove("row-success", "row-warning");
     }
 
-    /* ===========================================
-       2) Etat de l'article principal
-    =========================================== */
     const mainRow = document.getElementById(`group_${articleIndex}`);
     if (!mainRow) return;
 
@@ -407,21 +401,17 @@ function updateRowState(row, articleIndex) {
 
     const qtyCommande = Number(articles[articleIndex].quantite || 0);
 
-    /* Nettoyage */
     mainRow.classList.remove("row-success", "row-warning");
 
-    /* Si un lot est rouge => jamais vert ou jaune */
     if (groupHasError) {
         return;
     }
 
     const EPSILON = 0.001;
 
-    /* Article complètement préparé */
     if (Math.abs(totalPrepared - qtyCommande) <= EPSILON) {
         mainRow.classList.add("row-success");
     }
-    /* Préparé > Commandé */
     else if (totalPrepared > qtyCommande + EPSILON) {
         mainRow.classList.add("row-warning");
     }
@@ -432,14 +422,29 @@ function setupRowValidationListeners(row, articleIndex) {
     const qtyInput = row.querySelector(".qty-input");
 
     const blockKeys = (e) => {
-        if (row.classList.contains("row-invalid") && (e.key === "Tab" || e.key === "Enter")) {
-            e.preventDefault();
-            e.stopPropagation();
+        if (row.classList.contains("row-invalid")) {
+            if (e.key === "Tab" || e.key === "Enter" || e.key === "Escape") {
+                e.preventDefault();
+                e.stopPropagation();
+                Toast.warning("Veuillez corriger la quantité ou le Lot avant de changer de champ.");
+            }
         }
     };
 
     lotInput.addEventListener("keydown", blockKeys);
     qtyInput.addEventListener("keydown", blockKeys);
+
+    const enforceFocus = (e) => {
+        if (row.classList.contains("row-invalid")) {
+            e.preventDefault();
+            setTimeout(() => {
+                qtyInput.focus();
+            }, 10);
+        }
+    };
+
+    lotInput.addEventListener("blur", enforceFocus);
+    qtyInput.addEventListener("blur", enforceFocus);
 
     const handleLotChange = async () => {
         const lotVal = lotInput.value.trim();
@@ -449,8 +454,8 @@ function setupRowValidationListeners(row, articleIndex) {
             if (stockCache.has(cacheKey)) {
                 lotInput.dataset.stock = stockCache.get(cacheKey);
             } else {
-                const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", artVal).eq("lot", lotVal).gt("stock_disponible", 0).maybeSingle();
-                const stockVal = st ? st.stock_disponible : 0;
+                const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", artVal).eq("lot", lotVal);
+                const stockVal = st ? st.reduce((sum, item) => sum + Number(item.stock_disponible || 0), 0) : 0;
                 stockCache.set(cacheKey, stockVal);
                 lotInput.dataset.stock = stockVal;
             }
@@ -462,7 +467,6 @@ function setupRowValidationListeners(row, articleIndex) {
 
     lotInput.addEventListener("input", handleLotChange);
     lotInput.addEventListener("change", handleLotChange);
-    lotInput.addEventListener("blur", handleLotChange);
 
     qtyInput.addEventListener("input", () => {
         checkRowStock(row, articleIndex);
@@ -643,10 +647,7 @@ async function validatePicking() {
         els.confirmMessage.textContent = "Voulez-vous valider définitivement ce picking ?";
         els.confirmModal.classList.add("show"); els.confirmModal.style.display = "flex";
         
-        // استبدال الزر بنسخة نظيفة لحذف المستمعين السابقين
         els.confirmYes.replaceWith(els.confirmYes.cloneNode(true));
-        
-        // تحديث المرجع داخل كائن els لضمان الإشارة دائماً للعنصر النشط في الـ DOM
         els.confirmYes = document.getElementById("confirmYes");
         
         els.confirmYes.addEventListener("click", async () => {
@@ -679,56 +680,37 @@ async function executeFinalValidation() {
 ============================================================ */
 
 function bindLotAutocomplete(input, article) {
-
     if (!input) return;
 
     input.addEventListener("input", async () => {
-
         const value = input.value.trim();
-
         if (value.length === 0) {
             hideLotDropdown();
             return;
         }
-
         activeLotInput = input;
         activeArticle = article;
-
         await searchLots(article, value);
-
     });
 
     input.addEventListener("focus", async () => {
-
         const value = input.value.trim();
-
         if (value.length === 0) return;
-
         activeLotInput = input;
         activeArticle = article;
-
         await searchLots(article, value);
-
     });
 
     input.addEventListener("blur", () => {
-
         setTimeout(() => {
             hideLotDropdown();
         }, 200);
-
     });
-
 }
 
 async function searchLots(article, text) {
-
     try {
-
         console.log("========== SEARCH LOT ==========");
-        console.log("Article :", article);
-        console.log("Recherche :", text);
-
         const response = await supabase
             .from("stock")
             .select("id, article, lot, stock_disponible")
@@ -737,8 +719,6 @@ async function searchLots(article, text) {
             .ilike("lot", `%${text}%`)
             .order("lot")
             .limit(10);
-
-        console.log("Réponse :", response);
 
         if (response.error) {
             console.error("Erreur Supabase :", response.error);
@@ -751,82 +731,57 @@ async function searchLots(article, text) {
             stockCache.set(`${article}|${item.lot}`, item.stock_disponible);
         });
 
-        console.table(responseData);
-
         showLotDropdown(responseData);
-
     } catch (err) {
-
         console.error("Exception :", err);
         hideLotDropdown();
-
     }
-
 }
+
 function showLotDropdown(lots) {
-
     hideLotDropdown();
-
     if (!activeLotInput) return;
 
     const wrapper = activeLotInput.parentElement;
-
     const dropdown = document.createElement("div");
     dropdown.className = "lot-dropdown show";
 
     if (!lots.length) {
-
-        dropdown.innerHTML =
-            `<div class="lot-empty">Aucun lot trouvé</div>`;
-
+        dropdown.innerHTML = `<div class="lot-empty">Aucun lot trouvé</div>`;
     } else {
-
         lots.forEach(item => {
-
             const div = document.createElement("div");
-
             div.className = "lot-item";
-
             div.textContent = item.lot;
-
             div.addEventListener("mousedown", () => {
-             selectLot(item);
-             });
-
+                selectLot(item);
+            });
             dropdown.appendChild(div);
-
         });
-
     }
-
     wrapper.appendChild(dropdown);
-
     activeDropdown = dropdown;
     activeIndex = -1;
-
 }
 
 function hideLotDropdown() {
-
     if (activeDropdown) {
-
         activeDropdown.remove();
-
         activeDropdown = null;
-
     }
-
     activeIndex = -1;
-
 }
 
-function selectLot(item) {
-
+async function selectLot(item) {
     if (!activeLotInput) return;
 
     activeLotInput.value = item.lot;
 
-    activeLotInput.dataset.stock = item.stock_disponible;
+    const { data: st } = await supabase.from("stock").select("stock_disponible").eq("article", item.article).eq("lot", item.lot);
+    const totalStock = st ? st.reduce((sum, i) => sum + Number(i.stock_disponible || 0), 0) : 0;
+    
+    activeLotInput.dataset.stock = totalStock;
+    stockCache.set(`${item.article}|${item.lot}`, totalStock);
 
     const tr = activeLotInput.closest("tr");
     if (tr) {
@@ -847,7 +802,5 @@ function selectLot(item) {
     }
 
     hideLotDropdown();
-
     activeLotInput.focus();
-
 }
