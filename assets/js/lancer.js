@@ -1,188 +1,82 @@
-/**
- * ============================================================
- * SoufStock Enterprise ERP/WMS
- * File : js/lancer.js
- * ============================================================
- */
-
-"use strict";
-
 import supabase, { getUser } from "./core/supabase.js";
 import { Loader, Toast } from "./core/utils.js";
 
-let currentUser = null;
-let commandesEnAttente = [];
-
 const els = {
-    userInfo: document.getElementById("user-info"),
-    btnRefresh: document.getElementById("btn-refresh"),
-    tableBody: document.getElementById("commandes-table-body"),
+    mode: document.getElementById("mode-selector"),
+    tbody: document.getElementById("commandes-table-body"),
+    head: document.getElementById("table-head"),
+    btnValider: document.getElementById("btn-valider-tout"),
+    btnRefresh: document.getElementById("btn-refresh")
 };
 
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-    try {
-        if (Loader && typeof Loader.show === "function") Loader.show();
-        
-        currentUser = await getUser();
-        if (!currentUser) {
-            Toast.error("Utilisateur non connecté.");
-            return;
-        }
-        
-        if (els.userInfo) {
-            els.userInfo.textContent = `Session: ${currentUser.nom || currentUser.email || 'Logistique'}`;
-        }
-
-        bindEvents();
-        await fetchCommandesEnAttente();
-    } catch (error) {
-        console.error("Init Lancement :", error);
-        Toast.error("Erreur lors de l'initialisation.");
-    } finally {
-        if (Loader && typeof Loader.hide === "function") Loader.hide();
-    }
+    bindEvents();
+    loadDashboard();
 }
 
 function bindEvents() {
-    els.btnRefresh?.addEventListener("click", fetchCommandesEnAttente);
+    els.btnRefresh.addEventListener("click", loadDashboard);
+    els.mode.addEventListener("change", loadDashboard);
+    els.btnValider.addEventListener("click", validerTout);
 }
 
-async function fetchCommandesEnAttente() {
-    try {
-        els.tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</td></tr>`;
-        
-        const { data: commandes, error: errCmd } = await supabase
-            .from("commandes_excel")
-            .select("id, document_vente, nom_receptionnaire, date_creation, date_livraison, itineraire, historique_import_id")
-            .eq("statut", "IMPORTEE")
-            .order("date_creation", { ascending: false });
-
-        if (errCmd) throw errCmd;
-
-        if (!commandes || commandes.length === 0) {
-            els.tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500">Aucune commande en attente.</td></tr>`;
-            return;
-        }
-
-        const uniqueMap = new Map();
-        commandesEnAttente = [];
-        for (const item of commandes) {
-            if (!uniqueMap.has(item.document_vente)) {
-                uniqueMap.set(item.document_vente, true);
-                commandesEnAttente.push(item);
-            }
-        }
-
-        renderTable(commandesEnAttente);
-    } catch (error) {
-        console.error("Fetch Error :", error);
-        Toast.error("Erreur lors du chargement.");
-    }
-}
-
-function renderTable(commandes) {
-    els.tableBody.innerHTML = "";
-    commandes.forEach((cmd, index) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td class="py-3 px-4 font-semibold text-blue-600">${cmd.document_vente}</td>
-            <td class="py-3 px-4">${cmd.nom_receptionnaire || '-'}</td>
-            <td class="py-3 px-4 text-gray-500">${formatDate(cmd.date_creation)}</td>
-            <td class="py-3 px-4 text-gray-500">${formatDate(cmd.date_livraison)}</td>
-            <td class="py-3 px-4">
-                <input type="text" id="route-${cmd.document_vente}" value="${cmd.itineraire || ''}" 
-                    class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
-            </td>
-            <td class="py-3 px-4 text-center">
-                <button data-index="${index}" class="btn-lancer bg-green-600 hover:bg-green-700 text-white font-medium py-1 px-4 rounded text-xs transition">
-                    <i class="fa-solid fa-paper-plane mr-1"></i> Lancer
-                </button>
-            </td>
-        `;
-        els.tableBody.appendChild(tr);
-    });
-
-    els.tableBody.querySelectorAll(".btn-lancer").forEach(btn => {
-        btn.addEventListener("click", handleLancement);
-    });
-}
-
-async function handleLancement(e) {
-    const cmd = commandesEnAttente[e.target.dataset.index];
-    const routeInput = document.getElementById(`route-${cmd.document_vente}`);
+async function loadDashboard() {
+    Loader.show();
+    const mode = els.mode.value;
     
-    if (!routeInput.value.trim()) {
-        Toast.warning("Veuillez saisir un itinéraire.");
-        routeInput.focus();
-        return;
+    if (mode === 'tournee') {
+        els.head.innerHTML = `<th>Tournée</th><th>Nb Commandes</th><th>Total KG</th><th>Statut</th><th>Action</th>`;
+    } else {
+        els.head.innerHTML = `<th>Doc Vente</th><th>Client</th><th>Date Livraison</th><th>Tournée</th><th>Statut</th><th>Action</th>`;
     }
 
-    const type = routeInput.value.toLowerCase().includes('tournée') ? 'P-T' : 'P-C';
-
-    try {
-        if (Loader) Loader.show();
-
-        // 1. توليد كود الإطلاق التلقائي: TYPE-MMDD-001
-        const now = new Date();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const prefix = `${type}-${mm}${dd}`;
-
-        const { data: lastRecord } = await supabase
-            .from("suivi_commandes_lancer")
-            .select("num_lancement")
-            .like("num_lancement", `${prefix}-%`)
-            .order("num_lancement", { ascending: false })
-            .limit(1)
-            .single();
-
-        let sequence = 1;
-        if (lastRecord && lastRecord.num_lancement) {
-            const parts = lastRecord.num_lancement.split('-');
-            sequence = parseInt(parts[parts.length - 1]) + 1;
-        }
-        const newNumLancement = `${prefix}-${String(sequence).padStart(3, '0')}`;
-
-        // 2. تسجيل الإطلاق في جدول المتابعة (بـ الحالة LANCEE والتواريخ)
-        const { error: insErr } = await supabase
-            .from("suivi_commandes_lancer")
-            .insert({
-                commande_id: cmd.id,
-                historique_import_id: cmd.historique_import_id,
-                document_vente: cmd.document_vente,
-                client: cmd.nom_receptionnaire, 
-                itineraire: routeInput.value.trim(),
-                statut: "LANCEE", 
-                date_creation: cmd.date_creation,
-                date_livraison: cmd.date_livraison,
-                lance_par: currentUser.id,
-                date_lancement: new Date().toISOString(),
-                num_lancement: newNumLancement
-            });
-
-        if (insErr) throw insErr;
-
-        // 3. تحديث حالة الطلب
-        await supabase.from("commandes_excel")
-            .update({ statut: "LANCEE" })
-            .eq("document_vente", cmd.document_vente);
-
-        Toast.success(`Lancée ! Code: ${newNumLancement}`);
-
-        // 4. فتح سند التحضير
-        const bonUrl = `../pages/print-bon.html?cmd=${cmd.document_vente}&numLancement=${newNumLancement}`;
-        window.open(bonUrl, '_blank');
-
-        fetchCommandesEnAttente();
-
-    } catch (error) {
-        console.error("Lancement Error :", error);
-        Toast.error("Échec du lancement.");
-    } finally {
-        if (Loader) Loader.hide();
-    }
+    const { data, error } = await supabase.from("commandes_excel").select("*").eq("statut", "IMPORTEE");
+    
+    if (error) { Toast.error("Erreur chargement"); } 
+    else { renderTable(data, mode); }
+    
+    Loader.hide();
 }
 
-function formatDate(d) { return d ? new Date(d).toLocaleDateString('fr-FR') : "-"; }
+function renderTable(data, mode) {
+    els.tbody.innerHTML = data.map(cmd => `
+        <tr class="commande-row" data-id="${cmd.document_vente}">
+            ${mode === 'commande' ? `
+                <td class="font-bold text-blue-600">${cmd.document_vente}</td>
+                <td>${cmd.nom_receptionnaire || '-'}</td>
+                <td>${cmd.date_livraison}</td>
+                <td>${cmd.itineraire || '-'}</td>
+                <td><span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">En attente</span></td>
+                <td><button onclick="lancerUnitaire('${cmd.document_vente}')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold">Lancer</button></td>
+            ` : `<td>${cmd.itineraire}</td><td colspan="4">...Vue Tournée...</td>`}
+        </tr>
+    `).join('');
+}
+
+async function validerTout() {
+    if (!confirm("Valider tout le contenu affiché ?")) return;
+    
+    const rows = document.querySelectorAll('.commande-row');
+    for (let row of rows) {
+        const id = row.dataset.id;
+        await lancerCommande(id);
+    }
+    Toast.success("Opération terminée");
+    loadDashboard();
+}
+
+window.lancerUnitaire = async (id) => {
+    await lancerCommande(id);
+    loadDashboard();
+};
+
+async function lancerCommande(id) {
+    await supabase.from("suivi_commandes_lancer").insert([{
+        document_vente: id,
+        date_lancement: new Date().toISOString(),
+        statut: "LANCEE"
+    }]);
+    await supabase.from("commandes_excel").update({ statut: "LANCEE" }).eq("document_vente", id);
+}
