@@ -150,7 +150,8 @@ async function loadCommande(num) {
     return {
         numero: num, client: kg[0].nom_receptionnaire, dateCreation: kg[0].date_creation,
         dateLivraison: kg[0].date_livraison, tournee: sv?.itineraire || kg[0].itineraire,
-        chauffeur: "", statut: kg[0].statut, lignes: kg, pieces: pc || []
+        chauffeur: "", statut: kg[0].statut, lignes: kg, pieces: pc || [],
+        suivi_id: sv?.id || null
     };
 }
 
@@ -601,18 +602,24 @@ function calculateSummary() {
 
 async function savePicking() {
     if (!currentCommande) { Toast.warning("Aucune commande chargée."); return; }
+    if (!currentCommande.suivi_id) { Toast.error("suivi_id introuvable pour cette commande."); return; }
     if (!runFullStockValidation()) { Toast.error("Stock insuffisant."); return; }
     try {
         if (Loader && typeof Loader.show === "function") Loader.show();
         
+        const totalQty = articles.reduce((acc, c) => acc + c.quantite, 0);
+
         if (!currentPicking) {
-            // تم تغيير حقل utilisateur إلى user_id ليطابق جدول قاعدة البيانات
+            // استخدام الحقول الحقيقية: preparateur و suivi_id و client و total_quantite كما تم تعريفها بالـ Schema
             const { data, error } = await supabase
                 .from("picking")
                 .insert({ 
+                    suivi_id: currentCommande.suivi_id,
                     document_vente: currentCommande.numero, 
-                    user_id: currentUser.id, 
-                    statut: "EN_COURS" 
+                    client: currentCommande.client,
+                    preparateur: currentUser.id, 
+                    statut: "EN_COURS",
+                    total_quantite: totalQty
                 })
                 .select()
                 .single();
@@ -624,6 +631,7 @@ async function savePicking() {
 
         const details = []; 
         let totalPreparedForOrder = 0;
+        let totalLotsCount = 0;
         
         for (let i = 0; i < articles.length; i++) {
             const art = articles[i]; 
@@ -641,6 +649,7 @@ async function savePicking() {
                     
                     if (lot && qtyBesoin > 0) {
                         totalPreparedForOrder += qtyBesoin;
+                        totalLotsCount++;
 
                         const { data: stockLines, error: stockErr } = await supabase
                             .from("stock")
@@ -667,14 +676,19 @@ async function savePicking() {
                                 if (qtePrelee > 0) {
                                     details.push({
                                         picking_id: currentPicking.id, 
+                                        suivi_id: currentCommande.suivi_id,
+                                        stock_id: line.id,
+                                        document_vente: currentCommande.numero,
                                         article: art.article, 
                                         designation_article: art.designation || "",
                                         lot: lot, 
-                                        quantite_preparee: qtePrelee, 
-                                        quantite_commandee: art.quantite, 
                                         magasin: line.magasin, 
                                         emplacement: line.emplacement || "NON_SPECIFIE", 
-                                        stock_id: line.id
+                                        quantite_commandee: art.quantite, 
+                                        quantite_preparee: qtePrelee,
+                                        quantite_restante: Math.max(0, art.quantite - qtePrelee),
+                                        statut: "EN_COURS",
+                                        preparateur: currentUser.id
                                     });
                                     qtyBesoin -= qtePrelee;
                                 }
@@ -683,13 +697,8 @@ async function savePicking() {
 
                         distribuerPourGroupe(groupeA);
 
-                        if (qtyBesoin > 0) {
-                            distribuerPourGroupe(groupeABPG);
-                        }
-
-                        if (qtyBesoin > 0) {
-                            distribuerPourGroupe(groupeAB07);
-                        }
+                        if (qtyBesoin > 0) distribuerPourGroupe(groupeABPG);
+                        if (qtyBesoin > 0) distribuerPourGroupe(groupeAB07);
 
                         if (qtyBesoin > 0) {
                             const restants = records.filter(r => 
@@ -701,14 +710,19 @@ async function savePicking() {
                         if (qtyBesoin > 0) {
                             details.push({
                                 picking_id: currentPicking.id, 
+                                suivi_id: currentCommande.suivi_id,
+                                stock_id: records[0]?.id || 0,
+                                document_vente: currentCommande.numero,
                                 article: art.article, 
                                 designation_article: art.designation || "",
                                 lot: lot, 
-                                quantite_preparee: qtyBesoin, 
-                                quantite_commandee: art.quantite, 
                                 magasin: records[0]?.magasin || "NON_SPECIFIE",
                                 emplacement: records[0]?.emplacement || "NON_SPECIFIE", 
-                                stock_id: records[0]?.id || null
+                                quantite_commandee: art.quantite, 
+                                quantite_preparee: qtyBesoin,
+                                quantite_restante: 0,
+                                statut: "EN_COURS",
+                                preparateur: currentUser.id
                             });
                         }
                     }
@@ -726,13 +740,13 @@ async function savePicking() {
             if (insErr) throw insErr; 
         }
 
-        const totalQty = articles.reduce((acc, c) => acc + c.quantite, 0);
         const prog = totalQty > 0 ? (totalPreparedForOrder / totalQty) * 100 : 0;
 
         await supabase
             .from("picking")
             .update({ 
                 total_articles: articles.length, 
+                total_lots: totalLotsCount,
                 total_prepare: totalPreparedForOrder, 
                 progression: Math.round(prog) 
             })
@@ -784,14 +798,44 @@ async function validatePicking() {
 async function executeFinalValidation() {
     try {
         if (Loader && typeof Loader.show === "function") Loader.show();
-        await supabase.from("picking").update({ statut: "VALIDE", date_validation: new Date().toISOString() }).eq("id", currentPicking.id);
-        await supabase.from("suivi_commandes_lancer").update({ statut: "PICKING_TERMINE", date_fin_picking: new Date().toISOString(), validation_par: currentUser.id, date_validation: new Date().toISOString() }).eq("document_vente", currentCommande.numero);
+        
+        // تحديث الحقول الصحيحة: statut = 'VALIDE', est_valide = true, date_validation
+        await supabase
+            .from("picking")
+            .update({ 
+                statut: "VALIDE", 
+                est_valide: true,
+                date_fin: new Date().toISOString(),
+                date_validation: new Date().toISOString() 
+            })
+            .eq("id", currentPicking.id);
+
+        // تحديث تفاصيل الـ picking_details لتصبح VALIDE أيضاً
+        await supabase
+            .from("picking_details")
+            .update({ statut: "VALIDE", est_valide: true })
+            .eq("picking_id", currentPicking.id);
+
+        await supabase
+            .from("suivi_commandes_lancer")
+            .update({ 
+                statut: "PICKING_TERMINE", 
+                date_fin_picking: new Date().toISOString(), 
+                validation_par: currentUser.id, 
+                date_validation: new Date().toISOString() 
+            })
+            .eq("document_vente", currentCommande.numero);
+            
         Toast.success("Picking validé définitivement.");
         if (els.btnSave) els.btnSave.disabled = true;
         if (els.btnValidate) els.btnValidate.disabled = true;
         if (els.statutCommande) { els.statutCommande.textContent = "VALIDE"; els.statutCommande.className = "badge badge-success"; }
-    } catch (err) { console.error(err); Toast.error("Erreur de validation."); }
-    finally { if (Loader && typeof Loader.hide === "function") Loader.hide(); }
+    } catch (err) { 
+        console.error(err); 
+        Toast.error("Erreur de validation."); 
+    } finally { 
+        if (Loader && typeof Loader.hide === "function") Loader.hide(); 
+    }
 }
 
 /* ============================================================
