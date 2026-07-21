@@ -1,400 +1,251 @@
-/* ==========================================================
-   SoufStock Enterprise ERP/WMS - Design System & Theme
-   Module: Commandes Import & Dashboard Styles (Nafs CSS)
-=========================================================== */
-
-:root {
-    --primary-color: #16a34a;
-    --primary-hover: #15803d;
-    --primary-light: #dcfce7;
-    --secondary-color: #0284c7;
-    --background-color: #f8fafc;
-    --card-background: #ffffff;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --success-color: #22c55e;
-    --warning-color: #f59e0b;
-    --error-color: #ef4444;
-    --info-color: #3b82f6;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    --transition-speed: 0.2s ease-in-out;
-}
-
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-main);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-}
+/**
+ * @file import_commandes.css
+ * @description Styles spécifiques et raffinés pour le module d'importation des commandes SAP (SoufStock Enterprise ERP/WMS).
+ */
 
 /* ==========================================================
-   Layout & Containers
+   Import Layout & Container
 =========================================================== */
 
-.app-container {
+.import-container {
     display: flex;
-    min-height: 100vh;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-bottom: 3rem;
 }
 
-.main-content {
-    flex: 1;
+.import-header-section {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
     padding: 2rem;
-    overflow-y: auto;
-    max-width: 1440px;
-    margin: 0 auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
 }
 
-.card {
+.import-header-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: radial-gradient(circle at top right, rgba(22, 163, 74, 0.15), transparent 50%);
+    pointer-events: none;
+}
+
+.import-header-content h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.025em;
+}
+
+.import-header-content p {
+    font-size: 0.9375rem;
+    color: #94a3b8;
+}
+
+/* ==========================================================
+   Cards & Sections Grids
+=========================================================== */
+
+.import-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    gap: 1.5rem;
+}
+
+.import-card {
     background-color: var(--card-background);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    transition: box-shadow var(--transition-speed);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-.card:hover {
+.import-card:hover {
     box-shadow: var(--shadow-md);
 }
 
-.card-header {
+.import-card-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
 }
 
-.card-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-main);
-}
-
-/* ==========================================================
-   Buttons & Controls
-=========================================================== */
-
-.btn {
-    display: inline-flex;
+.import-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.55rem;
-    font-family: inherit;
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: background-color var(--transition-speed), border-color var(--transition-speed), opacity var(--transition-speed);
+    font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: #ffffff;
-}
-
-.btn-primary:hover:not(:disabled) {
-    background-color: var(--primary-hover);
-}
-
-.btn-outline {
-    background-color: transparent;
-    border-color: var(--border-color);
+.import-card-titles h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
     color: var(--text-main);
+    margin-bottom: 0.15rem;
 }
 
-.btn-outline:hover:not(:disabled) {
-    background-color: var(--background-color);
-    border-color: var(--text-muted);
-}
-
-.btn-danger {
-    background-color: var(--error-color);
-    color: #ffffff;
-}
-
-.btn-danger:hover:not(:disabled) {
-    background-color: #dc2626;
+.import-card-titles span {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
 }
 
 /* ==========================================================
-   Forms & File Uploads
+   File Dropzones & Selection States
 =========================================================== */
 
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--text-main);
-}
-
-.file-dropzone {
+.file-dropzone-custom {
     border: 2px dashed var(--border-color);
     border-radius: var(--radius-md);
-    padding: 2rem;
+    padding: 1.75rem;
     text-align: center;
-    background-color: #fafafa;
+    background-color: #f8fafc;
     cursor: pointer;
-    transition: border-color var(--transition-speed), background-color var(--transition-speed);
+    transition: all var(--transition-speed);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-.file-dropzone:hover {
+.file-dropzone-custom:hover {
     border-color: var(--primary-color);
     background-color: var(--primary-light);
 }
 
-.file-name {
-    font-size: 0.875rem;
+.file-dropzone-custom i {
+    font-size: 2rem;
     color: var(--text-muted);
-    margin-top: 0.5rem;
+    transition: color var(--transition-speed);
 }
 
-/* ==========================================================
-   Tables & Data Grids
-=========================================================== */
-
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
+.file-dropzone-custom:hover i {
+    color: var(--primary-color);
 }
 
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 0.875rem;
-}
-
-.data-table th,
-.data-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.data-table th {
-    background-color: #f1f5f9;
-    font-weight: 600;
-    color: var(--text-main);
-}
-
-.data-table tbody tr:hover {
-    background-color: #f8fafc;
-}
-
-.empty-table {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 2rem !important;
-}
-
-/* ==========================================================
-   Badges & Status Elements
-=========================================================== */
-
-.badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.badge-success {
-    background-color: var(--primary-light);
-    color: var(--primary-hover);
-}
-
-.badge-warning {
-    background-color: #fef3c7;
-    color: #d97706;
-}
-
-.badge-error {
-    background-color: #fee2e2;
-    color: #dc2626;
-}
-
-.status-badge {
-    padding: 0.2rem 0.5rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
-.status-update {
-    background-color: #e0f2fe;
-    color: var(--secondary-color);
-}
-
-/* ==========================================================
-   Loader & Progress Bar
-=========================================================== */
-
-.loader-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(4px);
+.file-info-row {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    color: #ffffff;
-}
-
-.loader-overlay.hidden {
-    display: none;
-}
-
-.spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #ffffff;
-    animation: spin 0.8s linear infinite;
-    margin-bottom: 1rem;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.progress-container {
-    width: 300px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 9999px;
-    height: 8px;
-    overflow: hidden;
+    justify-content: space-between;
     margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #f1f5f9;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
 }
 
-.progress-bar {
-    height: 100%;
-    background-color: var(--primary-color);
-    width: 0%;
-    transition: width 0.1s linear;
+.file-name-display {
+    font-weight: 500;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
 }
 
 /* ==========================================================
-   Toast Notifications
+   Analysis & KPI Stats Grid
 =========================================================== */
 
-.toast-container {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    z-index: 10000;
-    max-width: 400px;
+.analyse-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
 }
 
-.toast {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    background-color: var(--card-background);
+.stat-box {
+    background-color: #f8fafc;
     border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-lg);
-    padding: 1rem;
     border-radius: var(--radius-md);
-    animation: slideIn 0.3s ease-out forwards;
+    padding: 1rem;
+    text-align: center;
 }
 
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-.toast-success { border-left: 4px solid var(--success-color); }
-.toast-warning { border-left: 4px solid var(--warning-color); }
-.toast-error { border-left: 4px solid var(--error-color); }
-.toast-info { border-left: 4px solid var(--info-color); }
-
-.toast-content {
-    flex: 1;
-}
-
-.toast-title {
-    font-weight: 600;
-    font-size: 0.875rem;
+.stat-box .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
     margin-bottom: 0.15rem;
 }
 
-.toast-message {
-    font-size: 0.8125rem;
+.stat-box .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--text-muted);
 }
 
-.toast-close {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.875rem;
+.stat-box.new .stat-value { color: var(--success-color); }
+.stat-box.updated .stat-value { color: var(--secondary-color); }
+.stat-box.deleted .stat-value { color: var(--error-color); }
+.stat-box.same .stat-value { color: var(--text-muted); }
+
+/* ==========================================================
+   Action Toolbars & Bottom Controls
+=========================================================== */
+
+.import-actions-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--card-background);
+    padding: 1.25rem 1.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
-.toast-close:hover {
-    color: var(--text-main);
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 /* ==========================================================
-   Console / Logs Panel
+   Responsive Adaptations
 =========================================================== */
 
-.import-log {
-    background-color: #0f172a;
-    color: #e2e8f0;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.8125rem;
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    height: 200px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-
-.log-line.success { color: #4ade80; }
-.log-line.warning { color: #facc15; }
-.log-line.error { color: #f87171; }
-.log-line.info { color: #38bdf8; }
-
-.hidden {
-    display: none !important;
+@media (max-width: 768px) {
+    .import-grid {
+        grid-template-columns: 1fr;
+    }
+    .import-header-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .import-actions-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .toolbar-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    .toolbar-group .btn {
+        width: 100%;
+    }
 }
