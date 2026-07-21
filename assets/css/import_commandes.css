@@ -1,6 +1,6 @@
 /**
  * @file import_commandes.css
- * @description Styles corrigés et alignés pour le module d'importation (SoufStock Enterprise ERP/WMS).
+ * @description Styles complets et corrigés pour le module d'importation (SoufStock Enterprise ERP/WMS).
  */
 
 .import-container {
@@ -16,8 +16,8 @@
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: #ffffff;
     padding: 2rem;
-    border-radius: var(--radius-lg, 16px);
-    box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -25,23 +25,35 @@
     gap: 1rem;
 }
 
+.import-header-content h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.import-header-content p {
+    font-size: 0.9375rem;
+    color: #94a3b8;
+}
+
 .import-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
     gap: 1.5rem;
     width: 100%;
 }
 
 .import-card {
-    background-color: var(--card-background, #ffffff);
-    border-radius: var(--radius-md, 10px);
-    border: 1px solid var(--border-color, #e2e8f0);
-    box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
-    padding: 1.5rem;
+    background-color: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.75rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     gap: 1.5rem;
+    color: #1e293b;
 }
 
 .import-card-header {
@@ -52,32 +64,32 @@
 }
 
 .import-card-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-sm, 6px);
-    background-color: var(--primary-light, #dcfce7);
-    color: var(--primary-color, #16a34a);
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background-color: #dcfce7;
+    color: #16a34a;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
 .import-card-titles h3 {
-    font-size: 1.1rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: var(--text-main, #1e293b);
+    color: #1e293b;
 }
 
 .import-card-titles span {
-    font-size: 0.85rem;
-    color: var(--text-muted, #64748b);
+    font-size: 0.8125rem;
+    color: #64748b;
 }
 
 .file-dropzone-custom {
-    border: 2px dashed var(--border-color, #cbd5e1);
-    border-radius: var(--radius-md, 10px);
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
     padding: 1.5rem;
     text-align: center;
     background-color: #f8fafc;
@@ -87,11 +99,17 @@
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
+    color: #475569;
 }
 
 .file-dropzone-custom:hover {
-    border-color: var(--primary-color, #16a34a);
-    background-color: var(--primary-light, #dcfce7);
+    border-color: #16a34a;
+    background-color: #f0fdf4;
+}
+
+.file-dropzone-custom i {
+    font-size: 2rem;
+    color: #64748b;
 }
 
 .file-info-row {
@@ -99,39 +117,45 @@
     align-items: center;
     justify-content: space-between;
     margin-top: 0.75rem;
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem 1rem;
     background-color: #f1f5f9;
-    border-radius: var(--radius-sm, 6px);
-    font-size: 0.85rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #334155;
 }
 
 .analyse-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
     margin: 1rem 0;
 }
 
 .stat-box {
     background-color: #f8fafc;
-    border: 1px solid var(--border-color, #e2e8f0);
-    border-radius: var(--radius-md, 10px);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
     padding: 1rem;
     text-align: center;
 }
 
 .stat-box .stat-value {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    color: var(--text-main, #1e293b);
+    color: #1e293b;
 }
 
 .stat-box .stat-label {
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    color: var(--text-muted, #64748b);
+    color: #64748b;
 }
+
+.stat-box.new .stat-value { color: #16a34a; }
+.stat-box.updated .stat-value { color: #0284c7; }
+.stat-box.deleted .stat-value { color: #dc2626; }
+.stat-box.same .stat-value { color: #64748b; }
 
 .import-actions-toolbar {
     display: flex;
@@ -139,10 +163,10 @@
     gap: 1rem;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--card-background, #ffffff);
-    padding: 1.25rem;
-    border-radius: var(--radius-md, 10px);
-    border: 1px solid var(--border-color, #e2e8f0);
+    background-color: #ffffff;
+    padding: 1.25rem 1.75rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
 }
 
 .toolbar-group {
@@ -158,10 +182,11 @@
     font-family: monospace;
     font-size: 0.8rem;
     padding: 1rem;
-    border-radius: var(--radius-md, 10px);
+    border-radius: 8px;
     height: 180px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    margin-top: 0.5rem;
 }
