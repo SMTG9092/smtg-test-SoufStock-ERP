@@ -26,6 +26,8 @@
     <!-- ==========================================================
          PAGE CSS
     =========================================================== -->
+    
+        <!-- Dashboard CSS -->
 
     <link
         rel="stylesheet"
@@ -47,641 +49,145 @@
 
 <body>
 
-    <div class="page-content">
 
-        <!-- ==========================================================
-             PAGE HEADER
-        =========================================================== -->
+                <!-- ==========================================================
+                     PAGE HEADER
+                =========================================================== -->
 
-        <header class="page-header">
+                <section class="page-header">
 
-            <div class="page-title">
+                    <div class="page-title">
 
-                <div class="page-icon">
+                        <div class="page-icon">
 
-                    <i class="fas fa-file-import"></i>
+                            <i class="fas fa-file-import"></i>
 
-                </div>
+                        </div>
 
-                <div>
+                        <div>
 
-                    <h1>
+                            <h1>
 
-                        Import Commandes
+                                Import Commandes
 
-                    </h1>
+                            </h1>
 
-                    <p>
+                            <p>
 
-                        Importation et synchronisation des commandes SAP (KG & Pièces)
+                                Importation et synchronisation des commandes SAP (KG & Pièces)
 
-                    </p>
+                            </p>
 
-                </div>
-
-            </div>
-
-            <div class="page-actions">
-
-                <button
-                    id="btnRetour"
-                    class="btn btn-outline"
-                    type="button">
-
-                    <i class="fas fa-arrow-left"></i>
-
-                    Retour aux Commandes
-
-                </button>
-
-            </div>
-
-        </header>
-
-        <!-- ==========================================================
-             IMPORT CARDS
-        =========================================================== -->
-
-        <section class="import-grid">
-
-            <!-- ================= Import Excel KG ================= -->
-
-            <div class="import-card">
-
-                <div class="card-header">
-
-                    <div class="card-icon purple">
-
-                        <i class="fas fa-boxes-stacked"></i>
+                        </div>
 
                     </div>
 
-                    <div>
-
-                        <h3>
-
-                            Commandes Excel (KG)
-
-                        </h3>
-
-                        <p>
-
-                            Importation des commandes SAP en kilogrammes.
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="card-body">
-
-                    <input
-                        type="file"
-                        id="fileExcel"
-                        accept=".xlsx,.xls"
-                        hidden>
-
-                    <button
-                        id="btnSelectExcel"
-                        class="btn btn-light full-width"
-                        type="button">
-
-                        <i class="fas fa-folder-open"></i>
-
-                        Choisir un fichier Excel
-
-                    </button>
-
-                    <div class="selected-file">
-
-                        <span class="label">
-
-                            Fichier :
-
-                        </span>
-
-                        <span id="excelFileName">
-
-                            Aucun fichier sélectionné
-
-                        </span>
-
-                    </div>
-
-                    <div
-                        id="excelStatus"
-                        class="file-status success hidden">
-
-                        <i class="fas fa-circle-check"></i>
-
-                        Fichier sélectionné
-
-                    </div>
-
-                    <button
-                        id="btnImportExcel"
-                        class="btn btn-primary full-width"
-                        type="button"
-                        disabled>
-
-                        <i class="fas fa-cloud-upload-alt"></i>
-
-                        Importer les Commandes KG
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <!-- ================= Import Pièces ================= -->
-
-            <div class="import-card">
-
-                <div class="card-header">
-
-                    <div class="card-icon blue">
-
-                        <i class="fas fa-cubes"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h3>
-
-                            Commandes Pièces
-
-                        </h3>
-
-                        <p>
-
-                            Importation des commandes SAP par nombre de pièces.
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="card-body">
-
-                    <input
-                        type="file"
-                        id="filePieces"
-                        accept=".xlsx,.xls"
-                        hidden>
-
-                    <button
-                        id="btnSelectPieces"
-                        class="btn btn-light full-width"
-                        type="button">
-
-                        <i class="fas fa-folder-open"></i>
-
-                        Choisir un fichier Excel
-
-                    </button>
-
-                    <div class="selected-file">
-
-                        <span class="label">
-
-                            Fichier :
-
-                        </span>
-
-                        <span id="piecesFileName">
-
-                            Aucun fichier sélectionné
-
-                        </span>
-
-                    </div>
-
-                    <div
-                        id="piecesStatus"
-                        class="file-status success hidden">
-
-                        <i class="fas fa-circle-check"></i>
-
-                        Fichier sélectionné
-
-                    </div>
-
-                    <button
-                        id="btnImportPieces"
-                        class="btn btn-primary full-width"
-                        type="button"
-                        disabled>
-
-                        <i class="fas fa-cloud-upload-alt"></i>
-
-                        Importer les Pièces
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ==========================================================
-             ANALYSE SECTION
-        =========================================================== -->
-
-        <section class="analyse-section">
-
-            <div class="section-header">
-
-                <div class="section-title">
-
-                    <div class="section-icon">
-
-                        <i class="fas fa-magnifying-glass-chart"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h2>
-
-                            Analyse des Commandes
-
-                        </h2>
-
-                        <p>
-
-                            Comparaison entre les fichiers SAP et la base de données avant l'importation.
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="section-actions">
-
-                    <button
-                        id="btnAnalyse"
-                        class="btn btn-dark"
-                        type="button"
-                        disabled>
-
-                        <i class="fas fa-magnifying-glass"></i>
-
-                        Lancer l'Analyse
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <!-- ================= Résumé Analyse ================= -->
-
-            <div class="analyse-summary">
-
-                <div class="analyse-card success">
-
-                    <div class="analyse-icon">
-
-                        <i class="fas fa-circle-plus"></i>
-
-                    </div>
-
-                    <div>
-
-                        <span
-                            id="analyseNew"
-                            class="analyse-value">
-
-                            0
-
-                        </span>
-
-                        <small>
-
-                            Nouvelles commandes
-
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <div class="analyse-card warning">
-
-                    <div class="analyse-icon">
-
-                        <i class="fas fa-pen"></i>
-
-                    </div>
-
-                    <div>
-
-                        <span
-                            id="analyseUpdated"
-                            class="analyse-value">
-
-                            0
-
-                        </span>
-
-                        <small>
-
-                            Commandes modifiées
-
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <div class="analyse-card danger">
-
-                    <div class="analyse-icon">
-
-                        <i class="fas fa-trash"></i>
-
-                    </div>
-
-                    <div>
-
-                        <span
-                            id="analyseDeleted"
-                            class="analyse-value">
-
-                            0
-
-                        </span>
-
-                        <small>
-
-                            Commandes supprimées
-
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <div class="analyse-card info">
-
-                    <div class="analyse-icon">
-
-                        <i class="fas fa-circle-check"></i>
-
-                    </div>
-
-                    <div>
-
-                        <span
-                            id="analyseSame"
-                            class="analyse-value">
-
-                            0
-
-                        </span>
-
-                        <small>
-
-                            Commandes identiques
-
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <div class="analyse-card dark">
-
-                    <div class="analyse-icon">
-
-                        <i class="fas fa-triangle-exclamation"></i>
-
-                    </div>
-
-                    <div>
-
-                        <span
-                            id="analyseStatus"
-                            class="analyse-value">
-
-                            0
-
-                        </span>
-
-                        <small>
-
-                            Erreurs détectées
-
-                        </small>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ==========================================================
-             DÉTAILS DE L'ANALYSE
-        =========================================================== -->
-
-        <section class="details-section">
-
-            <!-- ================= Commandes Modifiées ================= -->
-
-            <div class="detail-card">
-
-                <div class="detail-header">
-
-                    <div>
-
-                        <i class="fas fa-pen"></i>
-
-                        Commandes Modifiées
-
-                    </div>
-
-                    <span
-                        id="modificationCount"
-                        class="detail-count">
-
-                        0
-
-                    </span>
-
-                </div>
-
-                <div class="detail-content">
-
-                    <div class="detail-table-wrapper">
-
-                        <table
-                            id="modificationsTable"
-                            class="detail-table">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>N° Commande</th>
-                                    <th>Date</th>
-                                    <th>Quantité</th>
-                                    <th>Statut</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                <tr class="empty-row">
-
-                                    <td colspan="4">
-
-                                        Aucune modification détectée
-
-                                    </td>
-
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                    <div class="detail-footer">
-
-                        <span id="totalModifications">
-
-                            Total : 0
-
-                        </span>
+                    <div class="page-actions">
 
                         <button
-                            id="btnViewModifications"
-                            class="btn btn-light btn-sm hidden"
+                            id="btnRetour"
+                            class="btn btn-outline"
                             type="button">
 
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-arrow-left"></i>
 
-                            Voir détails
+                            Retour aux Commandes
 
                         </button>
 
                     </div>
 
-                </div>
+                </section>
+                <!-- ==========================================================
+                     IMPORT CARDS
+                =========================================================== -->
 
-            </div>
+                <section class="import-grid">
 
-            <!-- ================= Commandes Supprimées ================= -->
+                    <!-- ================= Import Excel KG ================= -->
 
-            <div class="detail-card">
+                    <div class="import-card">
 
-                <div class="detail-header">
+                        <div class="card-header">
 
-                    <div>
+                            <div class="card-icon purple">
 
-                        <i class="fas fa-trash"></i>
+                                <i class="fas fa-boxes-stacked"></i>
 
-                        Commandes Supprimées
+                            </div>
 
-                    </div>
+                            <div>
 
-                    <span
-                        id="deletedTotal"
-                        class="detail-count">
+                                <h3>
 
-                        0
+                                    Commandes Excel (KG)
 
-                    </span>
+                                </h3>
 
-                </div>
+                                <p>
 
-                <div class="detail-content">
+                                    Importation des commandes SAP en kilogrammes.
 
-                    <div class="detail-table-wrapper">
+                                </p>
 
-                        <table
-                            id="deletedTable"
-                            class="detail-table">
+                            </div>
 
-                            <thead>
+                        </div>
 
-                                <tr>
+                        <div class="card-body">
 
-                                    <th>
-                                        <input type="checkbox" id="checkAllDeleted">
-                                    </th>
-
-                                    <th>N° Commande</th>
-                                    <th>Client</th>
-                                    <th>Article</th>
-                                    <th>Quantité</th>
-                                    <th>Livraison</th>
-                                    <th>Supprimé le</th>
-                                    <th>Par</th>
-                                    <th>Statut</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                <tr class="empty-row">
-
-                                    <td colspan="9">
-
-                                        Aucune commande supprimée.
-
-                                    </td>
-
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                    <div class="detail-footer">
-
-                        <span id="deletedTotalFooter">
-
-                            Total : 0
-
-                        </span>
-
-                        <div class="detail-actions">
+                            <input
+                                type="file"
+                                id="fileExcel"
+                                accept=".xlsx,.xls"
+                                hidden>
 
                             <button
-                                id="btnRestoreDeleted"
-                                class="btn btn-success btn-sm"
+                                id="btnSelectExcel"
+                                class="btn btn-light full-width"
                                 type="button">
 
-                                <i class="fas fa-undo"></i>
+                                <i class="fas fa-folder-open"></i>
 
-                                Restaurer
+                                Choisir un fichier Excel
 
                             </button>
 
+                            <div class="selected-file">
+
+                                <span class="label">
+
+                                    Fichier :
+
+                                </span>
+
+                                <span id="excelFileName">
+
+                                    Aucun fichier sélectionné
+
+                                </span>
+
+                            </div>
+
+                            <div
+                                id="excelStatus"
+                                class="file-status success hidden">
+
+                                <i class="fas fa-circle-check"></i>
+
+                                Fichier sélectionné
+
+                            </div>
+
                             <button
-                                id="btnConfirmDelete"
-                                class="btn btn-danger btn-sm"
-                                type="button">
+                                id="btnImportExcel"
+                                class="btn btn-primary full-width"
+                                type="button"
+                                disabled>
 
-                                <i class="fas fa-trash-can"></i>
+                                <i class="fas fa-cloud-upload-alt"></i>
 
-                                Confirmer
+                                Importer les Commandes KG
 
                             </button>
 
@@ -689,513 +195,289 @@
 
                     </div>
 
-                </div>
+                    <!-- ================= Import Pièces ================= -->
 
-            </div>
+                    <div class="import-card">
 
-        </section>
+                        <div class="card-header">
 
-        <!-- ==========================================================
-             WORKFLOW SECTION
-        =========================================================== -->
+                            <div class="card-icon blue">
 
-        <section class="workflow-section">
+                                <i class="fas fa-cubes"></i>
 
-            <div class="section-header">
+                            </div>
 
-                <div class="section-title">
+                            <div>
 
-                    <div class="section-icon">
+                                <h3>
 
-                        <i class="fas fa-network-wired"></i>
+                                    Commandes Pièces
 
-                    </div>
+                                </h3>
 
-                    <div>
+                                <p>
 
-                        <h2>
+                                    Importation des commandes SAP par nombre de pièces.
 
-                            Workflow d'Importation
+                                </p>
 
-                        </h2>
+                            </div>
 
-                        <p>
+                        </div>
 
-                            Suivi étape par étape du processus de synchronisation.
+                        <div class="card-body">
 
-                        </p>
+                            <input
+                                type="file"
+                                id="filePieces"
+                                accept=".xlsx,.xls"
+                                hidden>
 
-                    </div>
+                            <button
+                                id="btnSelectPieces"
+                                class="btn btn-light full-width"
+                                type="button">
 
-                </div>
+                                <i class="fas fa-folder-open"></i>
 
-            </div>
+                                Choisir un fichier Excel
 
-            <div class="workflow-timeline">
+                            </button>
 
-                <div class="timeline-step">
+                            <div class="selected-file">
 
-                    <div class="step-marker completed">
+                                <span class="label">
 
-                        <i class="fas fa-file-excel"></i>
+                                    Fichier :
 
-                    </div>
+                                </span>
 
-                    <div class="step-content">
+                                <span id="piecesFileName">
 
-                        <h4>Sélection</h4>
+                                    Aucun fichier sélectionné
 
-                        <p>Fichiers SAP chargés</p>
+                                </span>
 
-                    </div>
+                            </div>
 
-                </div>
+                            <div
+                                id="piecesStatus"
+                                class="file-status success hidden">
 
-                <div class="timeline-step">
+                                <i class="fas fa-circle-check"></i>
 
-                    <div class="step-marker active">
+                                Fichier sélectionné
 
-                        <i class="fas fa-magnifying-glass"></i>
+                            </div>
 
-                    </div>
+                            <button
+                                id="btnImportPieces"
+                                class="btn btn-primary full-width"
+                                type="button"
+                                disabled>
 
-                    <div class="step-content">
+                                <i class="fas fa-cloud-upload-alt"></i>
 
-                        <h4>Analyse</h4>
+                                Importer les Pièces
 
-                        <p>Comparaison des deltas</p>
+                            </button>
 
-                    </div>
-
-                </div>
-
-                <div class="timeline-step">
-
-                    <div class="step-marker pending">
-
-                        <i class="fas fa-cloud-arrow-up"></i>
-
-                    </div>
-
-                    <div class="step-content">
-
-                        <h4>Synchronisation</h4>
-
-                        <p>Mise à jour Supabase</p>
+                        </div>
 
                     </div>
 
-                </div>
+                </section>
+<!-- ==========================================================
+     ANALYSE SECTION
+========================================================== -->
 
-                <div class="timeline-step">
+<section class="analyse-section">
 
-                    <div class="step-marker pending">
+    <div class="section-header">
 
-                        <i class="fas fa-circle-check"></i>
+        <div class="section-title">
 
-                    </div>
+            <div class="section-icon">
 
-                    <div class="step-content">
-
-                        <h4>Clôture</h4>
-
-                        <p>Rapports et KPIs</p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ==========================================================
-             KPI SECTION
-        =========================================================== -->
-
-        <section class="kpi-section">
-
-            <div class="section-header">
-
-                <div class="section-title">
-
-                    <div class="section-icon">
-
-                        <i class="fas fa-chart-pie"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h2>
-
-                            Indicateurs Clés (KPI)
-
-                        </h2>
-
-                        <p>
-
-                            Métriques globales de l'état actuel des commandes.
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="kpi-grid">
-
-                <div class="kpi-card success">
-
-                    <div class="kpi-icon kpi-green">
-
-                        <i class="fas fa-layer-group"></i>
-
-                    </div>
-
-                    <div class="kpi-info">
-
-                        <span class="kpi-label">Total Lignes</span>
-
-                        <span id="kpiTotal" class="kpi-value">0</span>
-
-                    </div>
-
-                </div>
-
-                <div class="kpi-card info">
-
-                    <div class="kpi-icon kpi-blue">
-
-                        <i class="fas fa-plus"></i>
-
-                    </div>
-
-                    <div class="kpi-info">
-
-                        <span class="kpi-label">Insérées</span>
-
-                        <span id="kpiInserted" class="kpi-value">0</span>
-
-                    </div>
-
-                </div>
-
-                <div class="kpi-card warning">
-
-                    <div class="kpi-icon kpi-orange">
-
-                        <i class="fas fa-pen-to-square"></i>
-
-                    </div>
-
-                    <div class="kpi-info">
-
-                        <span class="kpi-label">Mises à jour</span>
-
-                        <span id="kpiUpdated" class="kpi-value">0</span>
-
-                    </div>
-
-                </div>
-
-                <div class="kpi-card danger">
-
-                    <div class="kpi-icon kpi-red">
-
-                        <i class="fas fa-trash-can"></i>
-
-                    </div>
-
-                    <div class="kpi-info">
-
-                        <span class="kpi-label">Supprimées</span>
-
-                        <span id="kpiDeleted" class="kpi-value">0</span>
-
-                    </div>
-
-                </div>
-
-                <div class="kpi-card neutral">
-
-                    <div class="kpi-icon kpi-teal">
-
-                        <i class="fas fa-equals"></i>
-
-                    </div>
-
-                    <div class="kpi-info">
-
-                        <span class="kpi-label">Identiques</span>
-
-                        <span id="kpiSame" class="kpi-value">0</span>
-
-                    </div>
-
-                </div>
-
-                <div class="kpi-card error">
-
-                    <div class="kpi-icon kpi-purple">
-
-                        <i class="fas fa-triangle-exclamation"></i>
-
-                    </div>
-
-                    <div class="kpi-info">
-
-                        <span class="kpi-label">Erreurs</span>
-
-                        <span id="kpiErrors" class="kpi-value">0</span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="info-grid">
-
-                <div class="info-item">
-
-                    <i class="fas fa-calendar-alt"></i>
-
-                    <div>
-
-                        <small>Dernière Analyse</small>
-
-                        <span id="lastAnalyseDate">-</span>
-
-                    </div>
-
-                </div>
-
-                <div class="info-item">
-
-                    <i class="fas fa-clock"></i>
-
-                    <div>
-
-                        <small>Dernier Import</small>
-
-                        <span id="lastImportDate">-</span>
-
-                    </div>
-
-                </div>
-
-                <div class="info-item">
-
-                    <i class="fas fa-user"></i>
-
-                    <div>
-
-                        <small>Utilisateur</small>
-
-                        <span id="importUser">-</span>
-
-                    </div>
-
-                </div>
-
-                <div class="info-item">
-
-                    <i class="fas fa-shield-halved"></i>
-
-                    <div>
-
-                        <small>État du Système</small>
-
-                        <span id="importState" class="state-badge">En attente</span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ==========================================================
-             PROGRESS SECTION
-        =========================================================== -->
-
-        <section class="progress-section">
-
-            <div class="progress-header">
-
-                <div>
-
-                    <h3>Progression de l'Importation</h3>
-
-                    <p id="currentStatus">Prêt pour l'analyse.</p>
-
-                </div>
-
-                <span id="progressPercent" class="progress-percent">0%</span>
-
-            </div>
-
-            <div class="progress-bar-container">
-
-                <div class="progress-bar-track">
-
-                    <div id="progressBar" class="progress-bar-fill"></div>
-
-                </div>
-
-            </div>
-
-            <div class="progress-cards">
-
-                <div class="progress-card success">
-
-                    <i class="fas fa-circle-check"></i>
-
-                    <h3 id="cardProgressSuccess">0</h3>
-
-                    <span>Succès</span>
-
-                </div>
-
-                <div class="progress-card warning">
-
-                    <i class="fas fa-triangle-exclamation"></i>
-
-                    <h3 id="cardProgressWarning">0</h3>
-
-                    <span>Avertissements</span>
-
-                </div>
-
-                <div class="progress-card danger">
-
-                    <i class="fas fa-circle-xmark"></i>
-
-                    <h3 id="cardProgressError">0</h3>
-
-                    <span>Erreurs</span>
-
-                </div>
-
-                <div class="progress-card info">
-
-                    <i class="fas fa-database"></i>
-
-                    <h3 id="cardProgressTotal">0</h3>
-
-                    <span>Total Traité</span>
-
-                </div>
-
-            </div>
-
-            <!-- ================= Import Log ================= -->
-
-            <div class="import-log-card">
-
-                <div class="log-header">
-
-                    <div>
-
-                        <i class="fas fa-terminal"></i>
-
-                        Journal d'Exécution
-
-                    </div>
-
-                    <button
-                        onclick="ImportCommandes.clearLog()"
-                        class="btn btn-light btn-sm"
-                        type="button">
-
-                        <i class="fas fa-trash-can"></i>
-
-                        Vider
-
-                    </button>
-
-                </div>
-
-                <div id="importLog" class="import-log">
-                    <div class="log-line info">
-                        <strong>--:--:--</strong> - Initialisation du module d'importation...
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="progress-actions">
-
-                <button
-                    id="btnStartImport"
-                    class="btn btn-success"
-                    type="button"
-                    disabled>
-
-                    <i class="fas fa-play"></i>
-
-                    Lancer l'Importation Base
-
-                </button>
-
-                <button
-                    id="btnResetImport"
-                    class="btn btn-danger"
-                    type="button">
-
-                    <i class="fas fa-rotate-right"></i>
-
-                    Réinitialiser
-
-                </button>
-
-            </div>
-
-        </section>
-
-    </div>
-
-    <!-- ==========================================================
-         LOADER OVERLAY
-    =========================================================== -->
-
-    <div id="loaderOverlay" class="loader-overlay hidden">
-
-        <div class="loader-card">
-
-            <div class="loader-animation">
-
-                <div class="loader-spinner">
-
-                    <div class="spinner-ring"></div>
-                    <div class="spinner-ring"></div>
-                    <div class="spinner-ring"></div>
-
-                </div>
+                <i class="fas fa-magnifying-glass-chart"></i>
 
             </div>
 
             <div>
 
-                <h2 id="loaderMessage">Chargement en cours...</h2>
+                <h2>
 
-                <p>Veuillez patienter pendant le traitement des données.</p>
+                    Analyse des Commandes
+
+                </h2>
+
+                <p>
+
+                    Comparaison entre les fichiers SAP et la base de données avant l'importation.
+
+                </p>
 
             </div>
 
-            <div class="loader-progress">
+        </div>
 
-                <div class="loader-progress-track">
+        <div class="section-actions">
 
-                    <div id="loaderBar" class="loader-progress-bar"></div>
+            <button
+                id="btnAnalyse"
+                class="btn btn-dark"
+                type="button"
+                disabled>
 
-                </div>
+                <i class="fas fa-magnifying-glass"></i>
 
-                <span id="loaderPercent">0%</span>
+                Lancer l'Analyse
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- ================= Résumé Analyse ================= -->
+
+    <div class="analyse-summary">
+
+        <div class="analyse-card success">
+
+            <div class="analyse-icon">
+
+                <i class="fas fa-circle-plus"></i>
+
+            </div>
+
+            <div>
+
+                <span
+                    id="analyseNew"
+                    class="analyse-value">
+
+                    0
+
+                </span>
+
+                <small>
+
+                    Nouvelles commandes
+
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="analyse-card warning">
+
+            <div class="analyse-icon">
+
+                <i class="fas fa-pen"></i>
+
+            </div>
+
+            <div>
+
+                <span
+                    id="analyseUpdated"
+                    class="analyse-value">
+
+                    0
+
+                </span>
+
+                <small>
+
+                    Commandes modifiées
+
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="analyse-card danger">
+
+            <div class="analyse-icon">
+
+                <i class="fas fa-trash"></i>
+
+            </div>
+
+            <div>
+
+                <span
+                    id="analyseDeleted"
+                    class="analyse-value">
+
+                    0
+
+                </span>
+
+                <small>
+
+                    Commandes supprimées
+
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="analyse-card info">
+
+            <div class="analyse-icon">
+
+                <i class="fas fa-circle-check"></i>
+
+            </div>
+
+            <div>
+
+                <span
+                    id="analyseSame"
+                    class="analyse-value">
+
+                    0
+
+                </span>
+
+                <small>
+
+                    Commandes identiques
+
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="analyse-card dark">
+
+            <div class="analyse-icon">
+
+                <i class="fas fa-triangle-exclamation"></i>
+
+            </div>
+
+            <div>
+
+                <span
+                    id="analyseStatus"
+                    class="analyse-value">
+
+                    0
+
+                </span>
+
+                <small>
+
+                    Erreurs détectées
+
+                </small>
 
             </div>
 
@@ -1203,43 +485,94 @@
 
     </div>
 
-    <!-- ==========================================================
-         TOAST CONTAINER
-    =========================================================== -->
+</section>
+<!-- ==========================================================
+     DÉTAILS DE L'ANALYSE
+========================================================== -->
 
-    <div id="toastContainer" class="toast-container"></div>
+<section class="details-section">
 
-    <!-- ==========================================================
-         MODALS
-    =========================================================== -->
+    <!-- ================= Commandes Modifiées ================= -->
 
-    <div id="confirmModal" class="modal hidden">
+    <div class="detail-card">
 
-        <div class="modal-content danger">
+        <div class="detail-header">
 
-            <div class="modal-header">
+            <div>
 
-                <div class="modal-icon danger">
+                <i class="fas fa-pen"></i>
 
-                    <i class="fas fa-triangle-exclamation"></i>
-
-                </div>
-
-                <div>
-
-                    <h2>Confirmation requise</h2>
-
-                    <p id="confirmMessage">Êtes-vous sûr de vouloir effectuer cette action ?</p>
-
-                </div>
+                Commandes Modifiées
 
             </div>
 
-            <div class="modal-footer">
+            <span
+                id="modificationCount"
+                class="detail-count">
 
-                <button id="btnCancelModal" class="btn btn-light" type="button">Annuler</button>
+                0
 
-                <button id="btnConfirmModal" class="btn btn-danger" type="button">Confirmer</button>
+            </span>
+
+        </div>
+
+        <div class="detail-content">
+
+            <div class="detail-table-wrapper">
+
+                <table
+                    id="modificationsTable"
+                    class="detail-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>N° Commande</th>
+                            <th>Date</th>
+                            <th>Quantité</th>
+                            <th>Statut</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr class="empty-row">
+
+                            <td colspan="4">
+
+                                Aucune modification détectée
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="detail-footer">
+
+                <span id="totalModifications">
+
+                    Total : 0
+
+                </span>
+
+                <button
+                    id="btnViewModifications"
+                    class="btn btn-light btn-sm hidden"
+                    type="button">
+
+                    <i class="fas fa-eye"></i>
+
+                    Voir détails
+
+                </button>
 
             </div>
 
@@ -1247,31 +580,103 @@
 
     </div>
 
-    <div id="successModal" class="modal hidden">
+    <!-- ================= Commandes Supprimées ================= -->
 
-        <div class="modal-content success">
+    <div class="detail-card">
 
-            <div class="modal-header">
+        <div class="detail-header">
 
-                <div class="modal-icon success">
+            <div>
 
-                    <i class="fas fa-circle-check"></i>
+                <i class="fas fa-trash"></i>
 
-                </div>
-
-                <div>
-
-                    <h2>Succès</h2>
-
-                    <p id="successMessage">Opération réussie avec succès.</p>
-
-                </div>
+                Commandes Supprimées
 
             </div>
 
-            <div class="modal-footer">
+            <span
+                id="deletedTotal"
+                class="detail-count">
 
-                <button class="btn btn-success" onclick="this.closest('.modal').classList.add('hidden')" type="button">Fermer</button>
+                0
+
+            </span>
+
+        </div>
+
+        <div class="detail-content">
+
+            <div class="detail-table-wrapper">
+
+                <table
+                    id="deletedTable"
+                    class="detail-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+
+                                <input
+                                    type="checkbox"
+                                    id="checkAllDeleted"
+                                    class="checkbox-control">
+
+                            </th>
+
+                            <th>N° Commande</th>
+                            <th>Date</th>
+                            <th>Quantité</th>
+                            <th>Raison</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr class="empty-row">
+
+                            <td colspan="5">
+
+                                Aucune suppression détectée
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="detail-footer">
+
+                <button
+                    id="btnRestoreDeleted"
+                    class="btn btn-warning btn-sm"
+                    type="button"
+                    disabled>
+
+                    <i class="fas fa-undo"></i>
+
+                    Restaurer les sélectionnées
+
+                </button>
+
+                <button
+                    id="btnConfirmDelete"
+                    class="btn btn-danger btn-sm"
+                    type="button"
+                    disabled>
+
+                    <i class="fas fa-trash"></i>
+
+                    Confirmer les suppressions
+
+                </button>
 
             </div>
 
@@ -1279,31 +684,150 @@
 
     </div>
 
-    <div id="errorModal" class="modal hidden">
+</section>
+<!-- ==========================================================
+     WORKFLOW / TIMELINE
+========================================================== -->
 
-        <div class="modal-content danger">
+<section class="workflow-section">
 
-            <div class="modal-header">
+    <div class="section-header">
 
-                <div class="modal-icon danger">
+        <div>
 
-                    <i class="fas fa-circle-xmark"></i>
+            <h2>
 
-                </div>
+                Progression d'importation
 
-                <div>
+            </h2>
 
-                    <h2>Erreur</h2>
+            <p>
 
-                    <p id="errorMessage">Une erreur est survenue.</p>
+                Suivi en temps réel des différentes étapes de l'importation.
 
-                </div>
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="workflow-timeline">
+
+        <!-- ================= Préparation ================= -->
+
+        <div class="timeline-step">
+
+            <div
+                id="stepPrepare"
+                class="step-marker pending">
+
+                <i class="fas fa-hourglass-start"></i>
 
             </div>
 
-            <div class="modal-footer">
+            <div class="step-content">
 
-                <button class="btn btn-danger" onclick="this.closest('.modal').classList.add('hidden')" type="button">Fermer</button>
+                <h4>
+
+                    Préparation
+
+                </h4>
+
+                <p>
+
+                    En attente...
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- ================= Validation ================= -->
+
+        <div class="timeline-step">
+
+            <div
+                id="stepValidate"
+                class="step-marker pending">
+
+                <i class="fas fa-check-circle"></i>
+
+            </div>
+
+            <div class="step-content">
+
+                <h4>
+
+                    Validation
+
+                </h4>
+
+                <p>
+
+                    En attente...
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- ================= Synchronisation ================= -->
+
+        <div class="timeline-step">
+
+            <div
+                id="stepSync"
+                class="step-marker pending">
+
+                <i class="fas fa-rotate"></i>
+
+            </div>
+
+            <div class="step-content">
+
+                <h4>
+
+                    Synchronisation
+
+                </h4>
+
+                <p>
+
+                    En attente...
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- ================= Finalisation ================= -->
+
+        <div class="timeline-step">
+
+            <div
+                id="stepFinalize"
+                class="step-marker pending">
+
+                <i class="fas fa-flag-checkered"></i>
+
+            </div>
+
+            <div class="step-content">
+
+                <h4>
+
+                    Finalisation
+
+                </h4>
+
+                <p>
+
+                    En attente...
+
+                </p>
 
             </div>
 
@@ -1311,13 +835,824 @@
 
     </div>
 
-    <!-- ==========================================================
-         SCRIPTS EXTERNES & APPLICATION
-    =========================================================== -->
+</section>
 
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"></script>
+<!-- ==========================================================
+     KPI DASHBOARD
+========================================================== -->
 
-    <script type="module" src="/assets/css/commandes-import.js"></script>
+<section class="kpi-section">
+
+    <div class="section-header">
+
+        <div>
+
+            <h2>
+
+                Résumé de l'importation
+
+            </h2>
+
+            <p>
+
+                Statistiques globales du processus d'importation.
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- ================= KPI Cards ================= -->
+
+    <div class="kpi-grid">
+
+        <div class="kpi-card success">
+
+            <div class="kpi-icon kpi-green">
+
+                <i class="fas fa-database"></i>
+
+            </div>
+
+            <div class="kpi-info">
+
+                <span class="kpi-label">
+
+                    Total traitées
+
+                </span>
+
+                <span
+                    id="kpiTotal"
+                    class="kpi-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="kpi-card info">
+
+            <div class="kpi-icon kpi-blue">
+
+                <i class="fas fa-circle-plus"></i>
+
+            </div>
+
+            <div class="kpi-info">
+
+                <span class="kpi-label">
+
+                    Créées
+
+                </span>
+
+                <span
+                    id="kpiInserted"
+                    class="kpi-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="kpi-card warning">
+
+            <div class="kpi-icon kpi-orange">
+
+                <i class="fas fa-pen"></i>
+
+            </div>
+
+            <div class="kpi-info">
+
+                <span class="kpi-label">
+
+                    Modifiées
+
+                </span>
+
+                <span
+                    id="kpiUpdated"
+                    class="kpi-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="kpi-card danger">
+
+            <div class="kpi-icon kpi-red">
+
+                <i class="fas fa-trash"></i>
+
+            </div>
+
+            <div class="kpi-info">
+
+                <span class="kpi-label">
+
+                    Supprimées
+
+                </span>
+
+                <span
+                    id="kpiDeleted"
+                    class="kpi-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="kpi-card neutral">
+
+            <div class="kpi-icon kpi-teal">
+
+                <i class="fas fa-circle-check"></i>
+
+            </div>
+
+            <div class="kpi-info">
+
+                <span class="kpi-label">
+
+                    Identiques
+
+                </span>
+
+                <span
+                    id="kpiSame"
+                    class="kpi-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="kpi-card error">
+
+            <div class="kpi-icon kpi-purple">
+
+                <i class="fas fa-triangle-exclamation"></i>
+
+            </div>
+
+            <div class="kpi-info">
+
+                <span class="kpi-label">
+
+                    Erreurs
+
+                </span>
+
+                <span
+                    id="kpiErrors"
+                    class="kpi-value">
+
+                    0
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================= Informations ================= -->
+
+    <div class="info-grid">
+
+        <div class="info-item">
+
+            <i class="fas fa-calendar"></i>
+
+            <div>
+
+                <small>
+
+                    Dernière analyse
+
+                </small>
+
+                <span id="lastAnalyseDate">
+
+                    -
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="info-item">
+
+            <i class="fas fa-calendar-check"></i>
+
+            <div>
+
+                <small>
+
+                    Dernier import
+
+                </small>
+
+                <span id="lastImportDate">
+
+                    -
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="info-item">
+
+            <i class="fas fa-user"></i>
+
+            <div>
+
+                <small>
+
+                    Opérateur
+
+                </small>
+
+                <span id="importUser">
+
+                    -
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="info-item">
+
+            <i class="fas fa-info-circle"></i>
+
+            <div>
+
+                <small>
+
+                    État
+
+                </small>
+
+                <span
+                    id="importState"
+                    class="state-badge">
+
+                    En attente
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================================
+     IMPORT PROGRESS
+========================================================== -->
+
+<section class="progress-section">
+
+    <div class="progress-header">
+
+        <div>
+
+            <h3>
+
+                Progression générale
+
+            </h3>
+
+            <p id="currentStatus">
+
+                En attente...
+
+            </p>
+
+        </div>
+
+        <div class="progress-percent">
+
+            <span id="progressPercent">
+
+                0%
+
+            </span>
+
+        </div>
+
+    </div>
+
+    <!-- ================= Progress Bar ================= -->
+
+    <div class="progress-bar-container">
+
+        <div class="progress-bar-track">
+
+            <div
+                id="progressBar"
+                class="progress-bar-fill">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================= Statistiques ================= -->
+
+    <div class="progress-cards">
+
+        <div class="progress-card success">
+
+            <i class="fas fa-circle-plus"></i>
+
+            <h3 id="insertedRows">
+
+                0
+
+            </h3>
+
+            <span>
+
+                Importées
+
+            </span>
+
+        </div>
+
+        <div class="progress-card warning">
+
+            <i class="fas fa-pen"></i>
+
+            <h3 id="updatedRows">
+
+                0
+
+            </h3>
+
+            <span>
+
+                Modifiées
+
+            </span>
+
+        </div>
+
+        <div class="progress-card danger">
+
+            <i class="fas fa-trash"></i>
+
+            <h3 id="deletedRows">
+
+                0
+
+            </h3>
+
+            <span>
+
+                Supprimées
+
+            </span>
+
+        </div>
+
+        <div class="progress-card info">
+
+            <i class="fas fa-circle-check"></i>
+
+            <h3 id="sameRows">
+
+                0
+
+            </h3>
+
+            <span>
+
+                Identiques
+
+            </span>
+
+        </div>
+
+        <div class="progress-card dark">
+
+            <i class="fas fa-triangle-exclamation"></i>
+
+            <h3 id="errorRows">
+
+                0
+
+            </h3>
+
+            <span>
+
+                Erreurs
+
+            </span>
+
+        </div>
+
+    </div>
+
+    <!-- ================= Journal ================= -->
+
+    <div class="import-log-card">
+
+        <div class="log-header">
+
+            <div>
+
+                <i class="fas fa-terminal"></i>
+
+                Journal d'importation
+
+            </div>
+
+            <button
+                id="btnClearLog"
+                class="btn btn-light"
+                type="button">
+
+                <i class="fas fa-broom"></i>
+
+                Vider
+
+            </button>
+
+        </div>
+
+        <div
+            id="importLog"
+            class="import-log">
+
+        </div>
+
+    </div>
+
+    <!-- ================= Actions ================= -->
+
+    <div class="progress-actions">
+
+        <button
+            id="btnResetImport"
+            class="btn btn-outline"
+            type="button">
+
+            <i class="fas fa-rotate-left"></i>
+
+            Recommencer
+
+        </button>
+
+        <button
+            id="btnStartImport"
+            class="btn btn-success"
+            type="button"
+            disabled>
+
+            <i class="fas fa-cloud-upload-alt"></i>
+
+            Importer
+
+        </button>
+
+        <button
+            id="btnCancelImport"
+            class="btn btn-danger"
+            type="button"
+            disabled>
+
+            <i class="fas fa-circle-stop"></i>
+
+            Arrêter
+
+        </button>
+
+    </div>
+
+</section>
+<!-- ==========================================================
+     LOADER
+========================================================== -->
+
+<div id="loaderOverlay" class="loader-overlay hidden">
+
+    <div class="loader-card">
+
+        <div class="loader-animation">
+
+            <div class="loader-spinner">
+
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+
+            </div>
+
+        </div>
+
+        <h2>
+
+            Importation en cours...
+
+        </h2>
+
+        <p id="loaderMessage">
+
+            Préparation des données...
+
+        </p>
+
+        <div class="loader-progress">
+
+            <div class="loader-progress-track">
+
+                <div
+                    id="loaderBar"
+                    class="loader-progress-bar">
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <span id="loaderPercent">
+
+            0%
+
+        </span>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     TOAST CONTAINER
+========================================================== -->
+
+<div
+    id="toastContainer"
+    class="toast-container">
+
+</div>
+
+<!-- ==========================================================
+     CONFIRMATION MODAL
+========================================================== -->
+
+<div
+    id="confirmModal"
+    class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div class="modal-icon warning">
+
+                <i class="fas fa-triangle-exclamation"></i>
+
+            </div>
+
+            <div>
+
+                <h2>
+
+                    Confirmation
+
+                </h2>
+
+                <p id="confirmMessage">
+
+                    Voulez-vous vraiment continuer ?
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                id="btnCancelModal"
+                class="btn btn-light"
+                type="button">
+
+                <i class="fas fa-xmark"></i>
+
+                Annuler
+
+            </button>
+
+            <button
+                id="btnConfirmModal"
+                class="btn btn-danger"
+                type="button">
+
+                <i class="fas fa-check"></i>
+
+                Confirmer
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     SUCCESS MODAL
+========================================================== -->
+
+<div
+    id="successModal"
+    class="modal hidden">
+
+    <div class="modal-content success">
+
+        <div class="modal-header">
+
+            <div class="modal-icon success">
+
+                <i class="fas fa-circle-check"></i>
+
+            </div>
+
+            <div>
+
+                <h2>
+
+                    Importation Terminée
+
+                </h2>
+
+                <p id="successMessage">
+
+                    Toutes les commandes ont été traitées avec succès.
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                id="btnCloseSuccess"
+                class="btn btn-success"
+                type="button">
+
+                <i class="fas fa-check"></i>
+
+                Fermer
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     ERROR MODAL
+========================================================== -->
+
+<div
+    id="errorModal"
+    class="modal hidden">
+
+    <div class="modal-content danger">
+
+        <div class="modal-header">
+
+            <div class="modal-icon danger">
+
+                <i class="fas fa-circle-xmark"></i>
+
+            </div>
+
+            <div>
+
+                <h2>
+
+                    Une erreur est survenue
+
+                </h2>
+
+                <p id="errorMessage">
+
+                    Impossible de terminer l'importation.
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                id="btnCloseError"
+                class="btn btn-danger"
+                type="button">
+
+                <i class="fas fa-xmark"></i>
+
+                Fermer
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     END PAGE CONTENT
+========================================================== -->
+
+            </main>
+
+        </div>
+
+    </div>
+
+<!-- ==========================================================
+     JAVASCRIPT
+========================================================== -->
+
+<!-- Core -->
+
+<script
+    type="module"
+    src="/assets/js/core/config.js">
+</script>
+
+<script
+    type="module"
+    src="/assets/js/core/utils.js">
+</script>
+
+<script
+    type="module"
+    src="/assets/js/core/auth.js">
+</script>
+
+<script
+    type="module"
+    src="/assets/js/core/session.js">
+</script>
+
+<script
+    type="module"
+    src="/assets/js/core/permissions.js">
+</script>
+
+<!-- SheetJS -->
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<!-- Import Commandes -->
+
+<script
+    type="module"
+    src="/assets/js/commandes-import.js">
+</script>
 
 </body>
 
