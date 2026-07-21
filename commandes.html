@@ -10,7 +10,7 @@
 <body class="bg-gray-900 text-gray-100 min-h-screen">
 
     <!-- Navigation Header -->
-    <nav class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center shadow-md">
+    <nav class="bg-gray-800 border-b border-gray-700 p-4 flex flex-wrap justify-between items-center shadow-md gap-4">
         <div class="flex items-center gap-3">
             <a href="dashboard.html" class="text-indigo-400 font-bold hover:underline">
                 <i class="fa-solid fa-arrow-left mr-1"></i> Dashboard
@@ -19,12 +19,26 @@
             <span class="font-bold text-gray-200">Analyse & Gestion des Commandes</span>
         </div>
         
-        <div class="flex gap-2">
-            <a href="gestion_commandes.html" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold shadow">
-                <i class="fa-solid fa-chart-line mr-1"></i> Analyse Commandes
+        <!-- الأزرار العلوية للتحكم السريع -->
+        <div class="flex flex-wrap gap-2 items-center">
+            <!-- زر 1: استيراد الطلبيات -->
+            <a href="import/import_commandes.html" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">
+                <i class="fa-solid fa-file-excel mr-1"></i> Import Commandes
             </a>
-            <a href="pages/lancer.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold shadow transition">
-                <i class="fa-solid fa-rocket mr-1"></i> Module Lancement
+
+            <!-- زر 2: صفحة Picking -->
+            <a href="pages/picking.html" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">
+                <i class="fa-solid fa-boxes-packing mr-1"></i> Picking
+            </a>
+
+            <!-- زر Analyse Commandes الحالي -->
+            <a href="gestion_commandes.html" class="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm font-bold shadow">
+                <i class="fa-solid fa-chart-line mr-1"></i> Analyse
+            </a>
+
+            <!-- زر Module Lancement -->
+            <a href="pages/lancer.html" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">
+                <i class="fa-solid fa-rocket mr-1"></i> Lancement
             </a>
         </div>
     </nav>
@@ -75,7 +89,7 @@
             </div>
         </div>
 
-        <!-- قسم الجداول التحليلية (Top 10 Clients & Top 10 Articles / Mouvements) -->
+        <!-- قسم الجداول التحليلية (Top 10 Clients & Top 10 Articles) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             <!-- Top 10 Clients -->
@@ -112,7 +126,7 @@
 
         </div>
 
-        <!-- جدول الترتيب الزمني اليومي (Par Jour: Nb Commandes & Total KG) -->
+        <!-- جدول الترتيب الزمني اليومي -->
         <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden p-4">
             <h3 class="text-md font-bold text-gray-200 mb-3"><i class="fa-solid fa-calendar-days mr-2 text-blue-400"></i> Suivi Quotidien (Commandes & Poids Total)</h3>
             <table class="w-full text-left text-sm">
@@ -132,6 +146,6 @@
     </main>
 
     <!-- Script de logique -->
-    <script type="module" src="assets/js/commandes.js"></script>
+    <script type="module" src="assets/js/gestion_commandes.js"></script>
 </body>
 </html>
