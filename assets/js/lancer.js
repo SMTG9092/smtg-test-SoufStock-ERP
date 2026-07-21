@@ -16,11 +16,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = await getUser();
     els.userName.textContent = user?.email || "Administrateur";
     
-    // إعداد التواريخ المستهدفة
     const dates = getTargetDates();
     els.dateDisplay.value = dates.join(' | ');
 
-    // ربط الأحداث (التغيير بين الأوضاع وزر الإطلاق)
     els.radioModes.forEach(radio => radio.addEventListener("change", loadDashboard));
     if (els.btnLancerTout) {
         els.btnLancerTout.addEventListener("click", lancerTout);
@@ -33,7 +31,6 @@ async function loadDashboard() {
     const dates = getTargetDates();
     const mode = document.querySelector('input[name="mode"]:checked').value;
 
-    // جلب البيانات من جدول commandes_excel
     const { data, error } = await supabase.from("commandes_excel")
         .select("*")
         .in("date_livraison", dates);
@@ -45,7 +42,6 @@ async function loadDashboard() {
 
     const commandes = data || [];
 
-    // حساب وتحديث الإحصائيات (Cards)
     els.statAttente.textContent = commandes.filter(c => c.statut === 'IMPORTEE' || !c.statut).length;
     els.statLancee.textContent = commandes.filter(c => c.statut === 'LANCEE').length;
     els.statPicking.textContent = commandes.filter(c => c.statut === 'EN_PICKING').length;
@@ -55,7 +51,6 @@ async function loadDashboard() {
 
 function renderTable(commandes, mode) {
     if (mode === 'tournee') {
-        // رأس الجدول الخاص بـ Tournée
         els.thead.innerHTML = `
             <tr>
                 <th class="p-3">Tournée</th>
@@ -65,7 +60,6 @@ function renderTable(commandes, mode) {
             </tr>
         `;
 
-تجميع حسب التورني (Tournée)
         const tourneeMap = {};
         commandes.forEach(c => {
             const t = c.tournee || c.code_tournee || "Standard";
@@ -81,7 +75,7 @@ function renderTable(commandes, mode) {
                 <td class="p-3 text-indigo-300">${info.count}</td>
                 <td class="p-3 text-green-400 font-bold">${info.weight.toFixed(2)} KG</td>
                 <td class="p-3">
-                    <button onclick="lancerTournee('${tournee}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition">
+                    <button onclick="window.lancerTournee('${tournee}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition">
                         Lancer
                     </button>
                 </td>
@@ -89,7 +83,6 @@ function renderTable(commandes, mode) {
         `).join('') : `<tr><td colspan="4" class="p-6 text-center text-gray-500">Aucune tournée trouvée</td></tr>`;
 
     } else {
-        // رأس الجدول الخاص بـ Commande
         els.thead.innerHTML = `
             <tr>
                 <th class="p-3">Doc Vente</th>
@@ -111,7 +104,7 @@ function renderTable(commandes, mode) {
                     </span>
                 </td>
                 <td class="p-3">
-                    <button onclick="lancerCommande('${c.document_vente}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition">
+                    <button onclick="window.lancerCommande('${c.document_vente}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition">
                         Lancer
                     </button>
                 </td>
@@ -120,10 +113,9 @@ function renderTable(commandes, mode) {
     }
 }
 
-async function lancerTout() {
+async function lancer Tout() {
     if (!confirm("Êtes-vous sûr de vouloir lancer tout le contenu affiché ?")) return;
     
-    // منطق تحديث الحالة في Supabase إلى LANCEE لكل الطلبيات المعروضة
     const dates = getTargetDates();
     const { error } = await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
@@ -137,6 +129,25 @@ async function lancerTout() {
         loadDashboard();
     }
 }
+
+// الدوال المساعدة لجعلها متاحة عالمياً في الـ onclick
+window.lancerCommande = async function(docVente) {
+    const { error } = await supabase.from("commandes_excel")
+        .update({ statut: 'LANCEE' })
+        .eq("document_vente", docVente);
+    
+    if(!error) loadDashboard();
+};
+
+window.lancerTournee = async function(tourneeName) {
+    const dates = getTargetDates();
+    const { error } = await supabase.from("commandes_excel")
+        .update({ statut: 'LANCEE' })
+        .in("date_livraison", dates)
+        .eq("tournee", tourneeName);
+        
+    if(!error) loadDashboard();
+};
 
 function getTargetDates() {
     const today = new Date();
