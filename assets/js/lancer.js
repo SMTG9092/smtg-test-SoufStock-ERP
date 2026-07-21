@@ -113,7 +113,7 @@ function renderTable(commandes, mode) {
     }
 }
 
-async function lancer Tout() {
+async function lancerTout() {
     if (!confirm("Êtes-vous sûr de vouloir lancer tout le contenu affiché ?")) return;
     
     const dates = getTargetDates();
@@ -130,7 +130,6 @@ async function lancer Tout() {
     }
 }
 
-// الدوال المساعدة لجعلها متاحة عالمياً في الـ onclick
 window.lancerCommande = async function(docVente) {
     const { error } = await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
