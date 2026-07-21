@@ -52,7 +52,7 @@ async function loadAnalytics() {
     let pInf100 = 0, p100_300 = 0, p300_500 = 0, pSup500 = 0;
     
     commandes.forEach(c => {
-        const kg = Number(c.quantite_commandee || c.poids || 0); // اعتماداً على الحقل المتوفر في جدولك
+        const kg = Number(c.quantite_commandee || c.poids || 0);
         if (kg < 100) pInf100++;
         else if (kg >= 100 && kg < 300) p100_300++;
         else if (kg >= 300 && kg < 500) p300_500++;
@@ -84,11 +84,11 @@ async function loadAnalytics() {
     `).join('') || `<tr><td colspan="2" class="p-4 text-center text-gray-500">Aucune donnée</td></tr>`;
 
 
-    // 4. Top 10 Produits / Articles les plus sortants
+    // 4. Top 10 Produits / Articles les plus sortants (باسم المنتج الحقيقي عوض الكود)
     const produitsMap = {};
     commandes.forEach(c => {
-        // إذا كان لديك حقل يمثل اسم المادة أو المنتج
-        const produit = c.article || c.designation || c.produit || "Article Standard";
+        // التحقق من الحقول التي تحمل اسم المنتج الوصفي أولاً
+        const produit = c.designation || c.libelle_article || c.nom_article || c.article_nom || c.article || "Article Inconnu";
         const qty = Number(c.quantite_commandee || 1);
         produitsMap[produit] = (produitsMap[produit] || 0) + qty;
     });
