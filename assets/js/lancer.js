@@ -76,7 +76,7 @@ function renderTable(commandes, mode) {
                 <td class="p-3 text-green-400 font-bold">${info.weight.toFixed(2)} KG</td>
                 <td class="p-3">
                     <button onclick="window.lancerTournee('${tournee}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition">
-                        Lancer
+                        Lancer Tournée
                     </button>
                 </td>
             </tr>
@@ -104,8 +104,8 @@ function renderTable(commandes, mode) {
                     </span>
                 </td>
                 <td class="p-3">
-                    <button onclick="window.lancerCommande('${c.document_vente}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition">
-                        Lancer
+                    <button onclick="window.lancerCommande('${c.document_vente}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1">
+                        <i class="fas fa-print"></i> Lancer &amp; Imprimer
                     </button>
                 </td>
             </tr>
@@ -130,14 +130,32 @@ async function lancerTout() {
     }
 }
 
+/**
+ * Lancer une commande spécifique et ouvrir le Bon de Préparation
+ */
 window.lancerCommande = async function(docVente) {
+    if (!docVente || docVente === '-') {
+        alert("Numéro de document de vente invalide.");
+        return;
+    }
+
     const { error } = await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .eq("document_vente", docVente);
     
-    if(!error) loadDashboard();
+    if (!error) {
+        loadDashboard();
+        // Ouverture du Bon de Préparation avec le paramètre 'cmd' f onglet jdid
+        window.open(`print-bon.html?cmd=${encodeURIComponent(docVente)}`, '_blank');
+    } else {
+        alert("Erreur lors du lancement de la commande.");
+        console.error(error);
+    }
 };
 
+/**
+ * Lancer une tournée complète
+ */
 window.lancerTournee = async function(tourneeName) {
     const dates = getTargetDates();
     const { error } = await supabase.from("commandes_excel")
@@ -145,7 +163,13 @@ window.lancerTournee = async function(tourneeName) {
         .in("date_livraison", dates)
         .eq("tournee", tourneeName);
         
-    if(!error) loadDashboard();
+    if (!error) {
+        loadDashboard();
+        alert(`La tournée '${tourneeName}' a été lancée avec succès !`);
+    } else {
+        alert("Erreur lors du lancement de la tournée.");
+        console.error(error);
+    }
 };
 
 function getTargetDates() {
