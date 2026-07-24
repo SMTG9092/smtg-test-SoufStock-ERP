@@ -87,7 +87,7 @@ async function loadDashboard() {
         return;
     }
 
-    const { data, error } = await supabase.from("commandes_clients_pieces")
+    const { data, error } = await supabase.from("commandes_excel")
         .select("*")
         .in("date_livraison", dates);
 
@@ -119,7 +119,7 @@ function renderTable(commandes, mode) {
 
         const tourneeMap = {};
         commandes.forEach(c => {
-            const t = c.itineraire || c.tournee || c.code_tournee || "Standard";
+            const t = c.itineraire || "Standard";
             if (!tourneeMap[t]) {
                 tourneeMap[t] = { 
                     docs: new Set(), 
@@ -128,8 +128,12 @@ function renderTable(commandes, mode) {
                 };
             }
             tourneeMap[t].docs.add(c.document_vente);
-            tourneeMap[t].weight += Number(c.quantite_commandee || 0);
-            tourneeMap[t].pieces += Number(c.nombre_pieces || 0);
+            
+            // Jm3 l-poids mn poids_total wla quantite_commandee b dabet
+            tourneeMap[t].weight += Number(c.poids_total || c.quantite_commandee || 0);
+            
+            // Jm3 nombre de caisses wla quantité commandée dyal l-pièces
+            tourneeMap[t].pieces += Number(c.nombre_caisses || c.quantite_commandee || 0);
         });
 
         const entries = Object.entries(tourneeMap);
@@ -138,7 +142,7 @@ function renderTable(commandes, mode) {
                 <td class="p-3 font-semibold text-gray-200">${tournee}</td>
                 <td class="p-3 text-indigo-300">${info.docs.size} commande(s)</td>
                 <td class="p-3 text-green-400 font-bold">${info.weight.toFixed(2)} KG</td>
-                <td class="p-3 text-yellow-400 font-bold">${info.pieces} Pcs</td>
+                <td class="p-3 text-yellow-400 font-bold">${info.pieces.toFixed(2)}</td>
                 <td class="p-3">
                     <button onclick="window.lancerTournee('${tournee}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1">
                         <i class="fas fa-print"></i> Lancer Tournée
@@ -237,7 +241,7 @@ async function lancerToutParTournee() {
     const user = await getUser();
     const numLancementVal = "TOURALL-" + Date.now();
 
-    const { data: commandesList, error: fetchErr } = await supabase.from("commandes_clients_pieces")
+    const { data: commandesList, error: fetchErr } = await supabase.from("commandes_excel")
         .select("*")
         .in("date_livraison", dates);
 
@@ -246,7 +250,7 @@ async function lancerToutParTournee() {
         return;
     }
 
-    await supabase.from("commandes_clients_pieces")
+    await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates);
 
@@ -254,7 +258,7 @@ async function lancerToutParTournee() {
     const uniqueDocsMap = new Map();
     
     commandesList.forEach(cmd => {
-        const t = cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard";
+        const t = cmd.itineraire || "Standard";
         if (!tourneeMap[t]) tourneeMap[t] = [];
         tourneeMap[t].push(cmd);
 
@@ -271,7 +275,7 @@ async function lancerToutParTournee() {
         date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmd.date_livraison,
         heure_livraison: cmd.heure_livraison || null,
-        itineraire: cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard",
+        itineraire: cmd.itineraire || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
@@ -296,7 +300,7 @@ async function lancerToutParCommande() {
     const user = await getUser();
     const numLancementVal = "ALL-" + Date.now();
 
-    const { data: commandesList, error: fetchErr } = await supabase.from("commandes_clients_pieces")
+    const { data: commandesList, error: fetchErr } = await supabase.from("commandes_excel")
         .select("*")
         .in("date_livraison", dates);
 
@@ -305,7 +309,7 @@ async function lancerToutParCommande() {
         return;
     }
 
-    await supabase.from("commandes_clients_pieces")
+    await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates);
 
@@ -324,7 +328,7 @@ async function lancerToutParCommande() {
         date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmd.date_livraison,
         heure_livraison: cmd.heure_livraison || null,
-        itineraire: cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard",
+        itineraire: cmd.itineraire || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
@@ -347,7 +351,7 @@ window.lancerCommande = async function(docVente) {
     }
 
     const { data: cmdRows, error: cmdFetchError } = await supabase
-        .from("commandes_clients_pieces")
+        .from("commandes_excel")
         .select("*")
         .eq("document_vente", docVente)
         .limit(1);
@@ -359,7 +363,7 @@ window.lancerCommande = async function(docVente) {
 
     const cmdData = cmdRows[0];
 
-    await supabase.from("commandes_clients_pieces").update({ statut: 'LANCEE' }).eq("document_vente", docVente);
+    await supabase.from("commandes_excel").update({ statut: 'LANCEE' }).eq("document_vente", docVente);
 
     const user = await getUser();
     const numLancementVal = "LANC-" + Date.now();
@@ -372,7 +376,7 @@ window.lancerCommande = async function(docVente) {
         date_creation: cmdData.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmdData.date_livraison,
         heure_livraison: cmdData.heure_livraison || null,
-        itineraire: cmdData.itineraire || cmdData.tournee || cmdData.code_tournee || "Standard",
+        itineraire: cmdData.itineraire || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
@@ -391,7 +395,7 @@ window.lancerTournee = async function(tourneeName) {
     const numLancementVal = "TOUR-" + Date.now();
 
     const { data: commandesList, error: fetchErr } = await supabase
-        .from("commandes_clients_pieces")
+        .from("commandes_excel")
         .select("*")
         .in("date_livraison", dates)
         .eq("itineraire", tourneeName);
@@ -401,7 +405,7 @@ window.lancerTournee = async function(tourneeName) {
         return;
     }
 
-    await supabase.from("commandes_clients_pieces")
+    await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates)
         .eq("itineraire", tourneeName);
