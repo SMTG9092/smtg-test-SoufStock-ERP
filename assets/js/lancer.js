@@ -2,7 +2,6 @@ import supabase, { getUser } from "./core/supabase.js";
 
 const els = {
     userName: document.getElementById("user-name"),
-    dateDisplay: document.getElementById("date-display"),
     statAttente: document.getElementById("stat-attente"),
     statLancee: document.getElementById("stat-lancee"),
     statPicking: document.getElementById("stat-picking"),
@@ -16,10 +15,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = await getUser();
     els.userName.textContent = user?.email || "Administrateur";
     
-    const dates = getTargetDates();
-    if (els.dateDisplay) {
-        els.dateDisplay.value = dates.join(' | ');
-    }
+    // Générer les checkboxes men J tal J+6
+    initDateCheckboxes();
 
     els.radioModes.forEach(radio => radio.addEventListener("change", loadDashboard));
     
@@ -32,9 +29,61 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadDashboard();
 });
 
+// Initialiser les cases à cocher de J à J+6
+function initDateCheckboxes() {
+    const container = document.getElementById("days-checkbox-container");
+    if (!container) return;
+
+    let html = '';
+    const today = new Date();
+
+    for (let i = 0; i <= 6; i++) {
+        let d = new Date();
+        d.setDate(today.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        
+        let labelName = i === 0 ? "J (Aujourd'hui)" : `J+${i}`;
+        let formattedDate = `${dateStr} (${labelName})`;
+
+        // Par défaut, J et J+1 (i <= 1) kouno m-sélectionnin (wla t-bghihum kamlin khalli i <= 6)
+        let isChecked = (i <= 1) ? 'checked' : '';
+
+        html += `
+            <label class="flex items-center gap-2 cursor-pointer bg-gray-900 px-3 py-1.5 rounded border border-gray-700 hover:border-indigo-500 transition">
+                <input type="checkbox" name="target-date-chk" value="${dateStr}" ${isChecked} class="w-4 h-4 text-indigo-600 bg-gray-900 border-gray-700 rounded focus:ring-indigo-500">
+                <span class="text-xs text-gray-300 font-medium">${formattedDate}</span>
+            </label>
+        `;
+    }
+    container.innerHTML = html;
+
+    // Écouter les changements sur les checkboxes bch y-t-fittra otmatik
+    document.querySelectorAll('input[name="target-date-chk"]').forEach(chk => {
+        chk.addEventListener("change", loadDashboard);
+    });
+}
+
+// Récupérer les dates cochées par l'utilisateur
+function getTargetDates() {
+    const checkboxes = document.querySelectorAll('input[name="target-date-chk"]:checked');
+    let dates = [];
+    checkboxes.forEach(chk => {
+        dates.push(chk.value);
+    });
+    return dates;
+}
+
 async function loadDashboard() {
     const dates = getTargetDates();
     const mode = document.querySelector('input[name="mode"]:checked')?.value || 'commande';
+
+    if (dates.length === 0) {
+        els.tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Veuillez sélectionner au moins un jour de livraison</td></tr>`;
+        if (els.statAttente) els.statAttente.textContent = 0;
+        if (els.statLancee) els.statLancee.textContent = 0;
+        if (els.statPicking) els.statPicking.textContent = 0;
+        return;
+    }
 
     const { data, error } = await supabase.from("commandes_clients_pieces")
         .select("*")
@@ -179,6 +228,10 @@ function closeLancerChoiceModal() {
 
 async function lancerToutParTournee() {
     const dates = getTargetDates();
+    if (dates.length === 0) {
+        alert("Veuillez sélectionner au moins une date.");
+        return;
+    }
     const user = await getUser();
     const numLancementVal = "TOURALL-" + Date.now();
 
@@ -234,6 +287,10 @@ async function lancerToutParTournee() {
 
 async function lancerToutParCommande() {
     const dates = getTargetDates();
+    if (dates.length === 0) {
+        alert("Veuillez sélectionner au moins une date.");
+        return;
+    }
     const user = await getUser();
     const numLancementVal = "ALL-" + Date.now();
 
@@ -374,16 +431,3 @@ window.lancerTournee = async function(tourneeName) {
     loadDashboard();
     window.open(`print-bon-Tournee.html?tournee=${encodeURIComponent(tourneeName)}&dates=${encodeURIComponent(dates.join(','))}`, '_blank');
 };
-
-function getTargetDates() {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    let dates = [];
-    const limit = (dayOfWeek === 6) ? 2 : 1;
-    for(let i=0; i<=limit; i++) {
-        let d = new Date(); 
-        d.setDate(today.getDate() + i);
-        dates.push(d.toISOString().split('T')[0]);
-    }
-    return dates;
-}
