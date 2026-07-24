@@ -117,21 +117,57 @@ async function lancerTout() {
     if (!confirm("Êtes-vous sûr de vouloir lancer tout le contenu affiché ?")) return;
     
     const dates = getTargetDates();
-    const { error } = await supabase.from("commandes_excel")
+    const user = await getUser();
+    const numLancementVal = "ALL-" + Date.now();
+
+    const { data: commandesList, error: fetchErr } = await supabase.from("commandes_excel")
+        .select("*")
+        .in("date_livraison", dates);
+
+    if (fetchErr || !commandesList || commandesList.length === 0) {
+        alert("Aucune commande à lancer.");
+        return;
+    }
+
+    const { error: updateError } = await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates);
 
-    if (error) {
+    if (updateError) {
         alert("Erreur lors du lancement global.");
-        console.error(error);
-    } else {
-        alert("Opération 'Lancer tout' terminée avec succès !");
-        loadDashboard();
+        console.error(updateError);
+        return;
     }
+
+    const suiviRows = commandesList.map(cmd => ({
+        commande_id: cmd.id,
+        historique_import_id: cmd.historique_import_id || 1,
+        document_vente: cmd.document_vente,
+        client: cmd.nom_receptionnaire || cmd.client || "Client Inconnu",
+        date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
+        date_livraison: cmd.date_livraison,
+        heure_livraison: cmd.heure_livraison || null,
+        itineraire: cmd.tournee || cmd.code_tournee || "Standard",
+        statut: 'LANCEE',
+        lance_par: user?.id || null,
+        date_lancement: new Date().toISOString(),
+        num_lancement: numLancementVal
+    }));
+
+    const { error: suiviError } = await supabase
+        .from("suivi_commandes_lancer")
+        .upsert(suiviRows, { onConflict: 'document_vente' });
+
+    if (suiviError) {
+        console.warn("[SUIVI WARNING] Erreur insertion globale:", suiviError.message);
+    }
+
+    alert("Opération 'Lancer tout' terminée et enregistrée avec succès !");
+    loadDashboard();
 }
 
 /**
- * Lancer une commande spécifique et ouvrir le Bon de Préparation
+ * Lancer une commande spécifique, l'enregistrer dans le suivi et ouvrir le Bon de Préparation
  */
 window.lancerCommande = async function(docVente) {
     if (!docVente || docVente === '-') {
@@ -139,37 +175,113 @@ window.lancerCommande = async function(docVente) {
         return;
     }
 
-    const { error } = await supabase.from("commandes_excel")
+    const { data: cmdData, error: cmdFetchError } = await supabase
+        .from("commandes_excel")
+        .select("*")
+        .eq("document_vente", docVente)
+        .single();
+
+    if (cmdFetchError || !cmdData) {
+        alert("Erreur: Commande introuvable.");
+        console.error(cmdFetchError);
+        return;
+    }
+
+    const { error: updateError } = await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .eq("document_vente", docVente);
     
-    if (!error) {
-        loadDashboard();
-        // Ouverture du Bon de Préparation avec le paramètre 'cmd' f onglet jdid
-        window.open(`print-bon.html?cmd=${encodeURIComponent(docVente)}`, '_blank');
-    } else {
+    if (updateError) {
         alert("Erreur lors du lancement de la commande.");
-        console.error(error);
+        console.error(updateError);
+        return;
     }
+
+    const user = await getUser();
+    const numLancementVal = "LANC-" + Date.now();
+
+    const suiviPayload = {
+        commande_id: cmdData.id,
+        historique_import_id: cmdData.historique_import_id || 1,
+        document_vente: cmdData.document_vente,
+        client: cmdData.nom_receptionnaire || cmdData.client || "Client Inconnu",
+        date_creation: cmdData.date_creation || new Date().toISOString().split('T')[0],
+        date_livraison: cmdData.date_livraison,
+        heure_livraison: cmdData.heure_livraison || null,
+        itineraire: cmdData.tournee || cmdData.code_tournee || "Standard",
+        statut: 'LANCEE',
+        lance_par: user?.id || null,
+        date_lancement: new Date().toISOString(),
+        num_lancement: numLancementVal
+    };
+
+    const { error: suiviError } = await supabase
+        .from("suivi_commandes_lancer")
+        .upsert(suiviPayload, { onConflict: 'document_vente' });
+
+    if (suiviError) {
+        console.warn("[SUIVI WARNING] Erreur enregistrement suivi_commandes_lancer:", suiviError.message);
+    }
+
+    loadDashboard();
+    window.open(`print-bon.html?cmd=${encodeURIComponent(docVente)}`, '_blank');
 };
 
 /**
- * Lancer une tournée complète
+ * Lancer une tournée complète et l'enregistrer dans le suivi
  */
 window.lancerTournee = async function(tourneeName) {
     const dates = getTargetDates();
-    const { error } = await supabase.from("commandes_excel")
+    const user = await getUser();
+    const numLancementVal = "TOUR-" + Date.now();
+
+    const { data: commandesList, error: fetchErr } = await supabase
+        .from("commandes_excel")
+        .select("*")
+        .in("date_livraison", dates)
+        .or(`tournee.eq.${tourneeName},code_tournee.eq.${tourneeName}`);
+
+    if (fetchErr || !commandesList || commandesList.length === 0) {
+        alert("Aucune commande trouvée pour cette tournée.");
+        return;
+    }
+
+    const { error: updateError } = await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates)
-        .eq("tournee", tourneeName);
+        .or(`tournee.eq.${tourneeName},code_tournee.eq.${tourneeName}`);
         
-    if (!error) {
-        loadDashboard();
-        alert(`La tournée '${tourneeName}' a été lancée avec succès !`);
-    } else {
+    if (updateError) {
         alert("Erreur lors du lancement de la tournée.");
-        console.error(error);
+        console.error(updateError);
+        return;
     }
+
+    const suiviRows = commandesList.map(cmd => ({
+        commande_id: cmd.id,
+        historique_import_id: cmd.historique_import_id || 1,
+        document_vente: cmd.document_vente,
+        client: cmd.nom_receptionnaire || cmd.client || "Client Inconnu",
+        date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
+        date_livraison: cmd.date_livraison,
+        heure_livraison: cmd.heure_livraison || null,
+        itineraire: tourneeName,
+        statut: 'LANCEE',
+        lance_par: user?.id || null,
+        date_lancement: new Date().toISOString(),
+        num_lancement: numLancementVal
+    }));
+
+    const { error: suiviError } = await supabase
+        .from("suivi_commandes_lancer")
+        .upsert(suiviRows, { onConflict: 'document_vente' });
+
+    if (suiviError) {
+        console.warn("[SUIVI WARNING] Erreur enregistrement lot tournée:", suiviError.message);
+    }
+
+    loadDashboard();
+    alert(`La tournée '${tourneeName}' a été lancée et enregistrée avec succès !`);
 };
 
 function getTargetDates() {
