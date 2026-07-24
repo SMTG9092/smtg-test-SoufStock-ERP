@@ -17,11 +17,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     els.userName.textContent = user?.email || "Administrateur";
     
     const dates = getTargetDates();
-    els.dateDisplay.value = dates.join(' | ');
+    if (els.dateDisplay) {
+        els.dateDisplay.value = dates.join(' | ');
+    }
 
     els.radioModes.forEach(radio => radio.addEventListener("change", loadDashboard));
+    
+    // Injécter le Modal de choix dans le HTML dynamiquement
+    injectChoiceModal();
+
     if (els.btnLancerTout) {
-        els.btnLancerTout.addEventListener("click", lancerTout);
+        els.btnLancerTout.addEventListener("click", openLancerChoiceModal);
     }
     
     loadDashboard();
@@ -29,7 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function loadDashboard() {
     const dates = getTargetDates();
-    const mode = document.querySelector('input[name="mode"]:checked').value;
+    const mode = document.querySelector('input[name="mode"]:checked')?.value || 'commande';
 
     const { data, error } = await supabase.from("commandes_excel")
         .select("*")
@@ -42,9 +48,9 @@ async function loadDashboard() {
 
     const commandes = data || [];
 
-    els.statAttente.textContent = commandes.filter(c => c.statut === 'IMPORTEE' || !c.statut).length;
-    els.statLancee.textContent = commandes.filter(c => c.statut === 'LANCEE').length;
-    els.statPicking.textContent = commandes.filter(c => c.statut === 'EN_PICKING').length;
+    if (els.statAttente) els.statAttente.textContent = commandes.filter(c => c.statut === 'IMPORTEE' || !c.statut).length;
+    if (els.statLancee) els.statLancee.textContent = commandes.filter(c => c.statut === 'LANCEE').length;
+    if (els.statPicking) els.statPicking.textContent = commandes.filter(c => c.statut === 'EN_PICKING').length;
 
     renderTable(commandes, mode);
 }
@@ -63,8 +69,8 @@ function renderTable(commandes, mode) {
         const tourneeMap = {};
         commandes.forEach(c => {
             const t = c.tournee || c.code_tournee || "Standard";
-            if (!tourneeMap[t]) tourneeMap[t] = { count: 0, weight: 0 };
-            tourneeMap[t].count += 1;
+            if (!tourneeMap[t]) tourneeMap[t] = { count: 0, weight: 0, docs: new Set() };
+            tourneeMap[t].docs.add(c.document_vente);
             tourneeMap[t].weight += Number(c.quantite_commandee || c.poids || 0);
         });
 
@@ -72,11 +78,11 @@ function renderTable(commandes, mode) {
         els.tbody.innerHTML = entries.length ? entries.map(([tournee, info]) => `
             <tr class="border-b border-gray-700 hover:bg-gray-750">
                 <td class="p-3 font-semibold text-gray-200">${tournee}</td>
-                <td class="p-3 text-indigo-300">${info.count}</td>
+                <td class="p-3 text-indigo-300">${info.docs.size} commande(s)</td>
                 <td class="p-3 text-green-400 font-bold">${info.weight.toFixed(2)} KG</td>
                 <td class="p-3">
-                    <button onclick="window.lancerTournee('${tournee}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition">
-                        Lancer Tournée
+                    <button onclick="window.lancerTournee('${tournee}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1">
+                        <i class="fas fa-print"></i> Lancer Tournée
                     </button>
                 </td>
             </tr>
@@ -93,7 +99,16 @@ function renderTable(commandes, mode) {
             </tr>
         `;
 
-        els.tbody.innerHTML = commandes.length ? commandes.map(c => `
+        const uniqueCommandesMap = new Map();
+        commandes.forEach(c => {
+            if (!uniqueCommandesMap.has(c.document_vente)) {
+                uniqueCommandesMap.set(c.document_vente, c);
+            }
+        });
+
+        const uniqueCommandes = Array.from(uniqueCommandesMap.values());
+
+        els.tbody.innerHTML = uniqueCommandes.length ? uniqueCommandes.map(c => `
             <tr class="border-b border-gray-700 hover:bg-gray-750">
                 <td class="p-3 font-semibold text-indigo-300">${c.document_vente || '-'}</td>
                 <td class="p-3 text-gray-200">${c.nom_receptionnaire || c.client || '-'}</td>
@@ -113,9 +128,117 @@ function renderTable(commandes, mode) {
     }
 }
 
-async function lancerTout() {
-    if (!confirm("Êtes-vous sûr de vouloir lancer tout le contenu affiché ?")) return;
+/**
+ * Création et Injection du Modal de Choix (Par Tournée ou Par Commande)
+ */
+function injectChoiceModal() {
+    if (document.getElementById('lancer-choice-modal')) return;
+
+    const modalHTML = `
+        <div id="lancer-choice-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center hidden">
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-96 shadow-2xl text-center space-y-4">
+                <h3 class="text-lg font-bold text-white">Mode de Lancement Global</h3>
+                <p class="text-sm text-gray-300">Comment souhaitez-vous lancer et imprimer les éléments affichés ?</p>
+                <div class="flex flex-col gap-3 pt-2">
+                    <button id="btn-choice-tournee" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 px-4 rounded font-bold text-sm transition shadow">
+                        Par Tournée (Regroupé)
+                    </button>
+                    <button id="btn-choice-commande" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded font-bold text-sm transition shadow">
+                        Par Commande (Individuel)
+                    </button>
+                </div>
+                <button id="btn-choice-cancel" class="text-gray-400 hover:text-white text-xs underline pt-2">Annuler</button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    document.getElementById('btn-choice-cancel').addEventListener('click', closeLancerChoiceModal);
+    document.getElementById('btn-choice-tournee').addEventListener('click', () => {
+        closeLancerChoiceModal();
+        lancerToutParTournee();
+    });
+    document.getElementById('btn-choice-commande').addEventListener('click', () => {
+        closeLancerChoiceModal();
+        lancerToutParCommande();
+    });
+}
+
+function openLancerChoiceModal() {
+    document.getElementById('lancer-choice-modal').classList.remove('hidden');
+}
+
+function closeLancerChoiceModal() {
+    document.getElementById('lancer-choice-modal').classList.add('hidden');
+}
+
+/**
+ * Lancer Tout par Tournée (ouvre print-bon-Tournee.html pour chaque tournée existante)
+ */
+async function lancerToutParTournee() {
+    const dates = getTargetDates();
+    const user = await getUser();
+    const numLancementVal = "TOURALL-" + Date.now();
+
+    const { data: commandesList, error: fetchErr } = await supabase.from("commandes_excel")
+        .select("*")
+        .in("date_livraison", dates);
+
+    if (fetchErr || !commandesList || commandesList.length === 0) {
+        alert("Aucune commande à lancer.");
+        return;
+    }
+
+    const { error: updateError } = await supabase.from("commandes_excel")
+        .update({ statut: 'LANCEE' })
+        .in("date_livraison", dates);
+
+    if (updateError) {
+        alert("Erreur lors du lancement global.");
+        return;
+    }
+
+    const tourneeMap = {};
+    const uniqueDocsMap = new Map();
     
+    commandesList.forEach(cmd => {
+        const t = cmd.tournee || cmd.code_tournee || "Standard";
+        if (!tourneeMap[t]) tourneeMap[t] = [];
+        tourneeMap[t].push(cmd);
+
+        if (!uniqueDocsMap.has(cmd.document_vente)) {
+            uniqueDocsMap.set(cmd.document_vente, cmd);
+        }
+    });
+
+    const suiviRows = Array.from(uniqueDocsMap.values()).map(cmd => ({
+        commande_id: cmd.id,
+        historique_import_id: cmd.historique_import_id || 1,
+        document_vente: cmd.document_vente,
+        client: cmd.nom_receptionnaire || cmd.client || "Client Inconnu",
+        date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
+        date_livraison: cmd.date_livraison,
+        heure_livraison: cmd.heure_livraison || null,
+        itineraire: cmd.tournee || cmd.code_tournee || "Standard",
+        statut: 'LANCEE',
+        lance_par: user?.id || null,
+        date_lancement: new Date().toISOString(),
+        num_lancement: numLancementVal
+    }));
+
+    await supabase.from("suivi_commandes_lancer").upsert(suiviRows, { onConflict: 'document_vente' });
+
+    Object.keys(tourneeMap).forEach(tourneeName => {
+        window.open(`print-bon-Tournee.html?tournee=${encodeURIComponent(tourneeName)}&dates=${encodeURIComponent(dates.join(','))}`, '_blank');
+    });
+
+    loadDashboard();
+}
+
+/**
+ * Lancer Tout par Commande (ouvre un onglet par commande individuelle)
+ */
+async function lancerToutParCommande() {
     const dates = getTargetDates();
     const user = await getUser();
     const numLancementVal = "ALL-" + Date.now();
@@ -135,11 +258,17 @@ async function lancerTout() {
 
     if (updateError) {
         alert("Erreur lors du lancement global.");
-        console.error(updateError);
         return;
     }
 
-    const suiviRows = commandesList.map(cmd => ({
+    const uniqueDocsMap = new Map();
+    commandesList.forEach(cmd => {
+        if (!uniqueDocsMap.has(cmd.document_vente)) {
+            uniqueDocsMap.set(cmd.document_vente, cmd);
+        }
+    });
+
+    const suiviRows = Array.from(uniqueDocsMap.values()).map(cmd => ({
         commande_id: cmd.id,
         historique_import_id: cmd.historique_import_id || 1,
         document_vente: cmd.document_vente,
@@ -154,20 +283,17 @@ async function lancerTout() {
         num_lancement: numLancementVal
     }));
 
-    const { error: suiviError } = await supabase
-        .from("suivi_commandes_lancer")
-        .upsert(suiviRows, { onConflict: 'document_vente' });
+    await supabase.from("suivi_commandes_lancer").upsert(suiviRows, { onConflict: 'document_vente' });
 
-    if (suiviError) {
-        console.warn("[SUIVI WARNING] Erreur insertion globale:", suiviError.message);
-    }
+    uniqueDocsMap.forEach((_, docVente) => {
+        window.open(`print-bon.html?cmd=${encodeURIComponent(docVente)}`, '_blank');
+    });
 
-    alert("Opération 'Lancer tout' terminée et enregistrée avec succès !");
     loadDashboard();
 }
 
 /**
- * Lancer une commande spécifique, l'enregistrer dans le suivi et ouvrir le Bon de Préparation
+ * Lancer une commande spécifique
  */
 window.lancerCommande = async function(docVente) {
     if (!docVente || docVente === '-') {
@@ -175,27 +301,20 @@ window.lancerCommande = async function(docVente) {
         return;
     }
 
-    const { data: cmdData, error: cmdFetchError } = await supabase
+    const { data: cmdRows, error: cmdFetchError } = await supabase
         .from("commandes_excel")
         .select("*")
         .eq("document_vente", docVente)
-        .single();
+        .limit(1);
 
-    if (cmdFetchError || !cmdData) {
+    if (cmdFetchError || !cmdRows || cmdRows.length === 0) {
         alert("Erreur: Commande introuvable.");
-        console.error(cmdFetchError);
         return;
     }
 
-    const { error: updateError } = await supabase.from("commandes_excel")
-        .update({ statut: 'LANCEE' })
-        .eq("document_vente", docVente);
-    
-    if (updateError) {
-        alert("Erreur lors du lancement de la commande.");
-        console.error(updateError);
-        return;
-    }
+    const cmdData = cmdRows[0];
+
+    await supabase.from("commandes_excel").update({ statut: 'LANCEE' }).eq("document_vente", docVente);
 
     const user = await getUser();
     const numLancementVal = "LANC-" + Date.now();
@@ -215,20 +334,14 @@ window.lancerCommande = async function(docVente) {
         num_lancement: numLancementVal
     };
 
-    const { error: suiviError } = await supabase
-        .from("suivi_commandes_lancer")
-        .upsert(suiviPayload, { onConflict: 'document_vente' });
-
-    if (suiviError) {
-        console.warn("[SUIVI WARNING] Erreur enregistrement suivi_commandes_lancer:", suiviError.message);
-    }
+    await supabase.from("suivi_commandes_lancer").upsert(suiviPayload, { onConflict: 'document_vente' });
 
     loadDashboard();
     window.open(`print-bon.html?cmd=${encodeURIComponent(docVente)}`, '_blank');
 };
 
 /**
- * Lancer une tournée complète et l'enregistrer dans le suivi
+ * Lancer une tournée complète
  */
 window.lancerTournee = async function(tourneeName) {
     const dates = getTargetDates();
@@ -246,22 +359,23 @@ window.lancerTournee = async function(tourneeName) {
         return;
     }
 
-    const { error: updateError } = await supabase.from("commandes_excel")
+    await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates)
         .or(`tournee.eq.${tourneeName},code_tournee.eq.${tourneeName}`);
-        
-    if (updateError) {
-        alert("Erreur lors du lancement de la tournée.");
-        console.error(updateError);
-        return;
-    }
 
-    const suiviRows = commandesList.map(cmd => ({
+    const uniqueDocsMap = new Map();
+    commandesList.forEach(cmd => {
+        if (!uniqueDocsMap.has(cmd.document_vente)) {
+            uniqueDocsMap.set(cmd.document_vente, cmd);
+        }
+    });
+
+    const suiviRows = Array.from(uniqueDocsMap.values()).map(cmd => ({
         commande_id: cmd.id,
         historique_import_id: cmd.historique_import_id || 1,
         document_vente: cmd.document_vente,
-        client: cmd.nom_receptionnaire || cmd.client || "Client Inconnu",
+        client: cmdData.nom_receptionnaire || cmd.client || "Client Inconnu",
         date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmd.date_livraison,
         heure_livraison: cmd.heure_livraison || null,
@@ -272,16 +386,10 @@ window.lancerTournee = async function(tourneeName) {
         num_lancement: numLancementVal
     }));
 
-    const { error: suiviError } = await supabase
-        .from("suivi_commandes_lancer")
-        .upsert(suiviRows, { onConflict: 'document_vente' });
-
-    if (suiviError) {
-        console.warn("[SUIVI WARNING] Erreur enregistrement lot tournée:", suiviError.message);
-    }
+    await supabase.from("suivi_commandes_lancer").upsert(suiviRows, { onConflict: 'document_vente' });
 
     loadDashboard();
-    alert(`La tournée '${tourneeName}' a été lancée et enregistrée avec succès !`);
+    window.open(`print-bon-Tournee.html?tournee=${encodeURIComponent(tourneeName)}&dates=${encodeURIComponent(dates.join(','))}`, '_blank');
 };
 
 function getTargetDates() {
