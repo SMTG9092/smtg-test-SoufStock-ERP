@@ -190,7 +190,6 @@ class ImportCommandesManager {
                 nomFichier = `${this.excelFile.name} & ${this.piecesFile.name}`;
             }
 
-            // 1. Enregistrement f table 'historique_imports' w récupération d'ID otmatik
             const importLogData = {
                 utilisateur: userId,
                 nom_fichier: nomFichier,
@@ -212,7 +211,7 @@ class ImportCommandesManager {
 
             this.showLoader(true, 'Insertion des commandes dans Supabase...', 80);
 
-            // 2. Insertion Commandes Excel (KG) m3a l'historique_import_id
+            // 1. Insertion Commandes Excel (KG) avec conversion robuste des dates Excel
             if (this.excelData.length > 0) {
                 const formattedExcelData = this.excelData.map((row, index) => ({
                     historique_import_id: historiqueId,
@@ -223,8 +222,8 @@ class ImportCommandesManager {
                     quantite_commandee: parseFloat(row['Quantité commandé e (poste)'] || row['Quantité commandée'] || 0),
                     itineraire: row['Description Itinéraire'] || null,
                     heure_livraison: row['Heure'] || null,
-                    date_creation: row['Date de création'] ? this.formatExcelDate(row['Date de création']) : null,
-                    date_livraison: row['Date de livraison'] ? this.formatExcelDate(row['Date de livraison']) : null,
+                    date_creation: this.formatExcelDate(row['Date de création']),
+                    date_livraison: this.formatExcelDate(row['Date de livraison']),
                     article: String(row['Article'] || ''),
                     unite: 'KG',
                     statut: 'IMPORTEE'
@@ -237,7 +236,7 @@ class ImportCommandesManager {
                 if (excelInsertError) throw excelInsertError;
             }
 
-            // 3. Insertion Commandes Pièces m3a l'historique_import_id
+            // 2. Insertion Commandes Pièces
             if (this.piecesData.length > 0) {
                 const formattedPiecesData = this.piecesData.map((row, index) => ({
                     historique_import_id: historiqueId,
@@ -273,13 +272,31 @@ class ImportCommandesManager {
 
     formatExcelDate(excelDate) {
         if (!excelDate) return null;
-        if (typeof excelDate === 'string' && excelDate.includes('/')) {
-            const parts = excelDate.split('/');
-            if (parts.length === 3) {
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
+        
+        // Si c'est un nombre séquentiel Excel (ex: 46227)
+        if (!isNaN(excelDate) && typeof excelDate === 'number') {
+            const utcDays = Math.floor(excelDate - 25569);
+            const utcValue = utcDays * 86400 * 1000;
+            const dateInfo = new Date(utcValue);
+            
+            const year = dateInfo.getUTCFullYear();
+            const month = String(dateInfo.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(dateInfo.getUTCDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
-        return excelDate;
+
+        // Si c'est une chaîne de caractères au format 'DD/MM/YYYY' ou autre
+        if (typeof excelDate === 'string') {
+            if (excelDate.includes('/')) {
+                const parts = excelDate.split('/');
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            }
+            return excelDate; // Si déjà au bon format YYYY-MM-DD
+        }
+
+        return null;
     }
 
     resetAll() {
