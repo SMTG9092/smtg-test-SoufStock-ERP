@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = await getUser();
     els.userName.textContent = user?.email || "Administrateur";
     
-    // Générer les checkboxes men J tal J+6 b twarikhhom
     initDateCheckboxes();
 
     els.radioModes.forEach(radio => radio.addEventListener("change", loadDashboard));
@@ -29,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadDashboard();
 });
 
-// Initialiser les cases à cocher de J à J+6
 function initDateCheckboxes() {
     const container = document.getElementById("days-checkbox-container");
     if (!container) return;
@@ -40,11 +38,9 @@ function initDateCheckboxes() {
     for (let i = 0; i <= 6; i++) {
         let d = new Date();
         d.setDate(today.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0]; // Format YYYY-MM-DD
+        const dateStr = d.toISOString().split('T')[0];
         
         let labelName = i === 0 ? "Aujourd'hui (J)" : `J+${i}`;
-
-        // Par défaut, J et J+1 (i <= 1) kouno m-sélectionnin
         let isChecked = (i <= 1) ? 'checked' : '';
 
         html += `
@@ -59,13 +55,11 @@ function initDateCheckboxes() {
     }
     container.innerHTML = html;
 
-    // Écouter les changements sur les checkboxes bch y-t-fittra otmatik
     document.querySelectorAll('input[name="target-date-chk"]').forEach(chk => {
         chk.addEventListener("change", loadDashboard);
     });
 }
 
-// Récupérer les dates cochées par l'utilisateur
 function getTargetDates() {
     const checkboxes = document.querySelectorAll('input[name="target-date-chk"]:checked');
     let dates = [];
@@ -87,25 +81,32 @@ async function loadDashboard() {
         return;
     }
 
-    const { data, error } = await supabase.from("commandes_excel")
+    // 1. Njibou l-m3lomat l-assassiya men commandes_excel
+    const { data: commandesExcel, error: errExcel } = await supabase.from("commandes_excel")
         .select("*")
         .in("date_livraison", dates);
 
-    if (error) {
-        console.error("Erreur chargement:", error);
+    // 2. Njibou l-qta3 w l-wzn men commandes_clients_pieces
+    const { data: qtaPieces, error: errPieces } = await supabase.from("commandes_clients_pieces")
+        .select("*")
+        .in("date_livraison", dates);
+
+    if (errExcel || errPieces) {
+        console.error("Erreur chargement:", errExcel || errPieces);
         return;
     }
 
-    const commandes = data || [];
+    const commandes = commandesExcel || [];
+    const piecesData = qtaPieces || [];
 
     if (els.statAttente) els.statAttente.textContent = commandes.filter(c => c.statut === 'IMPORTEE' || !c.statut).length;
     if (els.statLancee) els.statLancee.textContent = commandes.filter(c => c.statut === 'LANCEE').length;
     if (els.statPicking) els.statPicking.textContent = commandes.filter(c => c.statut === 'EN_PICKING').length;
 
-    renderTable(commandes, mode);
+    renderTableComplet(commandes, piecesData, mode);
 }
 
-function renderTable(commandes, mode) {
+function renderTableComplet(commandes, piecesData, mode) {
     if (mode === 'tournee') {
         els.thead.innerHTML = `
             <tr>
@@ -118,22 +119,22 @@ function renderTable(commandes, mode) {
         `;
 
         const tourneeMap = {};
+        
         commandes.forEach(c => {
             const t = c.itineraire || "Standard";
             if (!tourneeMap[t]) {
-                tourneeMap[t] = { 
-                    docs: new Set(), 
-                    weight: 0, 
-                    pieces: 0 
-                };
+                tourneeMap[t] = { docs: new Set(), weight: 0, pieces: 0 };
             }
             tourneeMap[t].docs.add(c.document_vente);
-            
-            // Jm3 l-poids mn poids_total wla quantite_commandee b dabet
-            tourneeMap[t].weight += Number(c.poids_total || c.quantite_commandee || 0);
-            
-            // Jm3 nombre de caisses wla quantité commandée dyal l-pièces
-            tourneeMap[t].pieces += Number(c.nombre_caisses || c.quantite_commandee || 0);
+        });
+
+        piecesData.forEach(p => {
+            const t = p.itineraire || p.tournee || "Standard";
+            if (!tourneeMap[t]) {
+                tourneeMap[t] = { docs: new Set(), weight: 0, pieces: 0 };
+            }
+            tourneeMap[t].weight += Number(p.poids_total || p.quantite_commandee || 0);
+            tourneeMap[t].pieces += Number(p.nombre_pieces || p.quantite_commandee || 0);
         });
 
         const entries = Object.entries(tourneeMap);
