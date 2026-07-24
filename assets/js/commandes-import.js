@@ -211,7 +211,7 @@ class ImportCommandesManager {
 
             this.showLoader(true, 'Insertion des commandes dans Supabase...', 80);
 
-            // 1. Insertion Commandes Excel (KG) avec conversion robuste des dates Excel
+            // 1. Insertion Commandes Excel (KG) avec conversion robuste des dates et heures
             if (this.excelData.length > 0) {
                 const formattedExcelData = this.excelData.map((row, index) => ({
                     historique_import_id: historiqueId,
@@ -221,7 +221,7 @@ class ImportCommandesManager {
                     designation_article: row["Description d'article"] || '',
                     quantite_commandee: parseFloat(row['Quantité commandé e (poste)'] || row['Quantité commandée'] || 0),
                     itineraire: row['Description Itinéraire'] || null,
-                    heure_livraison: row['Heure'] || null,
+                    heure_livraison: this.formatExcelTime(row['Heure']),
                     date_creation: this.formatExcelDate(row['Date de création']),
                     date_livraison: this.formatExcelDate(row['Date de livraison']),
                     article: String(row['Article'] || ''),
@@ -273,7 +273,6 @@ class ImportCommandesManager {
     formatExcelDate(excelDate) {
         if (!excelDate) return null;
         
-        // Si c'est un nombre séquentiel Excel (ex: 46227)
         if (!isNaN(excelDate) && typeof excelDate === 'number') {
             const utcDays = Math.floor(excelDate - 25569);
             const utcValue = utcDays * 86400 * 1000;
@@ -285,7 +284,6 @@ class ImportCommandesManager {
             return `${year}-${month}-${day}`;
         }
 
-        // Si c'est une chaîne de caractères au format 'DD/MM/YYYY' ou autre
         if (typeof excelDate === 'string') {
             if (excelDate.includes('/')) {
                 const parts = excelDate.split('/');
@@ -293,7 +291,31 @@ class ImportCommandesManager {
                     return `${parts[2]}-${parts[1]}-${parts[0]}`;
                 }
             }
-            return excelDate; // Si déjà au bon format YYYY-MM-DD
+            return excelDate;
+        }
+
+        return null;
+    }
+
+    formatExcelTime(excelTime) {
+        if (!excelTime) return null;
+
+        // Si Excel stocke l'heure sous forme de fraction numérique (ex: 0.359537...)
+        if (!isNaN(excelTime) && typeof excelTime === 'number') {
+            const totalSeconds = Math.round(excelTime * 86400);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            const hh = String(hours).padStart(2, '0');
+            const mm = String(minutes).padStart(2, '0');
+            const ss = String(seconds).padStart(2, '0');
+            return `${hh}:${mm}:${ss}`;
+        }
+
+        // Si c'est déjà une chaîne de caractères (ex: "08:37:44")
+        if (typeof excelTime === 'string') {
+            return excelTime;
         }
 
         return null;
