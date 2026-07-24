@@ -39,6 +39,11 @@
         <!-- HEADER -->
         <div class="header-box">
             <h1 class="text-xl font-bold uppercase flex-1 text-center tracking-wide">Bon de Préparation</h1>
+            <!-- Création w Livraison f l-wasat dyal l-header m3a QR Code -->
+            <div class="text-[10px] mr-4 text-right">
+                <p><strong>Création:</strong> <span id="val-date-creation"></span></p>
+                <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
+            </div>
             <canvas id="qrcode" class="w-14 h-14"></canvas>
         </div>
 
@@ -49,10 +54,6 @@
                 <p><strong>Client:</strong> <span id="val-client"></span></p>
                 <p><strong>N° Lancement:</strong> <span id="val-num-lancement" class="font-bold text-blue-700"></span></p>
                 <p><strong>Tournée:</strong> <span id="val-itineraire"></span></p>
-            </div>
-            <div class="text-right">
-                <p><strong>Création:</strong> <span id="val-date-creation"></span></p>
-                <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
             </div>
         </div>
 
@@ -88,12 +89,13 @@
                 </tr>
             </table>
 
-            <!-- Cadre Lancement w Lancé par m-rba3 bhal les signatures -->
+            <!-- Cadre Lancement w Lancé par f l-wasat -->
+            <div class="border border-black w-48 h-11 px-2 py-1 flex flex-col justify-center text-[10px] bg-white">
+                <p><strong>Lancement:</strong> <span id="val-date-lancement"></span> <span id="val-time-lancement" class="font-bold"></span></p>
+                <p><strong>Lancé par:</strong> <span id="val-lance-par" class="font-semibold italic"></span></p>
+            </div>
+
             <div class="flex gap-4">
-                <div class="border border-black w-44 h-11 px-2 flex flex-col justify-center text-[10px] bg-white">
-                    <p><strong>Lancement:</strong> <span id="val-date-lancement"></span> <span id="val-time-lancement" class="font-bold"></span></p>
-                    <p><strong>Lancé par:</strong> <span id="val-lance-par" class="font-semibold italic"></span></p>
-                </div>
                 <div class="border border-black w-32 h-11 text-[10px] font-bold text-center pt-1 bg-white">Signature Préparateur</div>
                 <div class="border border-black w-32 h-11 text-[10px] font-bold text-center pt-1 bg-white">Signature Contrôle</div>
             </div>
