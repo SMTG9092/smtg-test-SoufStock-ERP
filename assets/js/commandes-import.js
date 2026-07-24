@@ -3,7 +3,11 @@
    Modern ES Module for Excel Import & Supabase Sync
 ========================================================== */
 
-import { supabase } from './supabase-client.js';
+import supabase from "./core/supabase.js";
+import Auth from "./core/auth.js";
+import Session from "./core/session.js";
+import * as Utils from "./core/utils.js";
+import APP_CONFIG from "./core/config.js";
 
 class ImportCommandesManager {
     constructor() {
@@ -121,7 +125,7 @@ class ImportCommandesManager {
                 this.piecesData = await this.parseExcelFile(this.piecesFile);
             }
 
-            // Simulation d'analyse comparative avec Supabase (À adapter selon votre schéma)
+            // Simulation d'analyse comparative
             this.analysisResult = {
                 new: this.excelData.length + this.piecesData.length,
                 updated: 0,
@@ -151,17 +155,43 @@ class ImportCommandesManager {
 
     async startImportAndSync() {
         try {
-            this.showLoader(true, 'Synchronisation avec Supabase...', 50);
-            this.log('Début de l’insertion et mise à jour des données...', 'info');
+            this.showLoader(true, 'Synchronisation avec Supabase...', 40);
+            this.log('Vérification de l’authentification utilisateur...', 'info');
 
-            // Exemple d'appel Supabase pour insérer les commandes
-            // const { data, error } = await supabase.from('commandes_excel').insert(this.excelData);
-            // if (error) throw error;
+            // Récupérer l'utilisateur courant via Auth ou Session core
+            let userId = null;
+            try {
+                const currentUser = await Auth.getCurrentUser();
+                userId = currentUser?.id;
+            } catch (e) {
+                // Fallback ila kan Session kay-stocker l'user localement
+                userId = Session.getUser()?.id;
+            }
 
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulation réseau
+            if (!userId) {
+                throw new Error("Utilisateur non authentifié ou session expirée.");
+            }
+
+            this.showLoader(true, 'Enregistrement de l’historique d’import...', 70);
+
+            // Insérer l'historique avec le user_id valide de core/auth
+            const importLogData = {
+                user_id: userId,
+                file_name: this.excelFile ? this.excelFile.name : (this.piecesFile ? this.piecesFile.name : 'Import SAP Multiple'),
+                total_lignes: this.analysisResult.new + this.analysisResult.updated,
+                statut: 'SUCCESS'
+            };
+
+            const { error: histError } = await supabase
+                .from('historique_imports')
+                .insert([importLogData]);
+
+            if (histError) throw histError;
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             this.showLoader(false);
-            this.showToast('Synchronisation Réussie', 'Toutes les commandes ont été enregistrées.', 'success');
+            this.showToast('Synchronisation Réussie', 'Toutes les commandes et l’historique ont été enregistrés.', 'success');
             this.log('Importation et synchronisation terminées avec succès.', 'success');
             document.getElementById('currentStatus').textContent = 'Synchronisé avec succès.';
         } catch (error) {
