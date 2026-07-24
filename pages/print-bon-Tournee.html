@@ -53,23 +53,33 @@
         const datesParam = params.get('dates');
 
         async function loadTourneeBons() {
+            console.log("Tournée demandée:", tourneeName);
+            console.log("Dates demandées:", datesParam);
+
             if (!tourneeName || !datesParam) {
                 document.getElementById('tournee-container').innerHTML = `<p class="text-center text-red-500 font-bold p-10">Paramètres de tournée invalides.</p>`;
                 return;
             }
 
             const dates = datesParam.split(',');
+            console.log("Tableau des dates:", dates);
 
             try {
-                // Stakhdm .ilike w l-colonne s-sahhiha "itineraire" bash t-tjnb machakil l-horof w slashes
+                // Kan-stakhdmo ilike m3a les colonnes momkin ykon fihom l'itinéraire
                 const { data: commandesList, error } = await supabase
                     .from("commandes_excel")
                     .select("*")
                     .in("date_livraison", dates)
                     .or(`itineraire.ilike.${tourneeName},tournee.ilike.${tourneeName},code_tournee.ilike.${tourneeName}`);
 
+                console.log("Résultat commandes_excel:", commandesList, "Erreur:", error);
+
                 if (error || !commandesList || commandesList.length === 0) {
-                    document.getElementById('tournee-container').innerHTML = `<p class="text-center text-red-500 font-bold p-10">Aucune commande trouvée pour cette tournée.</p>`;
+                    document.getElementById('tournee-container').innerHTML = `
+                        <div class="text-center p-10 text-red-500 font-bold">
+                            <p>Aucune commande trouvée pour cette tournée (${tourneeName}).</p>
+                            <p class="text-xs text-gray-400 mt-2">Vérifiez la console (F12) pour plus de détails.</p>
+                        </div>`;
                     return;
                 }
 
