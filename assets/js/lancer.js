@@ -81,12 +81,10 @@ async function loadDashboard() {
         return;
     }
 
-    // 1. Njibou l-m3lomat l-assassiya men commandes_excel
     const { data: commandesExcel, error: errExcel } = await supabase.from("commandes_excel")
         .select("*")
         .in("date_livraison", dates);
 
-    // 2. Njibou l-qta3 w l-wzn men commandes_clients_pieces
     const { data: qtaPieces, error: errPieces } = await supabase.from("commandes_clients_pieces")
         .select("*")
         .in("date_livraison", dates);
@@ -145,7 +143,7 @@ function renderTableComplet(commandes, piecesData, mode) {
                 <td class="p-3 text-green-400 font-bold">${info.weight.toFixed(2)} KG</td>
                 <td class="p-3 text-yellow-400 font-bold">${info.pieces.toFixed(2)}</td>
                 <td class="p-3">
-                    <button onclick="window.lancerTournee('${tournee}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1">
+                    <button onclick="window.lancerTournee('${tournee.replace(/'/g, "\\'")}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1">
                         <i class="fas fa-print"></i> Lancer Tournée
                     </button>
                 </td>
@@ -399,7 +397,7 @@ window.lancerTournee = async function(tourneeName) {
         .from("commandes_excel")
         .select("*")
         .in("date_livraison", dates)
-        .eq("itineraire", tourneeName);
+        .ilike("itineraire", tourneeName);
 
     if (fetchErr || !commandesList || commandesList.length === 0) {
         alert("Aucune commande trouvée pour cette tournée.");
@@ -409,7 +407,7 @@ window.lancerTournee = async function(tourneeName) {
     await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates)
-        .eq("itineraire", tourneeName);
+        .ilike("itineraire", tourneeName);
 
     const uniqueDocsMap = new Map();
     commandesList.forEach(cmd => {
