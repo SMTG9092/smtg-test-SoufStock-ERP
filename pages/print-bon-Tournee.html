@@ -10,13 +10,15 @@
             @page { size: A4 landscape; margin: 6mm; } 
             body { background: white; -webkit-print-color-adjust: exact; } 
             .no-print { display: none !important; } 
+            .page-break { page-break-after: always; break-after: page; }
+            .avoid-break { break-inside: avoid; page-break-inside: avoid; }
         }
         body { background-color: #f3f4f6; margin: 0; padding: 10px; font-family: Arial, sans-serif; }
         
-        /* Format A4 Paysage Fixe pour Impression */
+        /* Conteneur global de la page A4 Paysage */
         .page-sheet { 
             width: 276mm; 
-            height: 188mm; 
+            min-height: 188mm; 
             margin: 0 auto 10mm auto; 
             background: white; 
             padding: 5mm 6mm; 
@@ -25,17 +27,16 @@
             display: flex; 
             flex-direction: column; 
             justify-content: space-between; 
-            position: relative; 
-            page-break-after: always; 
-            break-after: page; 
-            overflow: hidden;
+            position: relative;
+            page-break-after: always;
+            break-after: page;
         }
         
-        .header-box { border: 2px solid black; padding: 4px 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-shrink: 0; background: #fff; }
+        .header-box { border: 2px solid black; padding: 4px 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; background: #fff; }
         
-        .commands-wrapper { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
+        .commands-container { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
         
-        .command-block { display: flex; flex-direction: column; border: 1px solid #000; padding: 3px; background: #fff; }
+        .command-block { display: flex; flex-direction: column; border: 1px solid #000; padding: 3px; background: #fff; break-inside: avoid; page-break-inside: avoid; }
         .command-title { font-weight: bold; font-size: 10px; background: #e5e7eb; padding: 2px 5px; border-bottom: 1px solid #000; margin-bottom: 2px; }
 
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -51,7 +52,7 @@
         
         .product-name { font-weight: bold; font-size: 10px; text-align: left; padding-left: 5px; line-height: 1.1; }
         
-        .footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px; padding-top: 4px; border-top: 1px solid #000; flex-shrink: 0; background: #fff; }
+        .footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 6px; padding-top: 4px; border-top: 1px solid #000; background: #fff; }
     </style>
 </head>
 <body class="space-y-4">
@@ -129,14 +130,14 @@
 
                 const entries = Array.from(docsMap.entries());
                 
-                let pagesHtml = '';
+                let allPagesHtml = '';
                 let currentCommandsHtml = '';
                 let currentTotalKg = 0;
                 let currentTotalPieces = 0;
                 let firstItemOfPage = null;
-                let commandCountOnPage = 0;
+                let commandsInCurrentPage = 0;
 
-                function createPage(content, firstIt, tKg, tPcs) {
+                function generateSheet(content, firstIt, tKg, tPcs) {
                     const firstItem = firstIt || {};
                     const docVente = firstItem.document_vente || '';
                     const suivi = (suiviList || []).find(s => s.document_vente === docVente) || {};
@@ -158,24 +159,26 @@
 
                     return `
                         <div class="page-sheet">
-                            <div class="header-box">
-                                <div class="text-xs space-y-0.5">
-                                    <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
-                                </div>
-
-                                <h1 class="text-xl font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
-
-                                <div class="flex items-center gap-3">
-                                    <div class="text-[10px] text-right space-y-0.5">
-                                        <p><strong>Création:</strong> <span>${dateCreation}</span></p>
-                                        <p><strong>Livraison:</strong> <span>${dateLivraison}</span></p>
+                            <div>
+                                <div class="header-box">
+                                    <div class="text-xs space-y-0.5">
+                                        <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
                                     </div>
-                                    <canvas id="${qrId}" class="w-12 h-12" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
-                                </div>
-                            </div>
 
-                            <div class="commands-wrapper">
-                                ${content}
+                                    <h1 class="text-xl font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
+
+                                    <div class="flex items-center gap-3">
+                                        <div class="text-[10px] text-right space-y-0.5">
+                                            <p><strong>Création:</strong> <span>${dateCreation}</span></p>
+                                            <p><strong>Livraison:</strong> <span>${dateLivraison}</span></p>
+                                        </div>
+                                        <canvas id="${qrId}" class="w-12 h-12" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="commands-container">
+                                    ${content}
+                                </div>
                             </div>
 
                             <div class="footer-section">
@@ -207,8 +210,8 @@
                     `;
                 }
 
-                let pageTotalKg = 0;
-                let pageTotalPieces = 0;
+                let pageKg = 0;
+                let pagePieces = 0;
 
                 for (let [docVente, items] of entries) {
                     const firstItem = items[0];
@@ -243,7 +246,7 @@
                         `;
                     });
 
-                    const singleCmdHtml = `
+                    const cmdHtml = `
                         <div class="command-block">
                             <div class="command-title">
                                 Commande: <span class="font-bold">${docVente}</span> | Client: <span class="font-bold">${clientName}</span>
@@ -266,27 +269,27 @@
                         </div>
                     `;
 
-                    // Control bach n-jma3o tal 2 awla 3 commandat f nafs la page (ila fatet l-khesos wla 3 commandat, kan-sido la page)
-                    if (commandCountOnPage >= 3 || currentCommandsHtml.length > 1400) {
-                        pagesHtml += createPage(currentCommandsHtml, firstItemOfPage, pageTotalKg, pageTotalPieces);
-                        currentCommandsHtml = singleCmdHtml;
+                    // Kan-jma3o 2 awla 3 commandat b hdd aqsa f la page whda (ila t3mrat la page b 3 dial les commandes awla l'volume kbir, kan-sido la page)
+                    if (commandsInCurrentPage >= 3 || currentCommandsHtml.length > 1500) {
+                        allPagesHtml += generateSheet(currentCommandsHtml, firstItemOfPage, pageKg, pagePieces);
+                        currentCommandsHtml = cmdHtml;
                         firstItemOfPage = firstItem;
-                        pageTotalKg = cmdKg;
-                        pageTotalPieces = cmdPieces;
-                        commandCountOnPage = 1;
+                        pageKg = cmdKg;
+                        pagePieces = cmdPieces;
+                        commandsInCurrentPage = 1;
                     } else {
-                        currentCommandsHtml += singleCmdHtml;
-                        pageTotalKg += cmdKg;
-                        pageTotalPieces += cmdPieces;
-                        commandCountOnPage++;
+                        currentCommandsHtml += cmdHtml;
+                        pageKg += cmdKg;
+                        pagePieces += cmdPieces;
+                        commandsInCurrentPage++;
                     }
                 }
 
                 if (currentCommandsHtml !== '') {
-                    pagesHtml += createPage(currentCommandsHtml, firstItemOfPage, pageTotalKg, pageTotalPieces);
+                    allPagesHtml += generateSheet(currentCommandsHtml, firstItemOfPage, pageKg, pagePieces);
                 }
 
-                document.getElementById('tournee-container').innerHTML = pagesHtml;
+                document.getElementById('tournee-container').innerHTML = allPagesHtml;
 
                 document.querySelectorAll('canvas[data-qr]').forEach(canvas => {
                     QRCode.toCanvas(canvas, canvas.getAttribute('data-qr'), { width: 48, margin: 0 });
