@@ -36,7 +36,6 @@ async function loadDashboard() {
     const dates = getTargetDates();
     const mode = document.querySelector('input[name="mode"]:checked')?.value || 'commande';
 
-    // Kan-chargeriw data mn commandes_clients_pieces w nqdro n-jibou m3aha l-məlumat mn tables okhra ila kan join lazem
     const { data, error } = await supabase.from("commandes_clients_pieces")
         .select("*")
         .in("date_livraison", dates);
@@ -69,7 +68,7 @@ function renderTable(commandes, mode) {
 
         const tourneeMap = {};
         commandes.forEach(c => {
-            const t = c.itineraire || "Standard";
+            const t = c.itineraire || c.tournee || c.code_tournee || "Standard";
             if (!tourneeMap[t]) {
                 tourneeMap[t] = { 
                     docs: new Set(), 
@@ -200,7 +199,7 @@ async function lancerToutParTournee() {
     const uniqueDocsMap = new Map();
     
     commandesList.forEach(cmd => {
-        const t = cmd.itineraire || "Standard";
+        const t = cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard";
         if (!tourneeMap[t]) tourneeMap[t] = [];
         tourneeMap[t].push(cmd);
 
@@ -217,7 +216,7 @@ async function lancerToutParTournee() {
         date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmd.date_livraison,
         heure_livraison: cmd.heure_livraison || null,
-        itineraire: cmd.itineraire || "Standard",
+        itineraire: cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
@@ -266,7 +265,7 @@ async function lancerToutParCommande() {
         date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmd.date_livraison,
         heure_livraison: cmd.heure_livraison || null,
-        itineraire: cmd.itineraire || "Standard",
+        itineraire: cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
@@ -314,7 +313,7 @@ window.lancerCommande = async function(docVente) {
         date_creation: cmdData.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmdData.date_livraison,
         heure_livraison: cmdData.heure_livraison || null,
-        itineraire: cmdData.itineraire || "Standard",
+        itineraire: cmdData.itineraire || cmdData.tournee || cmdData.code_tournee || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
