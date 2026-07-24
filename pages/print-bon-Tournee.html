@@ -124,6 +124,7 @@
 
                     const dateCreation = firstItem.date_creation ? new Date(firstItem.date_creation).toLocaleDateString() : '-';
                     const dateLivraison = firstItem.date_livraison ? new Date(firstItem.date_livraison).toLocaleDateString() : '-';
+                    const clientName = firstItem.nom_receptionnaire || firstItem.client || '-';
                     const itineraire = firstItem.itineraire || firstItem.tournee || firstItem.code_tournee || tourneeName;
 
                     let rowsHtml = '';
@@ -160,6 +161,7 @@
                             <div class="header-box">
                                 <div class="text-xs space-y-0.5">
                                     <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
+                                    <p><strong>Commande:</strong> <span class="font-bold">${docVente}</span> | <strong>Client:</strong> <span class="font-bold">${clientName}</span></p>
                                 </div>
 
                                 <h1 class="text-xl font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
@@ -169,7 +171,7 @@
                                         <p><strong>Création:</strong> <span>${dateCreation}</span></p>
                                         <p><strong>Livraison:</strong> <span>${dateLivraison}</span></p>
                                     </div>
-                                    <canvas id="${qrId}" class="w-14 h-14" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
+                                    <canvas id="${qrId}" class="w-14 h-14" data-qr="Cmd: ${docVente} | Client: ${clientName} | Tournee: ${itineraire}"></canvas>
                                 </div>
                             </div>
 
