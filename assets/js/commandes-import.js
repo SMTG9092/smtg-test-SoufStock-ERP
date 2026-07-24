@@ -190,6 +190,7 @@ class ImportCommandesManager {
                 nomFichier = `${this.excelFile.name} & ${this.piecesFile.name}`;
             }
 
+            // 1. Enregistrement f table 'historique_imports' w récupération d'ID otmatik
             const importLogData = {
                 utilisateur: userId,
                 nom_fichier: nomFichier,
@@ -211,7 +212,7 @@ class ImportCommandesManager {
 
             this.showLoader(true, 'Insertion des commandes dans Supabase...', 80);
 
-            // 1. Insertion Commandes Excel (KG) - Mapping exact selon Image 1
+            // 2. Insertion Commandes Excel (KG) m3a l'historique_import_id
             if (this.excelData.length > 0) {
                 const formattedExcelData = this.excelData.map((row, index) => ({
                     historique_import_id: historiqueId,
@@ -236,7 +237,7 @@ class ImportCommandesManager {
                 if (excelInsertError) throw excelInsertError;
             }
 
-            // 2. Insertion Commandes Pièces - Mapping exact selon Image 2
+            // 3. Insertion Commandes Pièces m3a l'historique_import_id
             if (this.piecesData.length > 0) {
                 const formattedPiecesData = this.piecesData.map((row, index) => ({
                     historique_import_id: historiqueId,
@@ -272,7 +273,6 @@ class ImportCommandesManager {
 
     formatExcelDate(excelDate) {
         if (!excelDate) return null;
-        // Ila kan format 'DD/MM/YYYY' bhal f l'image
         if (typeof excelDate === 'string' && excelDate.includes('/')) {
             const parts = excelDate.split('/');
             if (parts.length === 3) {
