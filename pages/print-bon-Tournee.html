@@ -53,33 +53,24 @@
         const datesParam = params.get('dates');
 
         async function loadTourneeBons() {
-            console.log("Tournée demandée:", tourneeName);
-            console.log("Dates demandées:", datesParam);
-
             if (!tourneeName || !datesParam) {
                 document.getElementById('tournee-container').innerHTML = `<p class="text-center text-red-500 font-bold p-10">Paramètres de tournée invalides.</p>`;
                 return;
             }
 
             const dates = datesParam.split(',');
-            console.log("Tableau des dates:", dates);
 
             try {
-                // Kan-jibo ga3 commandes dyal dik l-wqt w kan-filtrito b JavaScript 
-                // bash n-tjenbo ay mochkil f syntax dyal URL aw les espaces w slashes
                 const { data: allCommandes, error } = await supabase
                     .from("commandes_excel")
                     .select("*")
                     .in("date_livraison", dates);
-
-                console.log("Résultat brut commandes_excel:", allCommandes, "Erreur:", error);
 
                 if (error || !allCommandes || allCommandes.length === 0) {
                     document.getElementById('tournee-container').innerHTML = `<p class="text-center text-red-500 font-bold p-10">Aucune commande trouvée pour ces dates.</p>`;
                     return;
                 }
 
-                // Filtrage b JavaScript s-sahh w l-amene (kay-9arn b itineraire, tournee aw code_tournee)
                 const commandesList = allCommandes.filter(item => {
                     const it = (item.itineraire || "").trim().toLowerCase();
                     const tr = (item.tournee || "").trim().toLowerCase();
@@ -88,8 +79,6 @@
 
                     return it === target || tr === target || ct === target;
                 });
-
-                console.log("Commandes filtrées pour la tournée:", commandesList);
 
                 if (!commandesList || commandesList.length === 0) {
                     document.getElementById('tournee-container').innerHTML = `
@@ -135,7 +124,6 @@
 
                     const dateCreation = firstItem.date_creation ? new Date(firstItem.date_creation).toLocaleDateString() : '-';
                     const dateLivraison = firstItem.date_livraison ? new Date(firstItem.date_livraison).toLocaleDateString() : '-';
-                    const clientName = firstItem.nom_receptionnaire || firstItem.client || '-';
                     const itineraire = firstItem.itineraire || firstItem.tournee || firstItem.code_tournee || tourneeName;
 
                     let rowsHtml = '';
@@ -171,8 +159,6 @@
                         <div class="bon-content page-break">
                             <div class="header-box">
                                 <div class="text-xs space-y-0.5">
-                                    <p><strong>Commande:</strong> <span>${docVente}</span></p>
-                                    <p><strong>Client:</strong> <span>${clientName}</span></p>
                                     <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
                                 </div>
 
@@ -183,7 +169,7 @@
                                         <p><strong>Création:</strong> <span>${dateCreation}</span></p>
                                         <p><strong>Livraison:</strong> <span>${dateLivraison}</span></p>
                                     </div>
-                                    <canvas id="${qrId}" class="w-14 h-14" data-qr="Cmd: ${docVente} | Lancement: ${numLancement}"></canvas>
+                                    <canvas id="${qrId}" class="w-14 h-14" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
                                 </div>
                             </div>
 
