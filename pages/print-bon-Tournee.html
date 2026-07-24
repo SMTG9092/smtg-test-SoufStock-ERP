@@ -11,12 +11,16 @@
             body { background: white; -webkit-print-color-adjust: exact; } 
             .no-print { display: none; } 
             .page-break { page-break-after: always; break-after: page; }
+            .avoid-break { break-inside: avoid; page-break-inside: avoid; }
         }
         body { background-color: #f3f4f6; margin: 0; padding: 10px; font-family: Arial, sans-serif; }
         .bon-content { width: 280mm; height: 190mm; margin: 0 auto; background: white; padding: 4mm 6mm; display: flex; flex-direction: column; border: 1px solid #000; box-sizing: border-box; justify-content: space-between; position: relative; }
         
         .header-box { border: 2px solid black; padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         
+        .command-block { display: flex; flex-direction: column; margin-bottom: 6px; border: 1px solid #000; padding: 4px; background: #fff; }
+        .command-title { font-weight: bold; font-size: 11px; background: #e5e7eb; padding: 3px 6px; border-bottom: 1px solid #000; margin-bottom: 4px; }
+
         .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin: 4px 0; border: 1px solid black; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background-color: #e5e7eb !important; font-weight: bold; font-size: 10px; padding: 4px; border: 1px solid black; text-align: center; }
@@ -106,10 +110,19 @@
                     docsMap.get(item.document_vente).push(item);
                 });
 
-                let containerHtml = '';
+                // Convert map entries to array to handle grouping into pages
+                const entries = Array.from(docsMap.entries());
+                
+                let pagesHtml = '';
+                let currentCommandsHtml = '';
+                let currentTotalKg = 0;
+                let currentTotalPieces = 0;
+                let firstItemOfPage = null;
 
-                for (let [docVente, items] of docsMap.entries()) {
-                    const firstItem = items[0];
+                // Helper to generate a page container
+                function createPage(content, firstIt, tKg, tPcs) {
+                    const firstItem = firstIt || {};
+                    const docVente = firstItem.document_vente || '';
                     const suivi = (suiviList || []).find(s => s.document_vente === docVente) || {};
                     const numLancement = suivi.num_lancement || '-';
                     const lancePar = suivi.user_profiles?.nom_complet || '-';
@@ -124,44 +137,14 @@
 
                     const dateCreation = firstItem.date_creation ? new Date(firstItem.date_creation).toLocaleDateString() : '-';
                     const dateLivraison = firstItem.date_livraison ? new Date(firstItem.date_livraison).toLocaleDateString() : '-';
-                    const clientName = firstItem.nom_receptionnaire || firstItem.client || '-';
                     const itineraire = firstItem.itineraire || firstItem.tournee || firstItem.code_tournee || tourneeName;
+                    const qrId = `qrcode-${Math.random().toString(36).substring(2, 9)}`;
 
-                    let rowsHtml = '';
-                    let totalKg = 0;
-                    let totalPieces = 0;
-
-                    items.forEach(item => {
-                        const kg = Number(item.quantite_commandee || 0);
-                        const pItem = (piecesList || []).find(p => p.document_vente === docVente && p.article === item.article);
-                        const pieces = Number(pItem?.nombre_pieces || 0);
-
-                        totalKg += kg;
-                        totalPieces += pieces;
-
-                        rowsHtml += `
-                            <tr>
-                                <td class="product-name">
-                                    <span class="text-[9px] text-gray-800 font-bold font-mono block">${item.article || ''}</span>
-                                    ${item.designation_article || ''}
-                                </td>
-                                <td>${kg.toFixed(2)}</td>
-                                <td>${pieces}</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        `;
-                    });
-
-                    const qrId = `qrcode-${docVente.replace(/[^a-zA-Z0-9]/g, '_')}`;
-
-                    containerHtml += `
+                    return `
                         <div class="bon-content page-break">
                             <div class="header-box">
                                 <div class="text-xs space-y-0.5">
                                     <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
-                                    <p><strong>Commande:</strong> <span class="font-bold">${docVente}</span> | <strong>Client:</strong> <span class="font-bold">${clientName}</span></p>
                                 </div>
 
                                 <h1 class="text-xl font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
@@ -171,26 +154,12 @@
                                         <p><strong>Création:</strong> <span>${dateCreation}</span></p>
                                         <p><strong>Livraison:</strong> <span>${dateLivraison}</span></p>
                                     </div>
-                                    <canvas id="${qrId}" class="w-14 h-14" data-qr="Cmd: ${docVente} | Client: ${clientName} | Tournee: ${itineraire}"></canvas>
+                                    <canvas id="${qrId}" class="w-14 h-14" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
                                 </div>
                             </div>
 
                             <div class="table-container">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th class="col-article">Article</th>
-                                            <th class="col-kg">KG</th>
-                                            <th class="col-pieces">Pieces</th>
-                                            <th class="col-lot">Lot</th>
-                                            <th class="col-prep">QTÉ Prép.</th>
-                                            <th class="col-ctrl">Control</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${rowsHtml}
-                                    </tbody>
-                                </table>
+                                ${content}
                             </div>
 
                             <div class="footer-section">
@@ -202,8 +171,8 @@
                                     </tr>
                                     <tr>
                                         <td class="border border-black p-1 font-bold text-xs">TOTAL</td>
-                                        <td class="border border-black p-1 font-bold text-xs">${totalKg.toFixed(2)}</td>
-                                        <td class="border border-black p-1 font-bold text-xs">${totalPieces}</td>
+                                        <td class="border border-black p-1 font-bold text-xs">${tKg.toFixed(2)}</td>
+                                        <td class="border border-black p-1 font-bold text-xs">${tPcs}</td>
                                     </tr>
                                 </table>
 
@@ -222,7 +191,85 @@
                     `;
                 }
 
-                document.getElementById('tournee-container').innerHTML = containerHtml;
+                let pageTotalKg = 0;
+                let pageTotalPieces = 0;
+
+                for (let [docVente, items] of entries) {
+                    const firstItem = items[0];
+                    if (!firstItemOfPage) firstItemOfPage = firstItem;
+
+                    const clientName = firstItem.nom_receptionnaire || firstItem.client || '-';
+                    
+                    let rowsHtml = '';
+                    let cmdKg = 0;
+                    let cmdPieces = 0;
+
+                    items.forEach(item => {
+                        const kg = Number(item.quantite_commandee || 0);
+                        const pItem = (piecesList || []).find(p => p.document_vente === docVente && p.article === item.article);
+                        const pieces = Number(pItem?.nombre_pieces || 0);
+
+                        cmdKg += kg;
+                        cmdPieces += pieces;
+
+                        rowsHtml += `
+                            <tr>
+                                <td class="product-name">
+                                    <span class="text-[9px] text-gray-800 font-bold font-mono block">${item.article || ''}</span>
+                                    ${item.designation_article || ''}
+                                </td>
+                                <td>${kg.toFixed(2)}</td>
+                                <td>${pieces}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        `;
+                    });
+
+                    pageTotalKg += cmdKg;
+                    pageTotalPieces += cmdPieces;
+
+                    const singleCmdHtml = `
+                        <div class="command-block avoid-break">
+                            <div class="command-title">
+                                Commande: <span class="font-bold">${docVente}</span> | Client: <span class="font-bold">${clientName}</span>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="col-article">Article</th>
+                                        <th class="col-kg">KG</th>
+                                        <th class="col-pieces">Pieces</th>
+                                        <th class="col-lot">Lot</th>
+                                        <th class="col-prep">QTÉ Prép.</th>
+                                        <th class="col-ctrl">Control</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+
+                    // Simple check to prevent overflow per page, if too many items create new page
+                    if ((currentCommandsHtml + singleCmdHtml).length > 2200 && currentCommandsHtml !== '') {
+                        pagesHtml += createPage(currentCommandsHtml, firstItemOfPage, pageTotalKg - cmdKg, pageTotalPieces - cmdPieces);
+                        currentCommandsHtml = singleCmdHtml;
+                        firstItemOfPage = firstItem;
+                        pageTotalKg = cmdKg;
+                        pageTotalPieces = cmdPieces;
+                    } else {
+                        currentCommandsHtml += singleCmdHtml;
+                    }
+                }
+
+                if (currentCommandsHtml !== '') {
+                    pagesHtml += createPage(currentCommandsHtml, firstItemOfPage, pageTotalKg, pageTotalPieces);
+                }
+
+                document.getElementById('tournee-container').innerHTML = pagesHtml;
 
                 document.querySelectorAll('canvas[data-qr]').forEach(canvas => {
                     QRCode.toCanvas(canvas, canvas.getAttribute('data-qr'), { width: 56, margin: 0 });
