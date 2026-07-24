@@ -132,8 +132,8 @@
                 
                 let allPagesHtml = '';
                 let currentCommandsHtml = '';
-                let currentTotalKg = 0;
-                let currentTotalPieces = 0;
+                let pageKg = 0;
+                let pagePieces = 0;
                 let firstItemOfPage = null;
                 let commandsInCurrentPage = 0;
 
@@ -210,9 +210,6 @@
                     `;
                 }
 
-                let pageKg = 0;
-                let pagePieces = 0;
-
                 for (let [docVente, items] of entries) {
                     const firstItem = items[0];
                     if (!firstItemOfPage) firstItemOfPage = firstItem;
@@ -269,8 +266,8 @@
                         </div>
                     `;
 
-                    // Kan-jma3o 2 awla 3 commandat b hdd aqsa f la page whda (ila t3mrat la page b 3 dial les commandes awla l'volume kbir, kan-sido la page)
-                    if (commandsInCurrentPage >= 3 || currentCommandsHtml.length > 1500) {
+                    // Kat-jma3 2 tal 3 commandat f nafs la page, w ila t3mrat kat-douz l la page m-waliya
+                    if (commandsInCurrentPage >= 3 || currentCommandsHtml.length > 1400) {
                         allPagesHtml += generateSheet(currentCommandsHtml, firstItemOfPage, pageKg, pagePieces);
                         currentCommandsHtml = cmdHtml;
                         firstItemOfPage = firstItem;
