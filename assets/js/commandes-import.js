@@ -160,7 +160,7 @@ class ImportCommandesManager {
 
             let userId = null;
 
-            // 1. Essayer via Supabase Auth direct en premier
+            // 1. Essayer via Supabase Auth direct
             const { data: { user }, error: authError } = await supabase.auth.getUser();
             if (user && user.id) {
                 userId = user.id;
@@ -180,10 +180,31 @@ class ImportCommandesManager {
 
             this.showLoader(true, 'Enregistrement de l’historique d’import...', 70);
 
-            // Insérer l'historique (en éliminant file_name ila makantch f table historique_imports)
+            // Déterminer le type d'import selon le fichier sélectionné
+            let typeImport = 'COMMANDES_KG';
+            let nomFichier = 'Import Multiple';
+            if (this.excelFile && !this.piecesFile) {
+                typeImport = 'COMMANDES_KG';
+                nomFichier = this.excelFile.name;
+            } else if (this.piecesFile && !this.excelFile) {
+                typeImport = 'COMMANDES_PIECES';
+                nomFichier = this.piecesFile.name;
+            } else if (this.excelFile && this.piecesFile) {
+                typeImport = 'COMMANDES_KG'; // Ou combiné selon votre logique
+                nomFichier = `${this.excelFile.name} & ${this.piecesFile.name}`;
+            }
+
+            // Insertion respectant scrupuleusement la structure SQL de 'historique_imports'
             const importLogData = {
-                user_id: userId,
+                utilisateur: userId,
+                nom_fichier: nomFichier,
+                type_import: typeImport,
+                mode_import: 'SYNCHRONISATION',
                 total_lignes: this.analysisResult.new + this.analysisResult.updated,
+                nouvelles_lignes: this.analysisResult.new,
+                lignes_modifiees: this.analysisResult.updated,
+                lignes_supprimees: this.analysisResult.deleted,
+                lignes_inchangees: this.analysisResult.same,
                 statut: 'SUCCESS'
             };
 
