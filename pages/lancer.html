@@ -9,7 +9,7 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-4">
 
-    <!-- Header: العنوان، زر العودة لصفحة الطلبيات، واسم المستخدم -->
+    <!-- Header: العنوان، زر العودة، واسم المستخدم -->
     <header class="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-md mb-6">
         <div class="flex items-center gap-3">
             <h1 class="text-xl font-bold text-gray-100"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i> Lancement Commande</h1>
@@ -24,12 +24,16 @@
         </div>
     </header>
 
-    <!-- Stats Bar: التاريخ، الإحصائيات (En attente, Lancées, En Picking) -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-gray-800 p-4 rounded-lg shadow border border-gray-700 border-l-4 border-l-indigo-500 text-center">
-            <span class="block text-xs text-gray-400 mb-1">Date Ciblage</span>
-            <input type="text" id="date-display" disabled class="font-bold text-sm text-gray-200 bg-transparent w-full text-center">
+    <!-- Filter Dates par Checkboxes (J jusqu'à J+6) -->
+    <div class="bg-gray-800 p-4 rounded-lg shadow border border-gray-700 mb-6">
+        <span class="block text-xs font-bold text-gray-400 mb-2 uppercase"><i class="fa-solid fa-calendar-days mr-1 text-indigo-400"></i> Filtrer par Jours de Livraison (J à J+6)</span>
+        <div id="days-checkbox-container" class="flex flex-wrap gap-3 items-center">
+            <!-- Checkboxes غadi t-toulad otmatik hna mn javascript -->
         </div>
+    </div>
+
+    <!-- Stats Bar: الإحصائيات (En attente, Lancées, En Picking) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="bg-gray-800 p-4 rounded-lg shadow border border-gray-700 border-l-4 border-l-yellow-500 text-center">
             <span class="block text-xs text-gray-400 mb-1">En attente</span>
             <span id="stat-attente" class="font-bold text-xl text-yellow-400">0</span>
@@ -68,7 +72,7 @@
     <div class="bg-gray-800 p-4 rounded-lg shadow border border-gray-700 overflow-hidden">
         <table class="w-full text-sm border-collapse">
             <thead id="table-head" class="bg-gray-900 text-gray-400 uppercase text-xs text-left border-b border-gray-700">
-                <!-- عناوين الجدول يتم توليدها تلقائياً عبر JavaScript (تتضمن Tournée, Nombre Commandes, Poids Total, Nombre de Pièces, Action) -->
+                <!-- عناوين الجدول تتولد أوتوماتيكياً عبر JavaScript -->
             </thead>
             <tbody id="commandes-table-body" class="text-gray-300">
                 <tr>
