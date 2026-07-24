@@ -180,10 +180,9 @@ class ImportCommandesManager {
 
             this.showLoader(true, 'Enregistrement de l’historique d’import...', 70);
 
-            // Insérer l'historique avec le user_id valide
+            // Insérer l'historique (en éliminant file_name ila makantch f table historique_imports)
             const importLogData = {
                 user_id: userId,
-                file_name: this.excelFile ? this.excelFile.name : (this.piecesFile ? this.piecesFile.name : 'Import SAP Multiple'),
                 total_lignes: this.analysisResult.new + this.analysisResult.updated,
                 statut: 'SUCCESS'
             };
