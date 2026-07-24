@@ -42,7 +42,7 @@
             <canvas id="qrcode" class="w-14 h-14"></canvas>
         </div>
 
-        <!-- INFOS -->
+        <!-- INFOS HAUT (Sans Lancement / Lancé par) -->
         <div class="flex justify-between text-xs mb-1">
             <div>
                 <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
@@ -52,9 +52,7 @@
             </div>
             <div class="text-right">
                 <p><strong>Création:</strong> <span id="val-date-creation"></span></p>
-                <p><strong>Lancement:</strong> <span id="val-date-lancement"></span> <span id="val-time-lancement" class="text-gray-600 font-bold"></span></p>
                 <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
-                <p class="mt-0.5 font-bold italic">Lancé par: <span id="val-lance-par"></span></p>
             </div>
         </div>
 
@@ -75,20 +73,26 @@
             </table>
         </div>
 
-        <!-- FOOTER & TOTALS -->
+        <!-- FOOTER & TOTALS (Avec Lancement & Lancé par à côté du total) -->
         <div class="footer-section">
-            <table class="w-1/3 border border-black">
-                <tr class="bg-gray-100">
-                    <th class="border border-black p-1 text-[10px]">TOTAL</th>
-                    <th class="border border-black p-1 text-[10px]">Qté KG</th>
-                    <th class="border border-black p-1 text-[10px]">Pieces</th>
-                </tr>
-                <tr>
-                    <td class="border border-black p-1 font-bold text-xs">TOTAL</td>
-                    <td id="total-kg" class="border border-black p-1 font-bold text-xs">0.00</td>
-                    <td id="total-pieces" class="border border-black p-1 font-bold text-xs">0</td>
-                </tr>
-            </table>
+            <div class="flex flex-col gap-1 w-2/5">
+                <table class="border border-black">
+                    <tr class="bg-gray-100">
+                        <th class="border border-black p-1 text-[10px]">TOTAL</th>
+                        <th class="border border-black p-1 text-[10px]">Qté KG</th>
+                        <th class="border border-black p-1 text-[10px]">Pieces</th>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-1 font-bold text-xs">TOTAL</td>
+                        <td id="total-kg" class="border border-black p-1 font-bold text-xs">0.00</td>
+                        <td id="total-pieces" class="border border-black p-1 font-bold text-xs">0</td>
+                    </tr>
+                </table>
+                <div class="text-[11px] text-gray-800 space-y-0.5">
+                    <p><strong>Lancement:</strong> <span id="val-date-lancement"></span> <span id="val-time-lancement" class="font-bold"></span></p>
+                    <p><strong>Lancé par:</strong> <span id="val-lance-par" class="font-semibold italic"></span></p>
+                </div>
+            </div>
             <div class="flex gap-4">
                 <div class="border border-black w-32 h-11 text-[10px] font-bold text-center pt-1 bg-white">Signature Préparateur</div>
                 <div class="border border-black w-32 h-11 text-[10px] font-bold text-center pt-1 bg-white">Signature Contrôle</div>
