@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     els.radioModes.forEach(radio => radio.addEventListener("change", loadDashboard));
     
-    // Injécter le Modal de choix dans le HTML dynamiquement
     injectChoiceModal();
 
     if (els.btnLancerTout) {
@@ -59,7 +58,7 @@ function renderTable(commandes, mode) {
     if (mode === 'tournee') {
         els.thead.innerHTML = `
             <tr>
-                <th class="p-3">Tournée</th>
+                <th class="p-3">Tournée (Itinéraire)</th>
                 <th class="p-3">Nombre Commandes</th>
                 <th class="p-3">Poids Total (KG)</th>
                 <th class="p-3">Action</th>
@@ -68,7 +67,8 @@ function renderTable(commandes, mode) {
 
         const tourneeMap = {};
         commandes.forEach(c => {
-            const t = c.tournee || c.code_tournee || "Standard";
+            // Kan-akhdo l-valeur mn itineraire wila kant khawia kan-dirou "Standard"
+            const t = c.itineraire || c.tournee || c.code_tournee || "Standard";
             if (!tourneeMap[t]) tourneeMap[t] = { count: 0, weight: 0, docs: new Set() };
             tourneeMap[t].docs.add(c.document_vente);
             tourneeMap[t].weight += Number(c.quantite_commandee || c.poids || 0);
@@ -128,9 +128,6 @@ function renderTable(commandes, mode) {
     }
 }
 
-/**
- * Création et Injection du Modal de Choix (Par Tournée ou Par Commande)
- */
 function injectChoiceModal() {
     if (document.getElementById('lancer-choice-modal')) return;
 
@@ -172,9 +169,6 @@ function closeLancerChoiceModal() {
     document.getElementById('lancer-choice-modal').classList.add('hidden');
 }
 
-/**
- * Lancer Tout par Tournée (ouvre print-bon-Tournee.html pour chaque tournée existante)
- */
 async function lancerToutParTournee() {
     const dates = getTargetDates();
     const user = await getUser();
@@ -189,20 +183,15 @@ async function lancerToutParTournee() {
         return;
     }
 
-    const { error: updateError } = await supabase.from("commandes_excel")
+    await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates);
-
-    if (updateError) {
-        alert("Erreur lors du lancement global.");
-        return;
-    }
 
     const tourneeMap = {};
     const uniqueDocsMap = new Map();
     
     commandesList.forEach(cmd => {
-        const t = cmd.tournee || cmd.code_tournee || "Standard";
+        const t = cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard";
         if (!tourneeMap[t]) tourneeMap[t] = [];
         tourneeMap[t].push(cmd);
 
@@ -219,7 +208,7 @@ async function lancerToutParTournee() {
         date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmd.date_livraison,
         heure_livraison: cmd.heure_livraison || null,
-        itineraire: cmd.tournee || cmd.code_tournee || "Standard",
+        itineraire: cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
@@ -235,9 +224,6 @@ async function lancerToutParTournee() {
     loadDashboard();
 }
 
-/**
- * Lancer Tout par Commande (ouvre un onglet par commande individuelle)
- */
 async function lancerToutParCommande() {
     const dates = getTargetDates();
     const user = await getUser();
@@ -252,14 +238,9 @@ async function lancerToutParCommande() {
         return;
     }
 
-    const { error: updateError } = await supabase.from("commandes_excel")
+    await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates);
-
-    if (updateError) {
-        alert("Erreur lors du lancement global.");
-        return;
-    }
 
     const uniqueDocsMap = new Map();
     commandesList.forEach(cmd => {
@@ -276,7 +257,7 @@ async function lancerToutParCommande() {
         date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmd.date_livraison,
         heure_livraison: cmd.heure_livraison || null,
-        itineraire: cmd.tournee || cmd.code_tournee || "Standard",
+        itineraire: cmd.itineraire || cmd.tournee || cmd.code_tournee || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
@@ -292,9 +273,6 @@ async function lancerToutParCommande() {
     loadDashboard();
 }
 
-/**
- * Lancer une commande spécifique
- */
 window.lancerCommande = async function(docVente) {
     if (!docVente || docVente === '-') {
         alert("Numéro de document de vente invalide.");
@@ -327,7 +305,7 @@ window.lancerCommande = async function(docVente) {
         date_creation: cmdData.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmdData.date_livraison,
         heure_livraison: cmdData.heure_livraison || null,
-        itineraire: cmdData.tournee || cmdData.code_tournee || "Standard",
+        itineraire: cmdData.itineraire || cmdData.tournee || cmdData.code_tournee || "Standard",
         statut: 'LANCEE',
         lance_par: user?.id || null,
         date_lancement: new Date().toISOString(),
@@ -340,9 +318,6 @@ window.lancerCommande = async function(docVente) {
     window.open(`print-bon.html?cmd=${encodeURIComponent(docVente)}`, '_blank');
 };
 
-/**
- * Lancer une tournée complète
- */
 window.lancerTournee = async function(tourneeName) {
     const dates = getTargetDates();
     const user = await getUser();
@@ -352,7 +327,7 @@ window.lancerTournee = async function(tourneeName) {
         .from("commandes_excel")
         .select("*")
         .in("date_livraison", dates)
-        .or(`tournee.eq.${tourneeName},code_tournee.eq.${tourneeName}`);
+        .or(`itineraire.eq.${tourneeName},tournee.eq.${tourneeName},code_tournee.eq.${tourneeName}`);
 
     if (fetchErr || !commandesList || commandesList.length === 0) {
         alert("Aucune commande trouvée pour cette tournée.");
@@ -362,7 +337,7 @@ window.lancerTournee = async function(tourneeName) {
     await supabase.from("commandes_excel")
         .update({ statut: 'LANCEE' })
         .in("date_livraison", dates)
-        .or(`tournee.eq.${tourneeName},code_tournee.eq.${tourneeName}`);
+        .or(`itineraire.eq.${tourneeName},tournee.eq.${tourneeName},code_tournee.eq.${tourneeName}`);
 
     const uniqueDocsMap = new Map();
     commandesList.forEach(cmd => {
@@ -375,7 +350,7 @@ window.lancerTournee = async function(tourneeName) {
         commande_id: cmd.id,
         historique_import_id: cmd.historique_import_id || 1,
         document_vente: cmd.document_vente,
-        client: cmdData.nom_receptionnaire || cmd.client || "Client Inconnu",
+        client: cmd.nom_receptionnaire || cmd.client || "Client Inconnu",
         date_creation: cmd.date_creation || new Date().toISOString().split('T')[0],
         date_livraison: cmd.date_livraison,
         heure_livraison: cmd.heure_livraison || null,
