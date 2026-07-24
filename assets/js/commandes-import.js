@@ -190,11 +190,11 @@ class ImportCommandesManager {
                 typeImport = 'COMMANDES_PIECES';
                 nomFichier = this.piecesFile.name;
             } else if (this.excelFile && this.piecesFile) {
-                typeImport = 'COMMANDES_KG'; // Ou combiné selon votre logique
+                typeImport = 'COMMANDES_KG';
                 nomFichier = `${this.excelFile.name} & ${this.piecesFile.name}`;
             }
 
-            // Insertion respectant scrupuleusement la structure SQL de 'historique_imports'
+            // Objet d'insertion strict sans aucune référence à 'user_id'
             const importLogData = {
                 utilisateur: userId,
                 nom_fichier: nomFichier,
