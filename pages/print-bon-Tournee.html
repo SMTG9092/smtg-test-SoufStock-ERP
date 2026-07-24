@@ -65,20 +65,36 @@
             console.log("Tableau des dates:", dates);
 
             try {
-                // Kan-stakhdmo ilike m3a les colonnes momkin ykon fihom l'itinéraire
-                const { data: commandesList, error } = await supabase
+                // Kan-jibo ga3 commandes dyal dik l-wqt w kan-filtrito b JavaScript 
+                // bash n-tjenbo ay mochkil f syntax dyal URL aw les espaces w slashes
+                const { data: allCommandes, error } = await supabase
                     .from("commandes_excel")
                     .select("*")
-                    .in("date_livraison", dates)
-                    .or(`itineraire.ilike.${tourneeName},tournee.ilike.${tourneeName},code_tournee.ilike.${tourneeName}`);
+                    .in("date_livraison", dates);
 
-                console.log("Résultat commandes_excel:", commandesList, "Erreur:", error);
+                console.log("Résultat brut commandes_excel:", allCommandes, "Erreur:", error);
 
-                if (error || !commandesList || commandesList.length === 0) {
+                if (error || !allCommandes || allCommandes.length === 0) {
+                    document.getElementById('tournee-container').innerHTML = `<p class="text-center text-red-500 font-bold p-10">Aucune commande trouvée pour ces dates.</p>`;
+                    return;
+                }
+
+                // Filtrage b JavaScript s-sahh w l-amene (kay-9arn b itineraire, tournee aw code_tournee)
+                const commandesList = allCommandes.filter(item => {
+                    const it = (item.itineraire || "").trim().toLowerCase();
+                    const tr = (item.tournee || "").trim().toLowerCase();
+                    const ct = (item.code_tournee || "").trim().toLowerCase();
+                    const target = tourneeName.trim().toLowerCase();
+
+                    return it === target || tr === target || ct === target;
+                });
+
+                console.log("Commandes filtrées pour la tournée:", commandesList);
+
+                if (!commandesList || commandesList.length === 0) {
                     document.getElementById('tournee-container').innerHTML = `
                         <div class="text-center p-10 text-red-500 font-bold">
-                            <p>Aucune commande trouvée pour cette tournée (${tourneeName}).</p>
-                            <p class="text-xs text-gray-400 mt-2">Vérifiez la console (F12) pour plus de détails.</p>
+                            <p>Aucune commande trouvée pour la tournée (${tourneeName}).</p>
                         </div>`;
                     return;
                 }
