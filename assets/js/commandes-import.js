@@ -26,7 +26,6 @@ class ImportCommandesManager {
     }
 
     initEventListeners() {
-        // Dropzones and File Inputs
         this.setupFilePicker('btnSelectExcel', 'fileExcel', 'excelFileName', 'excelFileBadge', (file) => {
             this.excelFile = file;
             document.getElementById('btnImportExcel').disabled = false;
@@ -39,7 +38,6 @@ class ImportCommandesManager {
             this.checkAnalyseReady();
         });
 
-        // Action Buttons
         document.getElementById('btnAnalyse').addEventListener('click', () => this.runAnalysis());
         document.getElementById('btnStartImport').addEventListener('click', () => this.startImportAndSync());
         document.getElementById('btnResetImport').addEventListener('click', () => this.resetAll());
@@ -125,9 +123,11 @@ class ImportCommandesManager {
                 this.piecesData = await this.parseExcelFile(this.piecesFile);
             }
 
-            // Simulation d'analyse comparative
+            const totalExcel = this.excelData.length;
+            const totalPieces = this.piecesData.length;
+
             this.analysisResult = {
-                new: this.excelData.length + this.piecesData.length,
+                new: totalExcel + totalPieces,
                 updated: 0,
                 deleted: 0,
                 same: 0
@@ -143,7 +143,7 @@ class ImportCommandesManager {
             document.getElementById('btnStartImport').disabled = false;
 
             this.showToast('Succès', 'Analyse des commandes effectuée avec succès.', 'success');
-            this.log('Analyse terminée avec succès.', 'success');
+            this.log(`Analyse terminée: ${totalExcel} lignes KG, ${totalPieces} lignes Pièces.`, 'success');
         } catch (error) {
             console.error(error);
             this.showToast('Erreur', 'Echec lors de la lecture des fichiers Excel.', 'error');
@@ -159,13 +159,10 @@ class ImportCommandesManager {
             this.log('Vérification de l’authentification utilisateur...', 'info');
 
             let userId = null;
-
-            // 1. Essayer via Supabase Auth direct
             const { data: { user }, error: authError } = await supabase.auth.getUser();
             if (user && user.id) {
                 userId = user.id;
             } else {
-                // 2. Fallback 3la Auth module wla Session module
                 try {
                     const currentUser = await Auth.getCurrentUser();
                     userId = currentUser?.id || currentUser?.user?.id;
@@ -178,9 +175,8 @@ class ImportCommandesManager {
                 throw new Error("Utilisateur non authentifié ou session expirée.");
             }
 
-            this.showLoader(true, 'Enregistrement de l’historique d’import...', 70);
+            this.showLoader(true, 'Enregistrement de l’historique d’import...', 60);
 
-            // Déterminer le type d'import selon le fichier sélectionné
             let typeImport = 'COMMANDES_KG';
             let nomFichier = 'Import Multiple';
             if (this.excelFile && !this.piecesFile) {
@@ -194,30 +190,77 @@ class ImportCommandesManager {
                 nomFichier = `${this.excelFile.name} & ${this.piecesFile.name}`;
             }
 
-            // Objet d'insertion strict sans aucune référence à 'user_id'
             const importLogData = {
                 utilisateur: userId,
                 nom_fichier: nomFichier,
                 type_import: typeImport,
                 mode_import: 'SYNCHRONISATION',
-                total_lignes: this.analysisResult.new + this.analysisResult.updated,
+                total_lignes: this.analysisResult.new,
                 nouvelles_lignes: this.analysisResult.new,
-                lignes_modifiees: this.analysisResult.updated,
-                lignes_supprimees: this.analysisResult.deleted,
-                lignes_inchangees: this.analysisResult.same,
                 statut: 'SUCCESS'
             };
 
-            const { error: histError } = await supabase
+            const { data: insertedHist, error: histError } = await supabase
                 .from('historique_imports')
-                .insert([importLogData]);
+                .insert([importLogData])
+                .select('id')
+                .single();
 
             if (histError) throw histError;
+            const historiqueId = insertedHist.id;
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            this.showLoader(true, 'Insertion des commandes dans Supabase...', 80);
+
+            // 1. Insertion Commandes Excel (KG) - Mapping exact selon Image 1
+            if (this.excelData.length > 0) {
+                const formattedExcelData = this.excelData.map((row, index) => ({
+                    historique_import_id: historiqueId,
+                    document_vente: String(row['Document de vente'] || ''),
+                    ligne_commande: index + 1,
+                    nom_receptionnaire: row['Nom Réceptionnaire'] || null,
+                    designation_article: row["Description d'article"] || '',
+                    quantite_commandee: parseFloat(row['Quantité commandé e (poste)'] || row['Quantité commandée'] || 0),
+                    itineraire: row['Description Itinéraire'] || null,
+                    heure_livraison: row['Heure'] || null,
+                    date_creation: row['Date de création'] ? this.formatExcelDate(row['Date de création']) : null,
+                    date_livraison: row['Date de livraison'] ? this.formatExcelDate(row['Date de livraison']) : null,
+                    article: String(row['Article'] || ''),
+                    unite: 'KG',
+                    statut: 'IMPORTEE'
+                }));
+
+                const { error: excelInsertError } = await supabase
+                    .from('commandes_excel')
+                    .insert(formattedExcelData);
+
+                if (excelInsertError) throw excelInsertError;
+            }
+
+            // 2. Insertion Commandes Pièces - Mapping exact selon Image 2
+            if (this.piecesData.length > 0) {
+                const formattedPiecesData = this.piecesData.map((row, index) => ({
+                    historique_import_id: historiqueId,
+                    document_vente: String(row['NUCOMD'] || ''),
+                    ligne_commande: index + 1,
+                    article: String(row['ARTICLE'] || ''),
+                    designation_article: row['DESIGNATION'] || '',
+                    quantite_commandee: parseFloat(row['QT COMD'] || 0),
+                    nombre_pieces: parseInt(row['NB PIECES'] || 0, 10),
+                    nom_receptionnaire: row['RECEPTIONNAIRE'] || null,
+                    itineraire: row['ZONE DISTRIBUTION'] || null,
+                    unite: 'PCS',
+                    statut: 'IMPORTEE'
+                }));
+
+                const { error: piecesInsertError } = await supabase
+                    .from('commandes_clients_pieces')
+                    .insert(formattedPiecesData);
+
+                if (piecesInsertError) throw piecesInsertError;
+            }
 
             this.showLoader(false);
-            this.showToast('Synchronisation Réussie', 'Toutes les commandes et l’historique ont été enregistrés.', 'success');
+            this.showToast('Synchronisation Réussie', 'Historique et commandes enregistrés avec succès.', 'success');
             this.log('Importation et synchronisation terminées avec succès.', 'success');
             document.getElementById('currentStatus').textContent = 'Synchronisé avec succès.';
         } catch (error) {
@@ -225,6 +268,18 @@ class ImportCommandesManager {
             this.showToast('Erreur', error.message, 'error');
             this.log(`Erreur lors de l'import: ${error.message}`, 'error');
         }
+    }
+
+    formatExcelDate(excelDate) {
+        if (!excelDate) return null;
+        // Ila kan format 'DD/MM/YYYY' bhal f l'image
+        if (typeof excelDate === 'string' && excelDate.includes('/')) {
+            const parts = excelDate.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+        }
+        return excelDate;
     }
 
     resetAll() {
@@ -310,7 +365,6 @@ class ImportCommandesManager {
     }
 }
 
-// Initialisation globale au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
     window.ImportCommandes = new ImportCommandesManager();
 });
