@@ -158,14 +158,20 @@ class ImportCommandesManager {
             this.showLoader(true, 'Synchronisation avec Supabase...', 40);
             this.log('Vérification de l’authentification utilisateur...', 'info');
 
-            // Récupérer l'utilisateur courant via Auth ou Session core
             let userId = null;
-            try {
-                const currentUser = await Auth.getCurrentUser();
-                userId = currentUser?.id;
-            } catch (e) {
-                // Fallback ila kan Session kay-stocker l'user localement
-                userId = Session.getUser()?.id;
+
+            // 1. Essayer via Supabase Auth direct en premier
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            if (user && user.id) {
+                userId = user.id;
+            } else {
+                // 2. Fallback 3la Auth module wla Session module
+                try {
+                    const currentUser = await Auth.getCurrentUser();
+                    userId = currentUser?.id || currentUser?.user?.id;
+                } catch (e) {
+                    userId = Session.getUser()?.id;
+                }
             }
 
             if (!userId) {
@@ -174,7 +180,7 @@ class ImportCommandesManager {
 
             this.showLoader(true, 'Enregistrement de l’historique d’import...', 70);
 
-            // Insérer l'historique avec le user_id valide de core/auth
+            // Insérer l'historique avec le user_id valide
             const importLogData = {
                 user_id: userId,
                 file_name: this.excelFile ? this.excelFile.name : (this.piecesFile ? this.piecesFile.name : 'Import SAP Multiple'),
