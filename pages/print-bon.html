@@ -14,7 +14,7 @@
         body { background-color: #f3f4f6; margin: 0; padding: 10px; font-family: Arial, sans-serif; }
         #bon-content { width: 280mm; height: 190mm; margin: 0 auto; background: white; padding: 4mm 6mm; display: flex; flex-direction: column; border: 1px solid #000; box-sizing: border-box; justify-content: space-between; }
         
-        .header-box { border: 2px solid black; padding: 6px 12px; display: flex; align-items: center; margin-bottom: 6px; }
+        .header-box { border: 2px solid black; padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         
         /* Table Layout Optimisé */
         .table-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin: 4px 0; border: 1px solid black; }
@@ -36,25 +36,31 @@
 </head>
 <body>
     <div id="bon-content">
-        <!-- HEADER -->
+        <!-- HEADER / CADRE PRINCIPAL -->
         <div class="header-box">
-            <h1 class="text-xl font-bold uppercase flex-1 text-center tracking-wide">Bon de Préparation</h1>
-            <!-- Création w Livraison f l-wasat dyal l-header m3a QR Code -->
-            <div class="text-[10px] mr-4 text-right">
-                <p><strong>Création:</strong> <span id="val-date-creation"></span></p>
-                <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
-            </div>
-            <canvas id="qrcode" class="w-14 h-14"></canvas>
-        </div>
-
-        <!-- INFOS HAUT -->
-        <div class="flex justify-between text-xs mb-1">
-            <div>
+            <!-- Infos d l-Commande w Client f l-isar d l-mrabba -->
+            <div class="text-xs space-y-0.5">
                 <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
                 <p><strong>Client:</strong> <span id="val-client"></span></p>
-                <p><strong>N° Lancement:</strong> <span id="val-num-lancement" class="font-bold text-blue-700"></span></p>
                 <p><strong>Tournée:</strong> <span id="val-itineraire"></span></p>
             </div>
+
+            <!-- Titre f l-wasat -->
+            <h1 class="text-xl font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
+
+            <!-- Dates Création/Livraison w QR Code f l-imin d l-mrabba -->
+            <div class="flex items-center gap-3">
+                <div class="text-[10px] text-right space-y-0.5">
+                    <p><strong>Création:</strong> <span id="val-date-creation"></span></p>
+                    <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
+                </div>
+                <canvas id="qrcode" class="w-14 h-14"></canvas>
+            </div>
+        </div>
+
+        <!-- INFOS SECONDAIRES (N° Lancement بوحدو لتحت باش يبقا واضح) -->
+        <div class="text-xs mb-1 px-1">
+            <p><strong>N° Lancement:</strong> <span id="val-num-lancement" class="font-bold text-blue-700"></span></p>
         </div>
 
         <!-- TABLE -->
