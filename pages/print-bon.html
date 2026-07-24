@@ -42,21 +42,17 @@
             <canvas id="qrcode" class="w-14 h-14"></canvas>
         </div>
 
-        <!-- INFOS HAUT (Création/Livraison f l-isar, Lancement w Lancé par f l-imin) -->
-        <div class="flex justify-between items-start text-xs mb-1">
+        <!-- INFOS HAUT -->
+        <div class="flex justify-between text-xs mb-1">
             <div>
                 <p><strong>Commande:</strong> <span id="val-cmd"></span></p>
                 <p><strong>Client:</strong> <span id="val-client"></span></p>
                 <p><strong>N° Lancement:</strong> <span id="val-num-lancement" class="font-bold text-blue-700"></span></p>
                 <p><strong>Tournée:</strong> <span id="val-itineraire"></span></p>
-                <p class="mt-1"><strong>Création:</strong> <span id="val-date-creation"></span></p>
-                <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
             </div>
-            
-            <!-- Cadre Lancement w Lancé par f l-imin l-foq -->
-            <div class="border border-black w-48 h-12 px-2 flex flex-col justify-center text-[10px] bg-white">
-                <p><strong>Lancement:</strong> <span id="val-date-lancement"></span> <span id="val-time-lancement" class="font-bold"></span></p>
-                <p><strong>Lancé par:</strong> <span id="val-lance-par" class="font-semibold italic"></span></p>
+            <div class="text-right">
+                <p><strong>Création:</strong> <span id="val-date-creation"></span></p>
+                <p><strong>Livraison:</strong> <span id="val-date-livraison"></span></p>
             </div>
         </div>
 
@@ -92,7 +88,12 @@
                 </tr>
             </table>
 
+            <!-- Cadre Lancement w Lancé par m-rba3 bhal les signatures -->
             <div class="flex gap-4">
+                <div class="border border-black w-44 h-11 px-2 flex flex-col justify-center text-[10px] bg-white">
+                    <p><strong>Lancement:</strong> <span id="val-date-lancement"></span> <span id="val-time-lancement" class="font-bold"></span></p>
+                    <p><strong>Lancé par:</strong> <span id="val-lance-par" class="font-semibold italic"></span></p>
+                </div>
                 <div class="border border-black w-32 h-11 text-[10px] font-bold text-center pt-1 bg-white">Signature Préparateur</div>
                 <div class="border border-black w-32 h-11 text-[10px] font-bold text-center pt-1 bg-white">Signature Contrôle</div>
             </div>
@@ -167,4 +168,3 @@
     </script>
 </body>
 </html>
-```[cite: 1]
