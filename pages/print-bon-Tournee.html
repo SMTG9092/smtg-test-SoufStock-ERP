@@ -61,11 +61,12 @@
             const dates = datesParam.split(',');
 
             try {
+                // Stakhdm .ilike w l-colonne s-sahhiha "itineraire" bash t-tjnb machakil l-horof w slashes
                 const { data: commandesList, error } = await supabase
                     .from("commandes_excel")
                     .select("*")
                     .in("date_livraison", dates)
-                    .or(`tournee.eq.${tourneeName},code_tournee.eq.${tourneeName}`);
+                    .or(`itineraire.ilike.${tourneeName},tournee.ilike.${tourneeName},code_tournee.ilike.${tourneeName}`);
 
                 if (error || !commandesList || commandesList.length === 0) {
                     document.getElementById('tournee-container').innerHTML = `<p class="text-center text-red-500 font-bold p-10">Aucune commande trouvée pour cette tournée.</p>`;
@@ -109,7 +110,7 @@
                     const dateCreation = firstItem.date_creation ? new Date(firstItem.date_creation).toLocaleDateString() : '-';
                     const dateLivraison = firstItem.date_livraison ? new Date(firstItem.date_livraison).toLocaleDateString() : '-';
                     const clientName = firstItem.nom_receptionnaire || firstItem.client || '-';
-                    const itineraire = firstItem.tournee || firstItem.code_tournee || tourneeName;
+                    const itineraire = firstItem.itineraire || firstItem.tournee || firstItem.code_tournee || tourneeName;
 
                     let rowsHtml = '';
                     let totalKg = 0;
