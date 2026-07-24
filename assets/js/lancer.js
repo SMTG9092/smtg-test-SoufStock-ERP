@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = await getUser();
     els.userName.textContent = user?.email || "Administrateur";
     
-    // Générer les checkboxes men J tal J+6
+    // Générer les checkboxes men J tal J+6 b twarikhhom
     initDateCheckboxes();
 
     els.radioModes.forEach(radio => radio.addEventListener("change", loadDashboard));
@@ -40,18 +40,20 @@ function initDateCheckboxes() {
     for (let i = 0; i <= 6; i++) {
         let d = new Date();
         d.setDate(today.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = d.toISOString().split('T')[0]; // Format YYYY-MM-DD
         
-        let labelName = i === 0 ? "J (Aujourd'hui)" : `J+${i}`;
-        let formattedDate = `${dateStr} (${labelName})`;
+        let labelName = i === 0 ? "Aujourd'hui (J)" : `J+${i}`;
 
-        // Par défaut, J et J+1 (i <= 1) kouno m-sélectionnin (wla t-bghihum kamlin khalli i <= 6)
+        // Par défaut, J et J+1 (i <= 1) kouno m-sélectionnin
         let isChecked = (i <= 1) ? 'checked' : '';
 
         html += `
-            <label class="flex items-center gap-2 cursor-pointer bg-gray-900 px-3 py-1.5 rounded border border-gray-700 hover:border-indigo-500 transition">
-                <input type="checkbox" name="target-date-chk" value="${dateStr}" ${isChecked} class="w-4 h-4 text-indigo-600 bg-gray-900 border-gray-700 rounded focus:ring-indigo-500">
-                <span class="text-xs text-gray-300 font-medium">${formattedDate}</span>
+            <label class="flex flex-col p-2.5 bg-gray-900 rounded border border-gray-700 hover:border-indigo-500 cursor-pointer transition text-center shadow-sm">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-bold text-indigo-300">${labelName}</span>
+                    <input type="checkbox" name="target-date-chk" value="${dateStr}" ${isChecked} class="w-4 h-4 text-indigo-600 bg-gray-800 border-gray-600 rounded focus:ring-indigo-500">
+                </div>
+                <span class="text-xs font-semibold text-gray-200">${dateStr}</span>
             </label>
         `;
     }
