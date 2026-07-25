@@ -41,7 +41,7 @@
     <!-- Main Content Container -->
     <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Formulaire de Modification Profile -->
+        <!-- Formulaire de Modification / Saisie Profile -->
         <div class="custom-card p-5 rounded-lg shadow h-fit">
             <h2 id="form-title" class="text-base font-bold text-indigo-300 mb-4 pb-2 border-b border-gray-700">
                 <i class="fa-solid fa-user-pen mr-1"></i> Modifier le Profil
@@ -82,7 +82,7 @@
 
                 <div class="flex gap-2 pt-2">
                     <button type="submit" id="btn-save" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-sm transition shadow">
-                        Mettre à jour
+                        Enregistrer les informations
                     </button>
                     <button type="button" id="btn-cancel" onclick="resetForm()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded text-sm font-semibold transition">
                         Annuler
@@ -98,7 +98,7 @@
                     <i class="fa-solid fa-list mr-1"></i> Liste des Profils (user_profiles)
                 </h2>
                 <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1 shadow">
-                    <i class="fa-solid fa-user-plus"></i> Ajouter un Utilisateur
+                    <i class="fa-solid fa-user-plus"></i> Créer Auth User
                 </button>
             </div>
 
@@ -126,11 +126,11 @@
 
     </main>
 
-    <!-- Modal Ajout Utilisateur (Auth + Profile) -->
+    <!-- Modal Création Auth User -->
     <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden">
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-full max-w-md shadow-2xl">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
-                <h3 class="text-base font-bold text-white"><i class="fa-solid fa-user-plus mr-1 text-emerald-400"></i> Créer un Nouvel Utilisateur</h3>
+                <h3 class="text-base font-bold text-white"><i class="fa-solid fa-user-plus mr-1 text-emerald-400"></i> Créer un utilisateur</h3>
                 <button onclick="closeAddModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="add-user-form" class="space-y-4">
@@ -144,7 +144,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-300 mb-1">Nom Complet</label>
-                    <input type="text" id="new-nom" required placeholder="Nom & Prénom" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <input type="text" id="new-nom" placeholder="Nom & Prénom" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div class="flex justify-end gap-2 pt-3">
                     <button type="button" onclick="closeAddModal()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded text-xs font-semibold transition">Annuler</button>
@@ -223,7 +223,7 @@
             }
         }
 
-        // Création User f Auth (Bouton Ajouter)
+        // Inscription f Auth (b fadl l-Trigger, ghadi t-creya f user_profiles otomatikan)
         addUserForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const email = document.getElementById("new-email").value.trim();
@@ -231,39 +231,34 @@
             const nom_complet = document.getElementById("new-nom").value.trim();
 
             try {
-                // 1. Inscription f auth.users
-                const { data, error } = await supabase.auth.signUp({ email, password });
+                const { data, error } = await supabase.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        data: { nom_complet: nom_complet || email }
+                    }
+                });
                 if (error) throw error;
 
-                const userId = data.user?.id;
-                if (userId) {
-                    // 2. Insert direct f user_profiles (ila kan dak trigger ma khdamch awla bġiti t-akidha)
-                    await supabase.from("user_profiles").upsert({
-                        id: userId,
-                        email: email,
-                        nom_complet: nom_complet,
-                        role_id: 1,
-                        actif: true
-                    });
-                }
-
-                alert("Utilisateur créé avec succès !");
+                alert("Utilisateur créé avec succès ! Sélectionnez-le dans la liste pour compléter ses informations.");
                 closeAddModal();
                 addUserForm.reset();
-                loadProfiles();
+                
+                // Refresh l-tableau bash y-ban l-user jdid dghya
+                setTimeout(loadProfiles, 1000);
 
             } catch (err) {
-                alert("Erreur création: " + err.message);
+                alert("Erreur création auth: " + err.message);
             }
         });
 
-        // Modification Profile
+        // Enregistrement / Update dyal l-m3lomat f user_profiles
         userProfileForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const id = profileIdInput.value;
 
             if (!id) {
-                alert("Erreur: Veuillez sélectionner un profil à modifier depuis le tableau.");
+                alert("Erreur: Veuillez sélectionner un profil depuis le tableau à droite.");
                 return;
             }
 
@@ -280,7 +275,7 @@
                 const { error } = await supabase.from("user_profiles").update(payload).eq("id", id);
                 if (error) throw error;
 
-                alert("Profil mis à jour avec succès !");
+                alert("Informations enregistrées avec succès !");
                 window.resetForm();
                 loadProfiles();
 
