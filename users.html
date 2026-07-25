@@ -41,7 +41,7 @@
     <!-- Main Content Container -->
     <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Formulaire de Modification Profile -->
+        <!-- Formulaire de Modification / Saisie Profile (K-t-t-beddel otomatik mni t-creyi user) -->
         <div class="custom-card p-5 rounded-lg shadow h-fit">
             <h2 id="form-title" class="text-base font-bold text-indigo-300 mb-4 pb-2 border-b border-gray-700">
                 <i class="fa-solid fa-user-pen mr-1"></i> Modifier le Profil
@@ -82,7 +82,7 @@
 
                 <div class="flex gap-2 pt-2">
                     <button type="submit" id="btn-save" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-sm transition shadow">
-                        Mettre à jour
+                        Enregistrer les informations
                     </button>
                     <button type="button" id="btn-cancel" onclick="resetForm()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded text-sm font-semibold transition">
                         Annuler
@@ -98,7 +98,7 @@
                     <i class="fa-solid fa-list mr-1"></i> Liste des Profils (user_profiles)
                 </h2>
                 <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1 shadow">
-                    <i class="fa-solid fa-user-plus"></i> Ajouter un Utilisateur
+                    <i class="fa-solid fa-user-plus"></i> Étape 1: Créer Auth User
                 </button>
             </div>
 
@@ -126,11 +126,11 @@
 
     </main>
 
-    <!-- Modal Ajout Utilisateur (Auth + Profile) -->
+    <!-- Modal Étape 1: Créer f auth.users -->
     <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden">
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-full max-w-md shadow-2xl">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
-                <h3 class="text-base font-bold text-white"><i class="fa-solid fa-user-plus mr-1 text-emerald-400"></i> Créer un Nouvel Utilisateur</h3>
+                <h3 class="text-base font-bold text-white"><i class="fa-solid fa-user-plus mr-1 text-emerald-400"></i> Étape 1 : Créer dans Auth</h3>
                 <button onclick="closeAddModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="add-user-form" class="space-y-4">
@@ -139,16 +139,16 @@
                     <input type="email" id="new-email" required placeholder="user@example.com" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Mot de passe</label>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Mot de passe provisoire</label>
                     <input type="password" id="new-password" required placeholder="••••••••" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Nom Complet</label>
-                    <input type="text" id="new-nom" required placeholder="Nom & Prénom" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Nom Complet (Optionnel pour l'instant)</label>
+                    <input type="text" id="new-nom" placeholder="Nom & Prénom" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div class="flex justify-end gap-2 pt-3">
                     <button type="button" onclick="closeAddModal()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded text-xs font-semibold transition">Annuler</button>
-                    <button type="submit" id="btn-create-auth" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold transition shadow">Créer</button>
+                    <button type="submit" id="btn-create-auth" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold transition shadow">Suivant (Remplir Profil)</button>
                 </div>
             </form>
         </div>
@@ -223,7 +223,7 @@
             }
         }
 
-        // Création User f Auth (Bouton Ajouter)
+        // Étape 1: Création f Auth w Remplissage direct f l-Formulaire dyal l-Yemen (user_profiles)
         addUserForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const email = document.getElementById("new-email").value.trim();
@@ -231,39 +231,43 @@
             const nom_complet = document.getElementById("new-nom").value.trim();
 
             try {
-                // 1. Inscription f auth.users
+                // 1. Inscription f auth.users (T-creyi l-user f auth w k-t-t-crayha f trigger awla upsert)
                 const { data, error } = await supabase.auth.signUp({ email, password });
                 if (error) throw error;
 
                 const userId = data.user?.id;
                 if (userId) {
-                    // 2. Insert direct f user_profiles (ila kan dak trigger ma khdamch awla bġiti t-akidha)
+                    // N-sirtiwh awla n-update-iw f user_profiles bash n-garantiw blly l-email w nom khrjo tamm
                     await supabase.from("user_profiles").upsert({
                         id: userId,
                         email: email,
-                        nom_complet: nom_complet,
-                        role_id: 1,
-                        actif: true
+                        nom_complet: nom_complet || email,
+                        role_id: 1
                     });
                 }
 
-                alert("Utilisateur créé avec succès !");
+                alert("Étape 1 réussie ! L'utilisateur a été créé. Veuillez maintenant compléter ses informations (Matricule, Service, Poste) dans le formulaire à gauche.");
                 closeAddModal();
                 addUserForm.reset();
                 loadProfiles();
 
+                // 2. Transférer l'ID w l'Email direct l formulaire de gauche (Étape 2) bash y-kamal l-m3lomat
+                if (userId) {
+                    window.editProfile(userId, nom_complet || '', email, '', '', '', 1);
+                }
+
             } catch (err) {
-                alert("Erreur création: " + err.message);
+                alert("Erreur création auth: " + err.message);
             }
         });
 
-        // Modification Profile
+        // Étape 2: Modification / Enregistrement dyal l-m3lomat f user_profiles
         userProfileForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const id = profileIdInput.value;
 
             if (!id) {
-                alert("Erreur: Veuillez sélectionner un profil à modifier depuis le tableau.");
+                alert("Erreur: Veuillez d'abord créer ou sélectionner un utilisateur.");
                 return;
             }
 
@@ -280,7 +284,7 @@
                 const { error } = await supabase.from("user_profiles").update(payload).eq("id", id);
                 if (error) throw error;
 
-                alert("Profil mis à jour avec succès !");
+                alert("Profil et informations enregistrés avec succès !");
                 window.resetForm();
                 loadProfiles();
 
