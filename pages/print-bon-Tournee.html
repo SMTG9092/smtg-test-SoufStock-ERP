@@ -7,41 +7,38 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
         @media print { 
-            @page { size: A4 landscape; margin: 6mm; } 
+            @page { size: A4 landscape; margin: 8mm; } 
             body { background: white; -webkit-print-color-adjust: exact; } 
             .no-print { display: none !important; } 
-            .page-break { page-break-after: always; break-after: page; }
-            .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+            .command-block { break-inside: avoid; page-break-inside: avoid; }
+            .sheet-header { break-inside: avoid; page-break-inside: avoid; }
+            .sheet-footer { break-inside: avoid; page-break-inside: avoid; position: fixed; bottom: 0; left: 0; right: 0; }
         }
+        
         body { background-color: #f3f4f6; margin: 0; padding: 10px; font-family: Arial, sans-serif; }
         
-        /* Conteneur global de la page A4 Paysage */
+        /* Conteneur global A4 paysage */
         .page-sheet { 
             width: 276mm; 
-            min-height: 188mm; 
             margin: 0 auto 10mm auto; 
             background: white; 
-            padding: 5mm 6mm; 
+            padding: 6mm; 
             border: 2px solid #000; 
             box-sizing: border-box; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; 
             position: relative;
-            page-break-after: always;
-            break-after: page;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
         
-        .header-box { border: 2px solid black; padding: 4px 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; background: #fff; }
+        .header-box { border: 2px solid black; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; background: #fff; }
         
-        .commands-container { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
-        
-        .command-block { display: flex; flex-direction: column; border: 1px solid #000; padding: 3px; background: #fff; break-inside: avoid; page-break-inside: avoid; }
-        .command-title { font-weight: bold; font-size: 10px; background: #e5e7eb; padding: 2px 5px; border-bottom: 1px solid #000; margin-bottom: 2px; }
+        .command-block { display: flex; flex-direction: column; border: 1px solid #000; padding: 4px; background: #fff; margin-bottom: 6px; break-inside: avoid; page-break-inside: avoid; }
+        .command-title { font-weight: bold; font-size: 10px; background: #e5e7eb; padding: 3px 6px; border-bottom: 1px solid #000; margin-bottom: 3px; }
 
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background-color: #e5e7eb !important; font-weight: bold; font-size: 9px; padding: 2px; border: 1px solid black; text-align: center; }
-        td { border: 1px solid black; padding: 2px; text-align: center; font-size: 10px; }
+        th { background-color: #e5e7eb !important; font-weight: bold; font-size: 9px; padding: 3px; border: 1px solid black; text-align: center; }
+        td { border: 1px solid black; padding: 3px; text-align: center; font-size: 10px; }
         
         .col-article { width: 42%; } 
         .col-kg { width: 9%; } 
@@ -50,9 +47,9 @@
         .col-prep { width: 10%; } 
         .col-ctrl { width: 8%; }
         
-        .product-name { font-weight: bold; font-size: 10px; text-align: left; padding-left: 5px; line-height: 1.1; }
+        .product-name { font-weight: bold; font-size: 10px; text-align: left; padding-left: 6px; line-height: 1.1; }
         
-        .footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 6px; padding-top: 4px; border-top: 1px solid #000; background: #fff; }
+        .footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; padding-top: 6px; border-top: 2px solid #000; background: #fff; }
     </style>
 </head>
 <body class="space-y-4">
@@ -62,7 +59,7 @@
         <button onclick="window.print()" class="bg-blue-600 text-white px-8 py-2 rounded font-bold hover:bg-blue-700 shadow">Imprimer Toute la Tournée</button>
     </div>
 
-    <!-- Container li ghadi yet3emmar b les bons dyal la tournée -->
+    <!-- Container li ghadi yet3emmar -->
     <div id="tournee-container">
         <div class="text-center p-10 font-bold text-gray-500">Chargement des bons de la tournée...</div>
     </div>
@@ -130,103 +127,40 @@
 
                 const entries = Array.from(docsMap.entries());
                 
-                let allPagesHtml = '';
-                let currentCommandsHtml = '';
-                let pageKg = 0;
-                let pagePieces = 0;
-                let firstItemOfPage = null;
-                let commandsInCurrentPage = 0;
+                let allCommandsHtml = '';
+                let totalTourneeKg = 0;
+                let totalTourneePieces = 0;
 
-                function generateSheet(content, firstIt, tKg, tPcs) {
-                    const firstItem = firstIt || {};
-                    const docVente = firstItem.document_vente || '';
-                    const suivi = (suiviList || []).find(s => s.document_vente === docVente) || {};
-                    const numLancement = suivi.num_lancement || '-';
-                    const lancePar = suivi.user_profiles?.nom_complet || '-';
-                    
-                    let dateLancementStr = '';
-                    let timeLancementStr = '';
-                    if (suivi.date_lancement) {
-                        const d = new Date(suivi.date_lancement);
-                        dateLancementStr = d.toLocaleDateString();
-                        timeLancementStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    }
-
-                    const dateCreation = firstItem.date_creation ? new Date(firstItem.date_creation).toLocaleDateString() : '-';
-                    const dateLivraison = firstItem.date_livraison ? new Date(firstItem.date_livraison).toLocaleDateString() : '-';
-                    const itineraire = firstItem.itineraire || firstItem.tournee || firstItem.code_tournee || tourneeName;
-                    const qrId = `qrcode-${Math.random().toString(36).substring(2, 9)}`;
-
-                    return `
-                        <div class="page-sheet">
-                            <div>
-                                <div class="header-box">
-                                    <div class="text-xs space-y-0.5">
-                                        <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
-                                    </div>
-
-                                    <h1 class="text-xl font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
-
-                                    <div class="flex items-center gap-3">
-                                        <div class="text-[10px] text-right space-y-0.5">
-                                            <p><strong>Création:</strong> <span>${dateCreation}</span></p>
-                                            <p><strong>Livraison:</strong> <span>${dateLivraison}</span></p>
-                                        </div>
-                                        <canvas id="${qrId}" class="w-12 h-12" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
-                                    </div>
-                                </div>
-
-                                <div class="commands-container">
-                                    ${content}
-                                </div>
-                            </div>
-
-                            <div class="footer-section">
-                                <table class="w-1/3 border border-black">
-                                    <tr class="bg-gray-100">
-                                        <th class="border border-black p-1 text-[9px]">TOTAL</th>
-                                        <th class="border border-black p-1 text-[9px]">Qté KG</th>
-                                        <th class="border border-black p-1 text-[9px]">Pieces</th>
-                                    </tr>
-                                    <tr>
-                                        <td class="border border-black p-1 font-bold text-xs">TOTAL</td>
-                                        <td class="border border-black p-1 font-bold text-xs">${tKg.toFixed(2)}</td>
-                                        <td class="border border-black p-1 font-bold text-xs">${tPcs}</td>
-                                    </tr>
-                                </table>
-
-                                <div class="flex items-center gap-2">
-                                    <div class="border border-black w-48 h-12 px-2 py-1 flex flex-col justify-center text-[9px] bg-white space-y-0.5">
-                                        <p><strong>N° Lancement:</strong> <span class="font-bold text-blue-700">${numLancement}</span></p>
-                                        <p><strong>Lancement:</strong> <span>${dateLancementStr}</span> <span class="font-bold">${timeLancementStr}</span></p>
-                                        <p><strong>Lancé par:</strong> <span class="font-semibold italic">${lancePar}</span></p>
-                                    </div>
-
-                                    <div class="border border-black w-28 h-12 text-[9px] font-bold text-center pt-3 bg-white">Signature Préparateur</div>
-                                    <div class="border border-black w-28 h-12 text-[9px] font-bold text-center pt-3 bg-white">Signature Contrôle</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                const firstItem = entries[0][1][0] || {};
+                const docVenteFirst = firstItem.document_vente || '';
+                const suivi = (suiviList || []).find(s => s.document_vente === docVenteFirst) || {};
+                const numLancement = suivi.num_lancement || '-';
+                const lancePar = suivi.user_profiles?.nom_complet || '-';
+                
+                let dateLancementStr = '';
+                let timeLancementStr = '';
+                if (suivi.date_lancement) {
+                    const d = new Date(suivi.date_lancement);
+                    dateLancementStr = d.toLocaleDateString();
+                    timeLancementStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 }
 
-                for (let [docVente, items] of entries) {
-                    const firstItem = items[0];
-                    if (!firstItemOfPage) firstItemOfPage = firstItem;
+                const dateCreation = firstItem.date_creation ? new Date(firstItem.date_creation).toLocaleDateString() : '-';
+                const dateLivraison = firstItem.date_livraison ? new Date(firstItem.date_livraison).toLocaleDateString() : '-';
+                const itineraire = firstItem.itineraire || firstItem.tournee || firstItem.code_tournee || tourneeName;
+                const qrId = `qrcode-tournee`;
 
-                    const clientName = firstItem.nom_receptionnaire || firstItem.client || '-';
+                entries.forEach(([docVente, items]) => {
+                    const clientName = items[0].nom_receptionnaire || items[0].client || '-';
                     
                     let rowsHtml = '';
-                    let cmdKg = 0;
-                    let cmdPieces = 0;
-
                     items.forEach(item => {
                         const kg = Number(item.quantite_commandee || 0);
                         const pItem = (piecesList || []).find(p => p.document_vente === docVente && p.article === item.article);
                         const pieces = Number(pItem?.nombre_pieces || 0);
 
-                        cmdKg += kg;
-                        cmdPieces += pieces;
+                        totalTourneeKg += kg;
+                        totalTourneePieces += pieces;
 
                         rowsHtml += `
                             <tr>
@@ -243,7 +177,7 @@
                         `;
                     });
 
-                    const cmdHtml = `
+                    allCommandsHtml += `
                         <div class="command-block">
                             <div class="command-title">
                                 Commande: <span class="font-bold">${docVente}</span> | Client: <span class="font-bold">${clientName}</span>
@@ -265,32 +199,65 @@
                             </table>
                         </div>
                     `;
-
-                    // Kat-jma3 2 tal 3 commandat f nafs la page, w ila t3mrat kat-douz l la page m-waliya
-                    if (commandsInCurrentPage >= 3 || currentCommandsHtml.length > 1400) {
-                        allPagesHtml += generateSheet(currentCommandsHtml, firstItemOfPage, pageKg, pagePieces);
-                        currentCommandsHtml = cmdHtml;
-                        firstItemOfPage = firstItem;
-                        pageKg = cmdKg;
-                        pagePieces = cmdPieces;
-                        commandsInCurrentPage = 1;
-                    } else {
-                        currentCommandsHtml += cmdHtml;
-                        pageKg += cmdKg;
-                        pagePieces += cmdPieces;
-                        commandsInCurrentPage++;
-                    }
-                }
-
-                if (currentCommandsHtml !== '') {
-                    allPagesHtml += generateSheet(currentCommandsHtml, firstItemOfPage, pageKg, pagePieces);
-                }
-
-                document.getElementById('tournee-container').innerHTML = allPagesHtml;
-
-                document.querySelectorAll('canvas[data-qr]').forEach(canvas => {
-                    QRCode.toCanvas(canvas, canvas.getAttribute('data-qr'), { width: 48, margin: 0 });
                 });
+
+                const finalPageHtml = `
+                    <div class="page-sheet">
+                        <div class="sheet-header">
+                            <div class="header-box">
+                                <div class="text-xs space-y-0.5">
+                                    <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
+                                </div>
+                                <h1 class="text-xl font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
+                                <div class="flex items-center gap-3">
+                                    <div class="text-[10px] text-right space-y-0.5">
+                                        <p><strong>Création:</strong> <span>${dateCreation}</span></p>
+                                        <p><strong>Livraison:</strong> <span>${dateLivraison}</span></p>
+                                    </div>
+                                    <canvas id="${qrId}" class="w-12 h-12" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="commands-list-container">
+                            ${allCommandsHtml}
+                        </div>
+
+                        <div class="sheet-footer">
+                            <div class="footer-section">
+                                <table class="w-1/3 border border-black">
+                                    <tr class="bg-gray-100">
+                                        <th class="border border-black p-1 text-[9px]">TOTAL TOURNEE</th>
+                                        <th class="border border-black p-1 text-[9px]">Qté KG</th>
+                                        <th class="border border-black p-1 text-[9px]">Pieces</th>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-black p-1 font-bold text-xs">TOTAL</td>
+                                        <td class="border border-black p-1 font-bold text-xs">${totalTourneeKg.toFixed(2)}</td>
+                                        <td class="border border-black p-1 font-bold text-xs">${totalTourneePieces}</td>
+                                    </tr>
+                                </table>
+
+                                <div class="flex items-center gap-2">
+                                    <div class="border border-black w-48 h-12 px-2 py-1 flex flex-col justify-center text-[9px] bg-white space-y-0.5">
+                                        <p><strong>N° Lancement:</strong> <span class="font-bold text-blue-700">${numLancement}</span></p>
+                                        <p><strong>Lancement:</strong> <span>${dateLancementStr}</span> <span class="font-bold">${timeLancementStr}</span></p>
+                                        <p><strong>Lancé par:</strong> <span class="font-semibold italic">${lancePar}</span></p>
+                                    </div>
+                                    <div class="border border-black w-28 h-12 text-[9px] font-bold text-center pt-3 bg-white">Signature Préparateur</div>
+                                    <div class="border border-black w-28 h-12 text-[9px] font-bold text-center pt-3 bg-white">Signature Contrôle</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('tournee-container').innerHTML = finalPageHtml;
+
+                const canvas = document.getElementById(qrId);
+                if (canvas) {
+                    QRCode.toCanvas(canvas, canvas.getAttribute('data-qr'), { width: 48, margin: 0 });
+                }
 
             } catch (err) {
                 console.error("Erreur generation tournée:", err);
