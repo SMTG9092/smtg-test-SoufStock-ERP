@@ -15,13 +15,13 @@
         
         body { background-color: #f3f4f6; margin: 0; padding: 10px; font-family: Arial, sans-serif; }
         
-        /* Format A4 Paysage Fixe pour chaque page avec son propre Header et Footer */
+        /* Format A4 Paysage Fixe pour chaque page */
         .page-sheet { 
             width: 276mm; 
             height: 188mm; 
             margin: 0 auto 10mm auto; 
             background: white; 
-            padding: 5mm 6mm; 
+            padding: 4mm 6mm; 
             border: 2px solid #000; 
             box-sizing: border-box; 
             display: flex; 
@@ -33,16 +33,17 @@
             overflow: hidden;
         }
         
-        .header-box { border: 2px solid black; padding: 4px 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-shrink: 0; background: #fff; }
+        .header-box { border: 2px solid black; padding: 3px 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; flex-shrink: 0; background: #fff; }
         
-        .commands-container { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
+        /* Container dynamique bash les commandes y-tjm3o b 3adi w ma ykonch espace khawi */
+        .commands-container { flex-grow: 1; display: flex; flex-direction: column; gap: 3px; justify-content: flex-start; overflow: hidden; }
         
-        .command-block { display: flex; flex-direction: column; border: 1px solid #000; padding: 3px; background: #fff; }
-        .command-title { font-weight: bold; font-size: 10px; background: #e5e7eb; padding: 2px 5px; border-bottom: 1px solid #000; margin-bottom: 2px; }
+        .command-block { display: flex; flex-direction: column; border: 1px solid #000; padding: 2px; background: #fff; flex-shrink: 0; }
+        .command-title { font-weight: bold; font-size: 9px; background: #e5e7eb; padding: 1px 5px; border-bottom: 1px solid #000; margin-bottom: 1px; }
 
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background-color: #e5e7eb !important; font-weight: bold; font-size: 9px; padding: 2px; border: 1px solid black; text-align: center; }
-        td { border: 1px solid black; padding: 2px; text-align: center; font-size: 10px; }
+        th { background-color: #e5e7eb !important; font-weight: bold; font-size: 8px; padding: 1px; border: 1px solid black; text-align: center; }
+        td { border: 1px solid black; padding: 1px 2px; text-align: center; font-size: 9px; }
         
         .col-article { width: 42%; } 
         .col-kg { width: 9%; } 
@@ -51,9 +52,9 @@
         .col-prep { width: 10%; } 
         .col-ctrl { width: 8%; }
         
-        .product-name { font-weight: bold; font-size: 10px; text-align: left; padding-left: 5px; line-height: 1.1; }
+        .product-name { font-weight: bold; font-size: 9px; text-align: left; padding-left: 4px; line-height: 1; }
         
-        .footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px; padding-top: 4px; border-top: 1px solid #000; flex-shrink: 0; background: #fff; }
+        .footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 3px; padding-top: 3px; border-top: 1px solid #000; flex-shrink: 0; background: #fff; }
     </style>
 </head>
 <body class="space-y-4">
@@ -63,7 +64,7 @@
         <button onclick="window.print()" class="bg-blue-600 text-white px-8 py-2 rounded font-bold hover:bg-blue-700 shadow">Imprimer Toute la Tournée</button>
     </div>
 
-    <!-- Container li ghadi yet3emmar b les pages dyal la tournée -->
+    <!-- Container li ghadi yet3emmar b les pages -->
     <div id="tournee-container">
         <div class="text-center p-10 font-bold text-gray-500">Chargement des bons de la tournée...</div>
     </div>
@@ -136,7 +137,7 @@
                 let pageKg = 0;
                 let pagePieces = 0;
                 let firstItemOfPage = null;
-                let commandsInCurrentPage = 0;
+                let estimatedPageHeight = 0; // 7had l-ihtisab dyal l-3olo (Hauteur) bash n-dirou tqsim m-gadd
 
                 function generateSheet(content, firstIt, tKg, tPcs) {
                     const firstItem = firstIt || {};
@@ -160,52 +161,49 @@
 
                     return `
                         <div class="page-sheet">
-                            <!-- Header dyal kol warqa -->
                             <div class="header-box">
                                 <div class="text-xs space-y-0.5">
                                     <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
                                 </div>
 
-                                <h1 class="text-xl font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
+                                <h1 class="text-lg font-bold uppercase text-center tracking-wide px-2">Bon de Préparation</h1>
 
                                 <div class="flex items-center gap-3">
-                                    <div class="text-[10px] text-right space-y-0.5">
+                                    <div class="text-[9px] text-right space-y-0.5">
                                         <p><strong>Création:</strong> <span>${dateCreation}</span></p>
                                         <p><strong>Livraison:</strong> <span>${dateLivraison}</span></p>
                                     </div>
-                                    <canvas id="${qrId}" class="w-12 h-12" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
+                                    <canvas id="${qrId}" class="w-10 h-10" data-qr="Tournee: ${itineraire} | Lancement: ${numLancement}"></canvas>
                                 </div>
                             </div>
 
-                            <!-- Les commandes dial had warqa -->
                             <div class="commands-container">
                                 ${content}
                             </div>
 
-                            <!-- Footer dyal kol warqa (Total w Signatures) -->
                             <div class="footer-section">
                                 <table class="w-1/3 border border-black">
                                     <tr class="bg-gray-100">
-                                        <th class="border border-black p-1 text-[9px]">TOTAL PAGE</th>
-                                        <th class="border border-black p-1 text-[9px]">Qté KG</th>
-                                        <th class="border border-black p-1 text-[9px]">Pieces</th>
+                                        <th class="border border-black p-0.5 text-[8px]">TOTAL PAGE</th>
+                                        <th class="border border-black p-0.5 text-[8px]">Qté KG</th>
+                                        <th class="border border-black p-0.5 text-[8px]">Pieces</th>
                                     </tr>
                                     <tr>
-                                        <td class="border border-black p-1 font-bold text-xs">TOTAL</td>
-                                        <td class="border border-black p-1 font-bold text-xs">${tKg.toFixed(2)}</td>
-                                        <td class="border border-black p-1 font-bold text-xs">${tPcs}</td>
+                                        <td class="border border-black p-0.5 font-bold text-[10px]">TOTAL</td>
+                                        <td class="border border-black p-0.5 font-bold text-[10px]">${tKg.toFixed(2)}</td>
+                                        <td class="border border-black p-0.5 font-bold text-[10px]">${tPcs}</td>
                                     </tr>
                                 </table>
 
                                 <div class="flex items-center gap-2">
-                                    <div class="border border-black w-48 h-12 px-2 py-1 flex flex-col justify-center text-[9px] bg-white space-y-0.5">
+                                    <div class="border border-black w-44 h-10 px-2 py-0.5 flex flex-col justify-center text-[8px] bg-white space-y-0.2">
                                         <p><strong>N° Lancement:</strong> <span class="font-bold text-blue-700">${numLancement}</span></p>
                                         <p><strong>Lancement:</strong> <span>${dateLancementStr}</span> <span class="font-bold">${timeLancementStr}</span></p>
                                         <p><strong>Lancé par:</strong> <span class="font-semibold italic">${lancePar}</span></p>
                                     </div>
 
-                                    <div class="border border-black w-28 h-12 text-[9px] font-bold text-center pt-3 bg-white">Signature Préparateur</div>
-                                    <div class="border border-black w-28 h-12 text-[9px] font-bold text-center pt-3 bg-white">Signature Contrôle</div>
+                                    <div class="border border-black w-24 h-10 text-[8px] font-bold text-center pt-2.5 bg-white">Signature Préparateur</div>
+                                    <div class="border border-black w-24 h-10 text-[8px] font-bold text-center pt-2.5 bg-white">Signature Contrôle</div>
                                 </div>
                             </div>
                         </div>
@@ -233,7 +231,7 @@
                         rowsHtml += `
                             <tr>
                                 <td class="product-name">
-                                    <span class="text-[9px] text-gray-800 font-bold font-mono block">${item.article || ''}</span>
+                                    <span class="text-[8px] text-gray-800 font-bold font-mono block">${item.article || ''}</span>
                                     ${item.designation_article || ''}
                                 </td>
                                 <td>${kg.toFixed(2)}</td>
@@ -268,19 +266,21 @@
                         </div>
                     `;
 
-                    // Hna kan-hadddo chhal mn commande f kol warqa (bhal ila kat-gol 3 max f warqa wahda, w mra wahda kat-douz l warqa jdida b header w footer dyalha)
-                    if (commandsInCurrentPage >= 3 || currentCommandsHtml.length > 1300) {
+                    // Hisab taqribi dyal l-hjm dyal commande (3la ḥsab l-articles) bash t-tjm3 m-gadda w t-eduz l page jdida ila fatet l-qiyas
+                    const blockHeight = 35 + (items.length * 18);
+
+                    if (estimatedPageHeight + blockHeight > 480 && currentCommandsHtml !== '') {
                         allPagesHtml += generateSheet(currentCommandsHtml, firstItemOfPage, pageKg, pagePieces);
                         currentCommandsHtml = cmdHtml;
                         firstItemOfPage = firstItem;
                         pageKg = cmdKg;
                         pagePieces = cmdPieces;
-                        commandsInCurrentPage = 1;
+                        estimatedPageHeight = blockHeight;
                     } else {
                         currentCommandsHtml += cmdHtml;
                         pageKg += cmdKg;
                         pagePieces += cmdPieces;
-                        commandsInCurrentPage++;
+                        estimatedPageHeight += blockHeight;
                     }
                 }
 
@@ -291,7 +291,7 @@
                 document.getElementById('tournee-container').innerHTML = allPagesHtml;
 
                 document.querySelectorAll('canvas[data-qr]').forEach(canvas => {
-                    QRCode.toCanvas(canvas, canvas.getAttribute('data-qr'), { width: 48, margin: 0 });
+                    QRCode.toCanvas(canvas, canvas.getAttribute('data-qr'), { width: 40, margin: 0 });
                 });
 
             } catch (err) {
