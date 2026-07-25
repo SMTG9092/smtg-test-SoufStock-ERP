@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoufStock ERP - Gestion des Utilisateurs</title>
+    <title>SoufStock ERP - Gestion des Profils Utilisateurs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -24,7 +24,7 @@
     <header class="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-md mb-6">
         <div class="flex items-center gap-3">
             <h1 class="text-xl font-bold text-gray-100">
-                <i class="fa-solid fa-users mr-2 text-indigo-400"></i> SoufStock ERP - Gestion des Utilisateurs
+                <i class="fa-solid fa-id-card mr-2 text-indigo-400"></i> SoufStock ERP - Gestion des Profils (user_profiles)
             </h1>
         </div>
         <div class="flex items-center gap-4">
@@ -37,97 +37,83 @@
         </div>
     </header>
 
-    <!-- Main Content Container (2 Jihat: Auth.users / User_profiles) -->
-    <main class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Main Container -->
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- JIHAT 1: Table auth.users (Authentification) -->
-        <div class="custom-card p-5 rounded-lg shadow">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
-                <h2 class="text-base font-bold text-emerald-300">
-                    <i class="fa-solid fa-shield-halved mr-1"></i> Comptes Auth (auth.users)
-                </h2>
-                <!-- Bouton Ajouter f auth.users -->
-                <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1 shadow">
-                    <i class="fa-solid fa-user-plus"></i> Ajouter Auth
-                </button>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm border-collapse text-left">
-                    <thead class="bg-gray-900 text-gray-400 uppercase text-xs border-b border-gray-700">
-                        <tr>
-                            <th class="p-3">Email / UID</th>
-                            <th class="p-3">Provider</th>
-                            <th class="p-3">Créé le</th>
-                        </tr>
-                    </thead>
-                    <tbody id="auth-users-table-body" class="text-gray-300">
-                        <tr>
-                            <td colspan="3" class="p-6 text-center text-gray-500">
-                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- JIHAT 2: Table user_profiles (Profils & Modification) -->
-        <div class="custom-card p-5 rounded-lg shadow">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
-                <h2 class="text-base font-bold text-indigo-300">
-                    <i class="fa-solid id-card mr-1"></i> Profils & Métiers (user_profiles)
-                </h2>
-            </div>
-
-            <form id="user-profile-form" class="space-y-3 mb-4 bg-gray-900/50 p-3 rounded border border-gray-700/50">
-                <input type="hidden" id="profile-id">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-300 mb-1">Nom Complet</label>
-                        <input type="text" id="nom-complet" required class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-300 mb-1">Matricule</label>
-                        <input type="text" id="matricule" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    </div>
+        <!-- Formulaire de Saisie / Modification du Profil -->
+        <div class="custom-card p-5 rounded-lg shadow h-fit">
+            <h2 id="form-title" class="text-base font-bold text-indigo-300 mb-4 pb-2 border-b border-gray-700">
+                <i class="fa-solid fa-user-pen mr-1"></i> Attribuer / Modifier le Profil
+            </h2>
+            
+            <form id="user-profile-form" class="space-y-4">
+                
+                <!-- Ikhtiyar Auth User -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Sélectionner un Compte Auth</label>
+                    <select id="auth-user-select" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <option value="">-- Choisir un utilisateur auth --</option>
+                    </select>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-300 mb-1">Service</label>
-                        <input type="text" id="service" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-300 mb-1">Poste</label>
-                        <input type="text" id="poste" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-300 mb-1">Role ID</label>
-                        <input type="number" id="role-id" value="1" required class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Nom Complet</label>
+                    <input type="text" id="nom-complet" required placeholder="Nom & Prénom" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
-                <div class="flex gap-2 pt-1">
-                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 rounded text-xs transition shadow">
-                        Mettre à jour le profil
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Matricule</label>
+                    <input type="text" id="matricule" placeholder="Ex: 001" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Service</label>
+                    <input type="text" id="service" placeholder="Ex: Logistique" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Poste</label>
+                    <input type="text" id="poste" placeholder="Ex: Gestionnaire" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Role ID</label>
+                    <input type="number" id="role-id" value="1" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" id="btn-save" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-sm transition shadow">
+                        Enregistrer le profil
                     </button>
-                    <button type="button" onclick="resetForm()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1.5 rounded text-xs transition">
+                    <button type="button" onclick="resetForm()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded text-sm font-semibold transition">
                         Annuler
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Tableau Liste des Profils Existants -->
+        <div class="lg:col-span-2 custom-card p-5 rounded-lg shadow overflow-hidden">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
+                <h2 class="text-base font-bold text-indigo-300">
+                    <i class="fa-solid fa-list mr-1"></i> Liste des Profils Enregistrés
+                </h2>
+            </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-sm border-collapse text-left">
                     <thead class="bg-gray-900 text-gray-400 uppercase text-xs border-b border-gray-700">
                         <tr>
                             <th class="p-3">Matricule</th>
-                            <th class="p-3">Nom / Service</th>
-                            <th class="p-3 text-center">Action</th>
+                            <th class="p-3">Nom & Email</th>
+                            <th class="p-3">Service / Poste</th>
+                            <th class="p-3">Rôle ID</th>
+                            <th class="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="profiles-table-body" class="text-gray-300">
                         <tr>
-                            <td colspan="3" class="p-6 text-center text-gray-500">
+                            <td colspan="5" class="p-6 text-center text-gray-500">
                                 <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement...
                             </td>
                         </tr>
@@ -138,45 +124,15 @@
 
     </main>
 
-    <!-- Modal Création Auth User -->
-    <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-full max-w-md shadow-2xl">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
-                <h3 class="text-base font-bold text-white"><i class="fa-solid fa-user-plus mr-1 text-emerald-400"></i> Créer un utilisateur (auth.users)</h3>
-                <button onclick="closeAddModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <form id="add-user-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Email</label>
-                    <input type="email" id="new-email" required placeholder="user@example.com" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Mot de passe</label>
-                    <input type="password" id="new-password" required placeholder="••••••••" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Nom Complet</label>
-                    <input type="text" id="new-nom" placeholder="Nom & Prénom" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div class="flex justify-end gap-2 pt-3">
-                    <button type="button" onclick="closeAddModal()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded text-xs font-semibold transition">Annuler</button>
-                    <button type="submit" id="btn-create-auth" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold transition shadow">Créer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Script JavaScript -->
     <script type="module">
         import supabase, { getUser } from "./assets/js/core/supabase.js";
 
         const emailSpan = document.getElementById("user-email");
         const userProfileForm = document.getElementById("user-profile-form");
-        const addUserForm = document.getElementById("add-user-form");
-        const authTableBody = document.getElementById("auth-users-table-body");
+        const authUserSelect = document.getElementById("auth-user-select");
         const profilesTableBody = document.getElementById("profiles-table-body");
         
-        const profileIdInput = document.getElementById("profile-id");
         const nomCompletInput = document.getElementById("nom-complet");
         const matriculeInput = document.getElementById("matricule");
         const serviceInput = document.getElementById("service");
@@ -188,50 +144,29 @@
             if (user) {
                 emailSpan.textContent = user.email || "Admin";
             }
-            loadAllData();
+            loadAuthUsersDropdown();
+            loadProfiles();
         });
 
-        async function loadAllData() {
-            loadAuthUsers();
-            loadProfiles();
-        }
-
-        // Chargement Jihat auth.users (B t-fɛil dyal view wla RPC awla RLS ila kant m-disponible, wla a-n-st3mlo user_profiles ila kan l-accès m-limité)
-        async function loadAuthUsers() {
+        // 1. Jib les utilisateurs mn user_profiles (li 3ndhom l-id w email d auth) bash n-khterhom f select
+        async function loadAuthUsersDropdown() {
             try {
-                // Supabase Client 3adi ma kay-khellikch t-chof auth.users m-bashra ila masi b Admin API,
-                // Walakin n-qdro n-jibohom mn user_profiles b tariqa d auth info, awla n-st3mlo view.
-                //hna a-n-jibohom mn user_profiles li fihom l-emails w les ID dyal auth.users:
                 const { data, error } = await supabase
                     .from("user_profiles")
-                    .select("id, email, created_at")
+                    .select("id, email, nom_complet")
                     .order("created_at", { ascending: false });
 
                 if (error) throw error;
 
-                if (!data || data.length === 0) {
-                    authTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-500 text-xs">Aucun compte auth trouvé.</td></tr>`;
-                    return;
-                }
-
-                authTableBody.innerHTML = data.map(u => `
-                    <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
-                        <td class="p-3 text-emerald-300 font-medium text-xs">
-                            ${u.email || 'N/A'}
-                            <br><span class="text-[10px] text-gray-500 font-mono">ID: ${u.id.substring(0,8)}...</span>
-                        </td>
-                        <td class="p-3 text-xs text-gray-300">Email Provider</td>
-                        <td class="p-3 text-xs text-gray-400">${new Date(u.created_at).toLocaleDateString()}</td>
-                    </tr>
-                `).join('');
+                authUserSelect.innerHTML = `<option value="">-- Choisir un utilisateur auth --</option>` + 
+                    data.map(u => `<option value="${u.id}">${u.email} (${u.nom_complet || 'Sans nom'})</option>`).join('');
 
             } catch (err) {
-                console.error("Erreur auth users:", err);
-                authTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-400 text-xs">Erreur de chargement.</td></tr>`;
+                console.error("Erreur chargement select auth:", err);
             }
         }
 
-        // Chargement Jihat user_profiles
+        // 2. Chargement dyal l-tableau d profiles
         async function loadProfiles() {
             try {
                 const { data, error } = await supabase
@@ -242,66 +177,47 @@
                 if (error) throw error;
 
                 if (!data || data.length === 0) {
-                    profilesTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-500 text-xs">Aucun profil.</td></tr>`;
+                    profilesTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Aucun profil trouvé.</td></tr>`;
                     return;
                 }
 
                 profilesTableBody.innerHTML = data.map(p => `
                     <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
-                        <td class="p-3 font-semibold text-indigo-300 text-xs">${p.matricule || '-'}</td>
-                        <td class="p-3 text-xs text-white">
-                            <span class="font-bold">${p.nom_complet || 'Sans nom'}</span>
-                            <br><span class="text-gray-400">${p.service || '-'} (${p.poste || '-'})</span>
+                        <td class="p-3 font-semibold text-indigo-300">${p.matricule || '-'}</td>
+                        <td class="p-3 text-white font-bold">
+                            ${p.nom_complet || 'Non défini'} 
+                            <br><span class="text-xs text-gray-400 font-normal">${p.email || ''}</span>
+                        </td>
+                        <td class="p-3 text-gray-300">
+                            ${p.service || '-'} 
+                            <br><span class="text-xs text-indigo-400">${p.poste || ''}</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="bg-gray-900 border border-gray-700 px-2.5 py-1 rounded text-xs text-indigo-300 font-semibold">
+                                Role ID: ${p.role_id}
+                            </span>
                         </td>
                         <td class="p-3 text-center">
-                            <button type="button" onclick="window.editProfile('${p.id}', '${escapeHtml(p.nom_complet || '')}', '${escapeHtml(p.matricule || '')}', '${escapeHtml(p.service || '')}', '${escapeHtml(p.poste || '')}', '${p.role_id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-[11px] transition shadow">
-                                <i class="fa-solid fa-pen"></i>
+                            <button type="button" onclick="window.editProfile('${p.id}', '${escapeHtml(p.nom_complet || '')}', '${escapeHtml(p.matricule || '')}', '${escapeHtml(p.service || '')}', '${escapeHtml(p.poste || '')}', '${p.role_id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs transition shadow">
+                                <i class="fa-solid fa-pen mr-1"></i> Modifier
                             </button>
                         </td>
                     </tr>
                 `).join('');
 
             } catch (err) {
-                console.error("Erreur profiles:", err);
-                profilesTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-400 text-xs">Erreur chargement.</td></tr>`;
+                console.error("Erreur chargement profiles:", err);
+                profilesTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">Erreur lors du chargement.</td></tr>`;
             }
         }
 
-        // Création f auth.users
-        addUserForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const email = document.getElementById("new-email").value.trim();
-            const password = document.getElementById("new-password").value.trim();
-            const nom_complet = document.getElementById("new-nom").value.trim();
-
-            try {
-                const { data, error } = await supabase.auth.signUp({ 
-                    email, 
-                    password,
-                    options: {
-                        data: { nom_complet: nom_complet || email }
-                    }
-                });
-                if (error) throw error;
-
-                alert("Utilisateur créé avec succès dans auth.users !");
-                closeAddModal();
-                addUserForm.reset();
-                
-                setTimeout(loadAllData, 1000);
-
-            } catch (err) {
-                alert("Erreur création auth: " + err.message);
-            }
-        });
-
-        // Update user_profiles
+        // 3. Enregistrement / Update f user_profiles 3la ḥsab l-ID l-mokhtar
         userProfileForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const id = profileIdInput.value;
+            const selectedId = authUserSelect.value;
 
-            if (!id) {
-                alert("Erreur: Veuillez sélectionner un profil depuis le tableau à droite.");
+            if (!selectedId) {
+                alert("Veuillez sélectionner un utilisateur auth depuis la liste déroulante.");
                 return;
             }
 
@@ -315,38 +231,33 @@
             };
 
             try {
-                const { error } = await supabase.from("user_profiles").update(payload).eq("id", id);
+                // Upsert awla Update b l-id dyal l-user li t-khtar
+                const { error } = await supabase.from("user_profiles").update(payload).eq("id", selectedId);
                 if (error) throw error;
 
-                alert("Profil mis à jour avec succès !");
-                window.resetForm();
+                alert("Profil enregistré avec succès !");
+                resetForm();
                 loadProfiles();
 
             } catch (err) {
-                alert("Erreur mise à jour: " + err.message);
+                alert("Erreur lors de l'enregistrement: " + err.message);
             }
         });
 
-        window.openAddModal = function() {
-            document.getElementById("add-user-modal").classList.remove("hidden");
-        }
-
-        window.closeAddModal = function() {
-            document.getElementById("add-user-modal").classList.add("hidden");
-        }
-
         window.editProfile = function(id, nom, matricule, service, poste, roleId) {
-            profileIdInput.value = id;
+            authUserSelect.value = id;
             nomCompletInput.value = nom;
             matriculeInput.value = matricule;
             serviceInput.value = service;
             posteInput.value = poste;
             roleIdInput.value = roleId;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         window.resetForm = function() {
             userProfileForm.reset();
-            profileIdInput.value = "";
+            authUserSelect.value = "";
             roleIdInput.value = "1";
         };
 
