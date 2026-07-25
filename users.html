@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoufStock ERP - Gestion des Utilisateurs</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -41,7 +40,7 @@
     <!-- Main Content Container -->
     <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Formulaire de Modification / Saisie Profile -->
+        <!-- 1. Formulaire de Modification -->
         <div class="custom-card p-5 rounded-lg shadow h-fit">
             <h2 id="form-title" class="text-base font-bold text-indigo-300 mb-4 pb-2 border-b border-gray-700">
                 <i class="fa-solid fa-user-pen mr-1"></i> Modifier le Profil
@@ -56,7 +55,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Email</label>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Email (Auth)</label>
                     <input type="email" id="email" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-gray-400 focus:outline-none" readonly>
                 </div>
 
@@ -82,7 +81,7 @@
 
                 <div class="flex gap-2 pt-2">
                     <button type="submit" id="btn-save" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-sm transition shadow">
-                        Enregistrer les informations
+                        Mettre à jour
                     </button>
                     <button type="button" id="btn-cancel" onclick="resetForm()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded text-sm font-semibold transition">
                         Annuler
@@ -91,14 +90,15 @@
             </form>
         </div>
 
-        <!-- Tableau Liste des Profils & Bouton Ajouter -->
+        <!-- 2. Tableau Liste des Profils & 3. Bouton Ajouter -->
         <div class="lg:col-span-2 custom-card p-5 rounded-lg shadow overflow-hidden">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
                 <h2 class="text-base font-bold text-indigo-300">
-                    <i class="fa-solid fa-list mr-1"></i> Liste des Profils (user_profiles)
+                    <i class="fa-solid fa-list mr-1"></i> Liste des Utilisateurs (Auth & Profils)
                 </h2>
+                <!-- Bouton Ajouter (3) -->
                 <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1 shadow">
-                    <i class="fa-solid fa-user-plus"></i> Créer Auth User
+                    <i class="fa-solid fa-user-plus"></i> Ajouter un Utilisateur
                 </button>
             </div>
 
@@ -107,7 +107,7 @@
                     <thead class="bg-gray-900 text-gray-400 uppercase text-xs border-b border-gray-700">
                         <tr>
                             <th class="p-3">Matricule</th>
-                            <th class="p-3">Nom Complet</th>
+                            <th class="p-3">Utilisateur / Email (auth.users)</th>
                             <th class="p-3">Service / Poste</th>
                             <th class="p-3">Rôle ID</th>
                             <th class="p-3 text-center">Actions</th>
@@ -130,7 +130,7 @@
     <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden">
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-full max-w-md shadow-2xl">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
-                <h3 class="text-base font-bold text-white"><i class="fa-solid fa-user-plus mr-1 text-emerald-400"></i> Créer un utilisateur</h3>
+                <h3 class="text-base font-bold text-white"><i class="fa-solid fa-user-plus mr-1 text-emerald-400"></i> Créer un utilisateur (auth.users)</h3>
                 <button onclick="closeAddModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="add-user-form" class="space-y-4">
@@ -189,7 +189,7 @@
                 if (error) throw error;
 
                 if (!data || data.length === 0) {
-                    profilesTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Aucun profil trouvé dans user_profiles.</td></tr>`;
+                    profilesTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Aucun profil trouvé.</td></tr>`;
                     return;
                 }
 
@@ -197,8 +197,8 @@
                     <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
                         <td class="p-3 font-semibold text-indigo-300">${p.matricule || '-'}</td>
                         <td class="p-3 text-white font-bold">
-                            ${p.nom_complet || '-'} 
-                            <br><span class="text-xs text-gray-400 font-normal">${p.email || ''}</span>
+                            ${p.nom_complet || 'Sans nom'} 
+                            <br><span class="text-xs text-emerald-400 font-normal"><i class="fa-solid fa-envelope mr-1"></i>${p.email || 'Aucun email'}</span>
                         </td>
                         <td class="p-3 text-gray-300">
                             ${p.service || '-'} 
@@ -223,7 +223,7 @@
             }
         }
 
-        // Inscription f Auth (b fadl l-Trigger, ghadi t-creya f user_profiles otomatikan)
+        // Création f auth.users (b t-fɛil dyal Modal)
         addUserForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const email = document.getElementById("new-email").value.trim();
@@ -240,11 +240,10 @@
                 });
                 if (error) throw error;
 
-                alert("Utilisateur créé avec succès ! Sélectionnez-le dans la liste pour compléter ses informations.");
+                alert("Utilisateur créé avec succès dans auth.users !");
                 closeAddModal();
                 addUserForm.reset();
                 
-                // Refresh l-tableau bash y-ban l-user jdid dghya
                 setTimeout(loadProfiles, 1000);
 
             } catch (err) {
@@ -252,13 +251,13 @@
             }
         });
 
-        // Enregistrement / Update dyal l-m3lomat f user_profiles
+        // Modification f user_profiles
         userProfileForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const id = profileIdInput.value;
 
             if (!id) {
-                alert("Erreur: Veuillez sélectionner un profil depuis le tableau à droite.");
+                alert("Erreur: Veuillez sélectionner un profil depuis le tableau.");
                 return;
             }
 
@@ -275,7 +274,7 @@
                 const { error } = await supabase.from("user_profiles").update(payload).eq("id", id);
                 if (error) throw error;
 
-                alert("Informations enregistrées avec succès !");
+                alert("Informations mises à jour avec succès !");
                 window.resetForm();
                 loadProfiles();
 
