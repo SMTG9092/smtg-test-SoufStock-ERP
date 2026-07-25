@@ -15,7 +15,7 @@
         
         body { background-color: #f3f4f6; margin: 0; padding: 10px; font-family: Arial, sans-serif; }
         
-        /* Format A4 Paysage Fixe pour chaque page */
+        /* Format A4 Paysage Fixe pour chaque page avec son propre Header et Footer */
         .page-sheet { 
             width: 276mm; 
             height: 188mm; 
@@ -160,6 +160,7 @@
 
                     return `
                         <div class="page-sheet">
+                            <!-- Header dyal kol warqa -->
                             <div class="header-box">
                                 <div class="text-xs space-y-0.5">
                                     <p><strong>Tournée:</strong> <span>${itineraire}</span></p>
@@ -176,14 +177,16 @@
                                 </div>
                             </div>
 
+                            <!-- Les commandes dial had warqa -->
                             <div class="commands-container">
                                 ${content}
                             </div>
 
+                            <!-- Footer dyal kol warqa (Total w Signatures) -->
                             <div class="footer-section">
                                 <table class="w-1/3 border border-black">
                                     <tr class="bg-gray-100">
-                                        <th class="border border-black p-1 text-[9px]">TOTAL</th>
+                                        <th class="border border-black p-1 text-[9px]">TOTAL PAGE</th>
                                         <th class="border border-black p-1 text-[9px]">Qté KG</th>
                                         <th class="border border-black p-1 text-[9px]">Pieces</th>
                                     </tr>
@@ -265,8 +268,8 @@
                         </div>
                     `;
 
-                    // Control dyal l-wsać: Ila t3mrat la page b 2 awla 3 les commandes (wla t-fota l-hadd), kan-sido la page w n-bdaw page jdida b Header dyalha
-                    if (commandsInCurrentPage >= 2 || currentCommandsHtml.length > 1200) {
+                    // Hna kan-hadddo chhal mn commande f kol warqa (bhal ila kat-gol 3 max f warqa wahda, w mra wahda kat-douz l warqa jdida b header w footer dyalha)
+                    if (commandsInCurrentPage >= 3 || currentCommandsHtml.length > 1300) {
                         allPagesHtml += generateSheet(currentCommandsHtml, firstItemOfPage, pageKg, pagePieces);
                         currentCommandsHtml = cmdHtml;
                         firstItemOfPage = firstItem;
