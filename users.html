@@ -56,6 +56,11 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Email</label>
+                    <input type="email" id="email" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-gray-400 focus:outline-none" readonly>
+                </div>
+
+                <div>
                     <label class="block text-xs font-semibold text-gray-300 mb-1">Matricule</label>
                     <input type="text" id="matricule" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
@@ -121,11 +126,12 @@
         import supabase, { getUser } from "./assets/js/core/supabase.js";
 
         const emailSpan = document.getElementById("user-email");
-        const profileForm = document.getElementById("user-profile-form");
-        const tbody = document.getElementById("profiles-table-body");
+        const userProfileForm = document.getElementById("user-profile-form");
+        const profilesTableBody = document.getElementById("profiles-table-body");
         
         const profileIdInput = document.getElementById("profile-id");
         const nomCompletInput = document.getElementById("nom-complet");
+        const emailInput = document.getElementById("email");
         const matriculeInput = document.getElementById("matricule");
         const serviceInput = document.getElementById("service");
         const posteInput = document.getElementById("poste");
@@ -133,83 +139,114 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const user = await getUser();
-            emailSpan.textContent = user?.email || "Admin";
+            if (user) {
+                emailSpan.textContent = user.email || "Admin";
+            }
             loadProfiles();
         });
 
         async function loadProfiles() {
-            const { data, error } = await supabase.from("user_profiles").select("*").order("created_at", { ascending: false });
+            try {
+                const { data, error } = await supabase
+                    .from("user_profiles")
+                    .select("*")
+                    .order("created_at", { ascending: false });
 
-            if (error) {
-                console.error("Erreur:", error);
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Erreur de chargement des profils.</td></tr>`;
-                return;
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    profilesTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Aucun profil trouvé dans user_profiles. (Ajoutez l'utilisateur dans auth.users d'abord).</td></tr>`;
+                    return;
+                }
+
+                profilesTableBody.innerHTML = data.map(p => `
+                    <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
+                        <td class="p-3 font-semibold text-indigo-300">${p.matricule || '-'}</td>
+                        <td class="p-3 text-white font-bold">
+                            ${p.nom_complet || '-'} 
+                            <br><span class="text-xs text-gray-400 font-normal">${p.email || ''}</span>
+                        </td>
+                        <td class="p-3 text-gray-300">
+                            ${p.service || '-'} 
+                            <br><span class="text-xs text-indigo-400">${p.poste || ''}</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="bg-gray-900 border border-gray-700 px-2.5 py-1 rounded text-xs text-indigo-300 font-semibold">
+                                Role ID: ${p.role_id}
+                            </span>
+                        </td>
+                        <td class="p-3 text-center">
+                            <button type="button" onclick="window.editProfile('${p.id}', '${escapeHtml(p.nom_complet || '')}', '${escapeHtml(p.email || '')}', '${escapeHtml(p.matricule || '')}', '${escapeHtml(p.service || '')}', '${escapeHtml(p.poste || '')}', '${p.role_id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs transition shadow">
+                                <i class="fa-solid fa-pen mr-1"></i> Modifier
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error("Erreur chargement profiles:", err.message);
+                profilesTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">Erreur lors du chargement des données.</td></tr>`;
             }
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">Aucun profil trouvé dans user_profiles. (Assurez-vous d'ajouter l'utilisateur dans auth.users d'abord).</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = data.map(p => `
-                <tr class="border-b border-gray-700 hover:bg-gray-750">
-                    <td class="p-3 font-semibold text-indigo-300">${p.matricule || '-'}</td>
-                    <td class="p-3 text-white font-bold">${p.nom_complet || '-'} <br><span class="text-xs text-gray-400 font-normal">${p.email || ''}</span></td>
-                    <td class="p-3 text-gray-300">${p.service || '-'} <br><span class="text-xs text-indigo-400">${p.poste || ''}</span></td>
-                    <td class="p-3"><span class="bg-gray-900 border border-gray-700 px-2 py-1 rounded text-xs">${p.role_id}</span></td>
-                    <td class="p-3 text-center">
-                        <button onclick="window.editProfile('${p.id}', '${p.nom_complet || ''}', '${p.matricule || ''}', '${p.service || ''}', '${p.poste || ''}', '${p.role_id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs transition">
-                            <i class="fa-solid fa-pen"></i> Modifier
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
         }
 
-        profileForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const id = profileIdInput.value;
-            
-            if (!id) {
-                alert("Erreur: Aucun ID utilisateur sélectionné.");
-                return;
-            }
+        if (userProfileForm) {
+            userProfileForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const id = profileIdInput.value;
 
-            const payload = {
-                nom_complet: nomCompletInput.value,
-                matricule: matriculeInput.value || null,
-                service: serviceInput.value || null,
-                poste: posteInput.value || null,
-                role_id: parseInt(roleIdInput.value) || 1,
-                updated_at: new Date().toISOString()
-            };
+                if (!id) {
+                    alert("Erreur: Veuillez sélectionner un profil à modifier depuis le tableau.");
+                    return;
+                }
 
-            const { error } = await supabase.from("user_profiles").update(payload).eq("id", id);
-            
-            if (error) {
-                alert("Erreur lors de la mise à jour: " + error.message);
-            } else {
-                alert("Profil mis à jour avec succès !");
-                resetForm();
-                loadProfiles();
-            }
-        });
+                const payload = {
+                    nom_complet: nomCompletInput.value.trim(),
+                    matricule: matriculeInput.value.trim() || null,
+                    service: serviceInput.value.trim() || null,
+                    poste: posteInput.value.trim() || null,
+                    role_id: parseInt(roleIdInput.value) || 1,
+                    updated_at: new Date().toISOString()
+                };
 
-        window.editProfile = function(id, nom, matricule, service, poste, roleId) {
+                try {
+                    const { error } = await supabase
+                        .from("user_profiles")
+                        .update(payload)
+                        .eq("id", id);
+
+                    if (error) throw error;
+
+                    alert("Profil mis à jour avec succès !");
+                    window.resetForm();
+                    loadProfiles();
+
+                } catch (err) {
+                    alert("Erreur lors de la mise à jour: " + err.message);
+                }
+            });
+        }
+
+        window.editProfile = function(id, nom, email, matricule, service, poste, roleId) {
             profileIdInput.value = id;
             nomCompletInput.value = nom;
+            emailInput.value = email;
             matriculeInput.value = matricule;
             serviceInput.value = service;
             posteInput.value = poste;
             roleIdInput.value = roleId;
-            
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        };
 
         window.resetForm = function() {
-            profileForm.reset();
+            userProfileForm.reset();
             profileIdInput.value = "";
+            emailInput.value = "";
             roleIdInput.value = "1";
+        };
+
+        function escapeHtml(str) {
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
     </script>
 </body>
