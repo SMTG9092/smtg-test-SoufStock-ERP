@@ -89,10 +89,8 @@ async function loadDashboard() {
         .select("*")
         .in("date_livraison", dates);
 
-    if (errExcel || errPieces) {
-        console.error("Erreur chargement:", errExcel || errPieces);
-        return;
-    }
+    if (errExcel) console.error("Erreur commandes_excel:", errExcel);
+    if (errPieces) console.error("Erreur commandes_clients_pieces:", errPieces);
 
     const commandes = commandesExcel || [];
     const piecesData = qtaPieces || [];
@@ -118,21 +116,23 @@ function renderTableComplet(commandes, piecesData, mode) {
 
         const tourneeMap = {};
         
+        // 1. Hisab l-commandes w l-poids mn commandes_excel (quantite_commandee)
         commandes.forEach(c => {
-            const t = c.itineraire || "Standard";
+            const t = (c.itineraire || c.tournee || c.code_tournee || "Standard").trim();
             if (!tourneeMap[t]) {
                 tourneeMap[t] = { docs: new Set(), weight: 0, pieces: 0 };
             }
             tourneeMap[t].docs.add(c.document_vente);
+            tourneeMap[t].weight += Number(c.quantite_commandee || 0);
         });
 
+        // 2. Hisab l-pièces mn commandes_clients_pieces
         piecesData.forEach(p => {
-            const t = p.itineraire || p.tournee || "Standard";
+            const t = (p.itineraire || p.tournee || p.code_tournee || "Standard").trim();
             if (!tourneeMap[t]) {
                 tourneeMap[t] = { docs: new Set(), weight: 0, pieces: 0 };
             }
-            tourneeMap[t].weight += Number(p.poids_total || p.quantite_commandee || 0);
-            tourneeMap[t].pieces += Number(p.nombre_pieces || p.quantite_commandee || 0);
+            tourneeMap[t].pieces += Number(p.nombre_pieces || 0);
         });
 
         const entries = Object.entries(tourneeMap);
@@ -141,7 +141,7 @@ function renderTableComplet(commandes, piecesData, mode) {
                 <td class="p-3 font-semibold text-gray-200">${tournee}</td>
                 <td class="p-3 text-indigo-300">${info.docs.size} commande(s)</td>
                 <td class="p-3 text-green-400 font-bold">${info.weight.toFixed(2)} KG</td>
-                <td class="p-3 text-yellow-400 font-bold">${info.pieces.toFixed(2)}</td>
+                <td class="p-3 text-yellow-400 font-bold">${info.pieces}</td>
                 <td class="p-3">
                     <button onclick="window.lancerTournee('${tournee.replace(/'/g, "\\'")}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1">
                         <i class="fas fa-print"></i> Lancer Tournée
