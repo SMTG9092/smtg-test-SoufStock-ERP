@@ -8,7 +8,7 @@
 import { Loader, Toast } from "./utils.js";
 import Sidebar from "./sidebar.js";
 import { hasPermission } from "./core/auth-guard.js";
-import { supabase } from "./core/supabase-client.js"; // تأكد بلي chemin d supabase client mzyan
+import { supabase } from "./core/supabase.js"; // تأكد بلي chemin d supabase client mzyan
 
 class NavigationManager {
 
