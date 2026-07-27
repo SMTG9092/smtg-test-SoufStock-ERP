@@ -28,7 +28,7 @@
                 <i class="fa-solid fa-house mr-1"></i> Dashboard
             </a>
             <span class="font-semibold text-gray-300 text-sm bg-gray-900 px-3 py-1.5 rounded border border-gray-700">
-                <i class="fa-solid fa-user mr-1 text-indigo-400"></i> <span id="user-name">Chargement...</span>
+                <i class="fa-solid fa-user mr-1 text-indigo-400"></i> <span id="user-name">Mode Développement</span>
             </span>
         </div>
     </header>
@@ -74,9 +74,8 @@
 
     <!-- Script JavaScript -->
     <script type="module">
-        import supabase, { getUser } from "./assets/js/core/supabase.js";
+        import supabase from "./assets/js/core/supabase.js";
 
-        const userNameSpan = document.getElementById("user-name");
         const rolesListContainer = document.getElementById("roles-list");
         const permissionsContainer = document.getElementById("permissions-container");
         const selectedRoleTitle = document.getElementById("selected-role-title");
@@ -89,41 +88,9 @@
         let currentRolePermissions = new Set();
 
         document.addEventListener("DOMContentLoaded", async () => {
-            const user = await getUser();
-            if (!user) {
-                window.location.href = "index.html";
-                return;
-            }
-
-            await loadUserProfileName(user);
-            await checkAdminAccess(user.id);
+            // T-ḥaqquq t-ḥayad مؤقتاً (Temporairement désactivé)
             await loadRolesAndPermissions();
         });
-
-        async function loadUserProfileName(user) {
-            try {
-                const { data } = await supabase.from("profiles").select("full_name, prenom").eq("id", user.id).single();
-                if (data) {
-                    userNameSpan.textContent = data.full_name || data.prenom || user.email.split('@')[0];
-                } else {
-                    userNameSpan.textContent = user.email.split('@')[0];
-                }
-            } catch {
-                userNameSpan.textContent = "Admin";
-            }
-        }
-
-        async function checkAdminAccess(userId) {
-            try {
-                const { data } = await supabase.from("profiles").select("role").eq("id", userId).single();
-                if (!data || data.role !== 'admin') {
-                    alert("Accès réservé aux administrateurs !");
-                    window.location.href = "dashboard.html";
-                }
-            } catch {
-                window.location.href = "dashboard.html";
-            }
-        }
 
         async function loadRolesAndPermissions() {
             try {
@@ -259,8 +226,6 @@
                 .map(cb => parseInt(cb.value));
 
             try {
-                // 1. Supprimer l-9dim kaml wla upsert
-                // Ṭriqa sahla: N-supprimiw role_permissions dyal had role w n-sajjlou jdad
                 const { error: deleteError } = await supabase
                     .from("role_permissions")
                     .delete()
