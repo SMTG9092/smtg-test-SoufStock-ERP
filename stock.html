@@ -235,7 +235,7 @@
         function populateMagasinDropdown(data) {
             const magasins = [...new Set(data.map(item => item.magasin).filter(Boolean))].sort();
             magasinSelect.innerHTML = `<option value="">Tous les magasins</option>` + 
-                magasins.m => `<option value="${m}">${m}</option>`.join('');
+                magasins.map(m => `<option value="${m}">${m}</option>`).join('');
         }
 
         function updateStats(data) {
@@ -270,7 +270,6 @@
 
             stockTableBody.innerHTML = data.map(item => {
                 const disponibleVal = parseFloat(item.stock_disponible) || 0;
-                // Indicator badge dyal Rupture de stock
                 let statutBadge = `<span class="bg-gray-900 border border-gray-700 px-2.5 py-1 rounded text-[10px] text-gray-300 font-semibold">${item.statut || 'N/A'}</span>`;
                 
                 if (disponibleVal <= 0) {
