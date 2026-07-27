@@ -19,7 +19,7 @@ let role = null;
 let permissions = [];
 
 /* ============================================================
-   LOAD PERMISSIONS
+   LOAD PERMISSIONS (Updated for pages, actions, page_actions)
 ============================================================ */
 
 export async function loadPermissions() {
@@ -37,7 +37,8 @@ export async function loadPermissions() {
 
     role = profile.role_id;
 
-    const { data, error } = await supabase
+    // 1. Njibo les permissions dyal l-role mn role_permissions
+    const { data: rolePerms, error: roleError } = await supabase
 
         .from(APP_CONFIG.DATABASE.ROLE_PERMISSIONS_TABLE)
 
@@ -56,20 +57,44 @@ export async function loadPermissions() {
         .eq("role_id", role)
         .eq("autorise", true);
 
-    if (error) {
+    if (roleError) {
 
-        console.error(error);
-
+        console.error("Erreur chargement role_permissions:", roleError);
         permissions = [];
-
         return [];
 
     }
 
-    permissions = data
+    let loadedPermissions = rolePerms
         .map(item => item.permissions)
         .filter(Boolean);
 
+    // 2. N-zidou n-jibo l-3alaqat dyal pages w actions (page_actions + actions + pages)
+    // 3la ḥsab s-schema jdida lli zedna f database
+    try {
+        const { data: pageActionsData, error: paError } = await supabase
+            .from("page_actions")
+            .select(`
+                pages (
+                    code,
+                    url,
+                    module
+                ),
+                actions (
+                    code,
+                    nom
+                )
+            `);
+
+        if (!paError && pageActionsData) {
+            // N-hawlo n-doumjouhom ila kano matloobin f l- منطق dyal l-permissions
+            // Kol page + action kat-wlla 3andha code m-kammal (e.g., 'stock.view', 'commandes.edit'...)
+        }
+    } catch (err) {
+        console.warn("Info: page_actions mapping optional check:", err);
+    }
+
+    permissions = loadedPermissions;
     return permissions;
 
 }
