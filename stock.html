@@ -102,7 +102,7 @@
                 const { data, error } = await supabase
                     .from("v_stock_disponible")
                     .select("*")
-                    .range(0, 999);
+                    .range(1, 999);
 
                 if (error) throw error;
 
