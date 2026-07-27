@@ -24,7 +24,7 @@
     <header class="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-md mb-6">
         <div class="flex items-center gap-3">
             <h1 class="text-xl font-bold text-gray-100">
-                <i class="fa-solid fa-boxes-stacked mr-2 text-indigo-400"></i> SoufStock ERP - Gestion des Stocks
+                <i class="fa-solid fa-boxes-stacked mr-2 text-indigo-400"></i> SoufStock ERP - État du Stock Disponible
             </h1>
         </div>
         <div class="flex items-center gap-4">
@@ -38,62 +38,16 @@
     </header>
 
     <!-- Main Content Container -->
-    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <main class="w-full">
         
-        <!-- Formulaire d'Ajout / Modification Article -->
-        <div class="custom-card p-5 rounded-lg shadow h-fit">
-            <h2 id="form-title" class="text-base font-bold text-indigo-300 mb-4 pb-2 border-b border-gray-700">
-                <i class="fa-solid fa-circle-plus mr-1"></i> Ajouter un Article
-            </h2>
-            
-            <form id="stock-form" class="space-y-4">
-                <input type="hidden" id="article-id">
-                
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Code Article / Référence</label>
-                    <input type="text" id="code-article" required placeholder="Ex: ART-001" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Désignation</label>
-                    <input type="text" id="designation" required placeholder="Nom de l'article" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-300 mb-1">Quantité</label>
-                        <input type="number" id="quantite" value="0" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-300 mb-1">Unité</label>
-                        <input type="text" id="unite" placeholder="Pcs, Kg..." class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Emplacement / Dépôt</label>
-                    <input type="text" id="emplacement" placeholder="Ex: Zone A - Rayon 2" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
-
-                <div class="flex gap-2 pt-2">
-                    <button type="submit" id="btn-save" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-sm transition shadow">
-                        Enregistrer
-                    </button>
-                    <button type="button" onclick="resetForm()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded text-sm font-semibold transition">
-                        Annuler
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Tableau Liste des Stocks -->
-        <div class="lg:col-span-2 custom-card p-5 rounded-lg shadow overflow-hidden">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
+        <!-- Tableau Liste des Stocks (View: v_stock_disponible) -->
+        <div class="custom-card p-5 rounded-lg shadow overflow-hidden">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4 pb-3 border-b border-gray-700 gap-3">
                 <h2 class="text-base font-bold text-indigo-300">
-                    <i class="fa-solid fa-list mr-1"></i> État du Stock Actuel
+                    <i class="fa-solid fa-list mr-1"></i> Vue Globale du Stock (v_stock_disponible)
                 </h2>
-                <div class="flex gap-2">
-                    <input type="text" id="search-stock" placeholder="Rechercher..." class="bg-gray-900 border border-gray-700 rounded px-3 py-1 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <div class="flex gap-2 w-full md:w-auto">
+                    <input type="text" id="search-stock" placeholder="Filtrer par article, magasin..." class="bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 w-full md:w-64">
                 </div>
             </div>
 
@@ -101,17 +55,20 @@
                 <table class="w-full text-sm border-collapse text-left">
                     <thead class="bg-gray-900 text-gray-400 uppercase text-xs border-b border-gray-700">
                         <tr>
-                            <th class="p-3">Code</th>
+                            <th class="p-3">Article</th>
                             <th class="p-3">Désignation</th>
-                            <th class="p-3">Quantité</th>
-                            <th class="p-3">Emplacement</th>
-                            <th class="p-3 text-center">Actions</th>
+                            <th class="p-3">Lot</th>
+                            <th class="p-3">Magasin / Emplacement</th>
+                            <th class="p-3 text-center">Stock Total</th>
+                            <th class="p-3 text-center">Réservé</th>
+                            <th class="p-3 text-center">Disponible</th>
+                            <th class="p-3">Statut</th>
                         </tr>
                     </thead>
                     <tbody id="stock-table-body" class="text-gray-300">
                         <tr>
-                            <td colspan="5" class="p-6 text-center text-gray-500">
-                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement des stocks...
+                            <td colspan="8" class="p-6 text-center text-gray-500">
+                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement des données du stock...
                             </td>
                         </tr>
                     </tbody>
@@ -126,118 +83,81 @@
         import supabase, { getUser } from "./assets/js/core/supabase.js";
 
         const emailSpan = document.getElementById("user-email");
-        const stockForm = document.getElementById("stock-form");
         const stockTableBody = document.getElementById("stock-table-body");
-        
-        const articleIdInput = document.getElementById("article-id");
-        const codeArticleInput = document.getElementById("code-article");
-        const designationInput = document.getElementById("designation");
-        const quantiteInput = document.getElementById("quantite");
-        const uniteInput = document.getElementById("unite");
-        const emplacementInput = document.getElementById("emplacement");
+        const searchInput = document.getElementById("search-stock");
+
+        let allStockData = [];
 
         document.addEventListener("DOMContentLoaded", async () => {
             const user = await getUser();
             if (user) {
                 emailSpan.textContent = user.email || "Admin";
             }
-            loadStock();
+            loadStockView();
         });
 
-        async function loadStock() {
+        async function loadStockView() {
             try {
-                // Badel "stocks" b esm table dyalk f database ila kan m-baddel
+                // Kan-jibohom mn la vue v_stock_disponible
                 const { data, error } = await supabase
-                    .from("stocks")
-                    .select("*")
-                    .order("created_at", { ascending: false });
+                    .from("v_stock_disponible")
+                    .select("*");
 
                 if (error) throw error;
 
-                if (!data || data.length === 0) {
-                    stockTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Aucun article trouvé dans le stock.</td></tr>`;
-                    return;
-                }
-
-                stockTableBody.innerHTML = data.map(item => `
-                    <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
-                        <td class="p-3 font-semibold text-indigo-300">${item.code_article || '-'}</td>
-                        <td class="p-3 text-white font-bold">${item.designation || '-'}</td>
-                        <td class="p-3">
-                            <span class="bg-gray-900 border border-gray-700 px-2.5 py-1 rounded text-xs text-emerald-400 font-bold">
-                                ${item.quantite} ${item.unite || ''}
-                            </span>
-                        </td>
-                        <td class="p-3 text-gray-300 text-xs">${item.emplacement || '-'}</td>
-                        <td class="p-3 text-center">
-                            <button type="button" onclick="window.editArticle('${item.id}', '${escapeHtml(item.code_article || '')}', '${escapeHtml(item.designation || '')}', '${item.quantite}', '${escapeHtml(item.unite || '')}', '${escapeHtml(item.emplacement || '')}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs transition shadow">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
+                allStockData = data || [];
+                renderTable(allStockData);
 
             } catch (err) {
-                console.error("Erreur chargement stock:", err.message);
-                stockTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">Erreur lors du chargement des données.</td></tr>`;
+                console.error("Erreur chargement view stock:", err.message);
+                stockTableBody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erreur lors du chargement des données.</td></tr>`;
             }
         }
 
-        stockForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const id = articleIdInput.value;
-
-            const payload = {
-                code_article: codeArticleInput.value.trim(),
-                designation: designationInput.value.trim(),
-                quantite: parseFloat(quantiteInput.value) || 0,
-                unite: uniteInput.value.trim() || null,
-                emplacement: emplacementInput.value.trim() || null,
-                updated_at: new Date().toISOString()
-            };
-
-            try {
-                if (id) {
-                    // Update
-                    const { error } = await supabase.from("stocks").update(payload).eq("id", id);
-                    if (error) throw error;
-                    alert("Article mis à jour avec succès !");
-                } else {
-                    // Insert
-                    const { error } = await supabase.from("stocks").insert([payload]);
-                    if (error) throw error;
-                    alert("Article ajouté avec succès !");
-                }
-
-                resetForm();
-                loadStock();
-
-            } catch (err) {
-                alert("Erreur: " + err.message);
+        function renderTable(data) {
+            if (!data || data.length === 0) {
+                stockTableBody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-gray-500">Aucun article trouvé dans le stock.</td></tr>`;
+                return;
             }
+
+            stockTableBody.innerHTML = data.map(item => `
+                <tr class="border-b border-gray-700 hover:bg-gray-750 transition text-xs">
+                    <td class="p-3 font-bold text-indigo-300">${item.article || '-'}</td>
+                    <td class="p-3 text-white">${item.designation_article || '-'}</td>
+                    <td class="p-3 font-mono text-gray-400">${item.lot || '-'}</td>
+                    <td class="p-3 text-gray-300">
+                        <span class="font-semibold text-gray-200">${item.magasin || '-'}</span>
+                        <br><span class="text-[11px] text-gray-400">${item.emplacement || ''}</span>
+                    </td>
+                    <td class="p-3 text-center font-bold text-gray-200">
+                        ${item.stock_total} <span class="text-[10px] text-gray-400 font-normal">${item.unite || ''}</span>
+                    </td>
+                    <td class="p-3 text-center text-orange-400 font-semibold">
+                        ${item.stock_reserve || 0}
+                    </td>
+                    <td class="p-3 text-center font-bold text-emerald-400">
+                        ${item.stock_disponible}
+                    </td>
+                    <td class="p-3">
+                        <span class="bg-gray-900 border border-gray-700 px-2.5 py-1 rounded text-[10px] text-gray-300 font-semibold">
+                            ${item.statut || 'N/A'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Filtre dynamique f recherche
+        searchInput.addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allStockData.filter(item => 
+                (item.article && item.article.toLowerCase().includes(query)) ||
+                (item.designation_article && item.designation_article.toLowerCase().includes(query)) ||
+                (item.magasin && item.magasin.toLowerCase().includes(query)) ||
+                (item.lot && item.lot.toLowerCase().includes(query))
+            );
+            renderTable(filtered);
         });
-
-        window.editArticle = function(id, code, designation, quantite, unite, emplacement) {
-            articleIdInput.value = id;
-            codeArticleInput.value = code;
-            designationInput.value = designation;
-            quantiteInput.value = quantite;
-            uniteInput.value = unite;
-            emplacementInput.value = emplacement;
-
-            document.getElementById("form-title").innerHTML = `<i class="fa-solid fa-pen-to-square mr-1"></i> Modifier l'Article`;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        window.resetForm = function() {
-            stockForm.reset();
-            articleIdInput.value = "";
-            document.getElementById("form-title").innerHTML = `<i class="fa-solid fa-circle-plus mr-1"></i> Ajouter un Article`;
-        };
-
-        function escapeHtml(str) {
-            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        }
     </script>
 </body>
 </html>
