@@ -1,29 +1,16 @@
 /**
  * =====================================================
  * * SoufStock Enterprise ERP
- * * navigation.js (Cleaned Imports & Dynamic Supabase Sidebar)
+ * * navigation.js (Dynamic Supabase Sidebar using APP_CONFIG)
  * =====================================================
  */
 
-import { supabase } from "../supabase.js";
+import { supabase } from "./supabase.js";
+import APP_CONFIG from "./config.js";
 
 class NavigationManager {
     constructor() {
         this.currentPage = "";
-
-        this.routes = {
-            dashboard: "dashboard.html",
-            stock: "stock.html",
-            mouvements: "mouvements.html",
-            commandes: "commandes.html",
-            picking: "picking.html",
-            reservations: "reservations.html",
-            expeditions: "expeditions.html",
-            utilisateurs: "users.html",
-            roles: "roles.html",
-            permissions: "permissions.html",
-            parametres: "settings.html"
-        };
     }
 
     async loadSidebarDynamic() {
@@ -49,8 +36,10 @@ class NavigationManager {
         };
 
         try {
+            const tableName = APP_CONFIG.DATABASE.PAGES_TABLE || 'pages';
+
             const { data: pages, error } = await supabase
-                .from('pages')
+                .from(tableName)
                 .select('code, nom, url, module, ordre_affichage')
                 .eq('actif', true)
                 .order('ordre_affichage', { ascending: true });
