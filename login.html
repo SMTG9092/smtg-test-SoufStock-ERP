@@ -3,155 +3,554 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - SoufStock ERP / WMS</title>
-    <!-- Favicon SY Dynamique -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23065f46%22/><text x=%2250%%22 y=%2254%%22 font-family=%22Cinzel, serif%22 font-size=%2250%22 font-weight=%22bold%22 fill=%22%23ffffff%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22>SY</text></svg>">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>SoufStock Enterprise - Connexion</title>
+    <!-- FontAwesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta+ Sans', sans-serif;
+        }
+
         body {
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
         }
-        .logo-sy {
-            font-family: 'Cinzel', serif;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .bg-warehouse {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=1920&auto=format&fit=crop');
+
+        /* Background image with frost overlay */
+        .bg-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.6)), 
+                        url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2000&auto=format&fit=crop') no-repeat center center;
             background-size: cover;
-            background-position: center;
+            filter: blur(2px);
+            z-index: 1;
+        }
+
+        .offline-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #dc2626;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* Main Wrapper */
+        .login-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1150px;
+            margin: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 968px) {
+            .login-wrapper {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+            .left-panel {
+                display: none !important;
+            }
+        }
+
+        /* Left Panel - Branding & Features */
+        .left-panel {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #1e293b;
+            position: relative;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.8) 0%, rgba(226, 232, 240, 0.5) 100%);
+        }
+
+        .badge-frozen {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #065f46, #047857);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+            width: fit-content;
+            box-shadow: 0 4px 12px rgba(4, 120, 87, 0.2);
+        }
+
+        .brand-section {
+            margin: 30px 0;
+        }
+
+        .brand-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .brand-logo-area i {
+            font-size: 42px;
+            color: #047857;
+        }
+
+        .brand-logo-area h1 {
+            font-size: 38px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 16px;
+            color: #475569;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .features-pills {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #334155;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+
+        .features-pills span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .features-pills i {
+            color: #047857;
+        }
+
+        .features-pills .dot {
+            width: 4px;
+            height: 4px;
+            background-color: #cbd5e1;
+            border-radius: 50%;
+        }
+
+        .feature-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .f-card {
+            background: white;
+            padding: 18px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .f-card i {
+            font-size: 20px;
+            color: #047857;
+            margin-bottom: 8px;
+        }
+
+        .f-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .f-card p {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .footer-copy {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 20px;
+        }
+
+        /* Right Panel - Form */
+        .right-panel {
+            background: white;
+            padding: 45px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .form-header h2 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .welcome-line {
+            width: 35px;
+            height: 3px;
+            background-color: #047857;
+            margin: 0 auto 10px auto;
+            border-radius: 2px;
+        }
+
+        .form-header p {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        /* Alert Messages */
+        #error-msg {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Form Fields */
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .input-field-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-field-wrapper i.field-icon {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .input-field-wrapper input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #0f172a;
+            outline: none;
+            transition: all 0.2s ease;
+            background-color: #f8fafc;
+        }
+
+        .input-field-wrapper input:focus {
+            border-color: #047857;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.1);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 14px;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .form-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .remember-me input {
+            accent-color: #047857;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: #047857;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        /* Buttons */
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #047857, #065f46);
+            color: white;
+            border: none;
+            padding: 13px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #065f46, #064e3b);
+            box-shadow: 0 6px 16px rgba(4, 120, 87, 0.35);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .divider::before {
+            margin-right: .75em;
+        }
+
+        .divider::after {
+            margin-left: .75em;
+        }
+
+        .btn-sso {
+            width: 100%;
+            background: white;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-sso:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        .btn-sso i {
+            color: #047857;
+        }
+
+        .env-badge-bottom {
+            margin-top: 20px;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #166534;
+        }
+
+        .env-badge-bottom i {
+            font-size: 18px;
+            color: #047857;
+        }
+
+        .env-badge-bottom strong {
+            display: block;
+            font-weight: 700;
         }
     </style>
 </head>
-<body class="bg-warehouse min-h-screen flex flex-col justify-between text-gray-800">
+<body>
 
-    <!-- Header Top -->
-    <header class="w-full p-4 flex justify-between items-center text-white px-8">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-xl flex items-center justify-center shadow-lg border border-emerald-400/40">
-                <span class="logo-sy text-xl font-black">SY</span>
-            </div>
+    <div id="offlineBanner" class="offline-banner">
+        <i class="fas fa-triangle-exclamation"></i> Vous êtes actuellement hors ligne. Certaines fonctionnalités peuvent être limitées.
+    </div>
+
+    <div class="bg-container"></div>
+
+    <div class="login-wrapper">
+        <!-- Left Panel -->
+        <div class="left-panel">
             <div>
-                <span class="font-bold text-lg tracking-wider block leading-none">SoufStock</span>
-                <span class="text-[10px] tracking-widest text-emerald-400 font-semibold">ERP / WMS</span>
+                <div class="badge-frozen">
+                    <i class="fas fa-snowflake"></i> CONGELÉ &bull; -18°C / -22°C
+                </div>
+                
+                <div class="brand-section">
+                    <div class="brand-logo-area">
+                        <i class="fas fa-snowflake"></i>
+                        <h1>SoufStock</h1>
+                    </div>
+                    <p class="brand-subtitle">Gestion de stock congelé</p>
+                    
+                    <div class="features-pills">
+                        <span><i class="fas fa-bullseye"></i> Traçabilité</span>
+                        <span class="dot"></span>
+                        <span><i class="fas fa-shield-check"></i> Fiabilité</span>
+                        <span class="dot"></span>
+                        <span><i class="fas fa-chart-line"></i> Performance</span>
+                    </div>
+                </div>
+
+                <div class="feature-cards-grid">
+                    <div class="f-card">
+                        <i class="fas fa-boxes-stacked"></i>
+                        <h4>Stock en temps réel</h4>
+                        <p>Suivi précis des quantités et des lots stockés.</p>
+                    </div>
+                    <div class="f-card">
+                        <i class="fas fa-lock"></i>
+                        <h4>Sécurité renforcée</h4>
+                        <p>Vos données et accès sont hautement protégés.</p>
+                    </div>
+                    <div class="f-card">
+                        <i class="fas fa-chart-pie"></i>
+                        <h4>Pilotage efficace</h4>
+                        <p>Prenez les bonnes décisions basées sur les flux.</p>
+                    </div>
+                    <div class="f-card">
+                        <i class="fas fa-clock"></i>
+                        <h4>Disponibilité 24/7</h4>
+                        <p>Accédez à vos données d'entrepôt à tout moment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-copy">
+                &copy; 2026 SoufStock - Tous droits réservés.
             </div>
         </div>
-        <div class="text-xs bg-black/40 backdrop-blur border border-emerald-500/30 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-emerald-300">
-            <i class="fas fa-shield-alt"></i> Accès sécurisé
-        </div>
-    </header>
 
-    <!-- Main Content Centered -->
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 overflow-hidden border border-gray-200">
-            
-            <!-- Left Side: Brand & Features (Green Theme) -->
-            <div class="bg-emerald-900 text-white p-8 flex flex-col justify-between relative overflow-hidden">
-                <div class="absolute -right-6 -bottom-10 opacity-5 text-[140px] font-black font-serif select-none pointer-events-none">
-                    SY
+        <!-- Right Panel (Login Form) -->
+        <div class="right-panel">
+            <div class="form-header">
+                <h2>Bienvenue !</h2>
+                <div class="welcome-line"></div>
+                <p>Connectez-vous pour accéder à votre espace</p>
+            </div>
+
+            <div id="error-msg" class="hidden"></div>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="email">Nom d'utilisateur</label>
+                    <div class="input-field-wrapper">
+                        <i class="fas fa-user field-icon"></i>
+                        <input type="text" id="email" placeholder="Entrez votre nom d'utilisateur" required autocomplete="username">
+                    </div>
                 </div>
+
+                <div class="input-group">
+                    <label for="password">Mot de passe</label>
+                    <div class="input-field-wrapper">
+                        <i class="fas fa-lock field-icon"></i>
+                        <input type="password" id="password" placeholder="Entrez votre mot de passe" required autocomplete="current-password">
+                        <span class="password-toggle">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox"> Se souvenir de moi
+                    </label>
+                    <a href="#" class="forgot-password">Mot de passe oublié ?</a>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-arrow-right-to-bracket"></i> Se connecter
+                </button>
+            </form>
+
+            <div class="divider">ou</div>
+
+            <button type="button" class="btn-sso" id="sso-btn">
+                <i class="fas fa-id-card"></i> Connexion SSO (Entreprise)
+            </button>
+
+            <div class="env-badge-bottom">
+                <i class="fas fa-snowflake"></i>
                 <div>
-                    <div class="flex items-center gap-3.5 mb-6">
-                        <div class="w-14 h-14 bg-gradient-to-br from-emerald-600 to-emerald-950 border border-emerald-400/40 rounded-2xl flex items-center justify-center shadow-xl">
-                            <span class="logo-sy text-2xl font-black">SY</span>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold tracking-wide">SoufStock</h2>
-                            <p class="text-xs tracking-widest text-emerald-300 font-medium">ERP / WMS</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-emerald-100/80 mb-8 leading-relaxed">
-                        Solution complète de gestion de stock et d'entrepôt pour les produits surgelés.
-                    </p>
-
-                    <div class="space-y-3.5 text-xs">
-                        <div class="flex items-center gap-3 text-emerald-100">
-                            <div class="w-7 h-7 rounded bg-emerald-800/80 flex items-center justify-center text-emerald-300"><i class="fas fa-box"></i></div>
-                            <span>Gestion de stock</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-emerald-100">
-                            <div class="w-7 h-7 rounded bg-emerald-800/80 flex items-center justify-center text-emerald-300"><i class="fas fa-truck"></i></div>
-                            <span>Suivi des mouvements</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-emerald-100">
-                            <div class="w-7 h-7 rounded bg-emerald-800/80 flex items-center justify-center text-emerald-300"><i class="fas fa-clipboard-list"></i></div>
-                            <span>Gestion des commandes</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-emerald-100">
-                            <div class="w-7 h-7 rounded bg-emerald-800/80 flex items-center justify-center text-emerald-300"><i class="fas fa-chart-line"></i></div>
-                            <span>Tableaux de bord &amp; Rapports</span>
-                        </div>
-                    </div>
+                    <strong>Environnement congelé</strong>
+                    Température contrôlée entre -18°C et -22°C
                 </div>
             </div>
-
-            <!-- Right Side: Login Form -->
-            <div class="p-8 flex flex-col justify-center bg-white">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
-                        <i class="fas fa-user text-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900 leading-tight">Connexion</h3>
-                        <p class="text-xs text-gray-500">Veuillez vous connecter à votre compte</p>
-                    </div>
-                </div>
-
-                <form id="login-form" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Nom d'utilisateur</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-sm">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <input type="text" id="email" required class="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-600 focus:bg-white transition" placeholder="Entrez votre nom d'utilisateur">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Mot de passe</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-sm">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" id="password" required class="w-full pl-9 pr-9 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-600 focus:bg-white transition" placeholder="Entrez votre mot de passe">
-                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 text-sm cursor-pointer">
-                                <i class="fas fa-eye"></i>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1">
-                        <label class="flex items-center gap-2 cursor-pointer text-gray-600">
-                            <input type="checkbox" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                            <span>Se souvenir de moi</span>
-                        </label>
-                        <a href="#" class="text-emerald-600 hover:underline font-medium">Mot de passe oublié ?</a>
-                    </div>
-
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition duration-200 shadow-md text-sm flex items-center justify-center gap-2 mt-2">
-                        <i class="fas fa-arrow-right-to-bracket"></i> Se connecter
-                    </button>
-                </form>
-
-                <div id="error-msg" class="mt-3 text-red-500 text-xs text-center hidden bg-red-50 p-2 border border-red-200 rounded"></div>
-            </div>
-
         </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="w-full text-center py-4 text-xs text-white/80 space-y-1">
-        <p>&copy; 2026 SoufStock ERP / WMS. Tous droits réservés.</p>
-        <p class="text-emerald-400 font-semibold">Version 1.0.0</p>
-    </footer>
-
-    <script type="module" src="assets/js/login.js"></script>
+    </div>
 </body>
 </html>
