@@ -526,10 +526,10 @@
 
 <!-- Initialize Navigation Manager -->
 <script type="module">
-    import { navigationManager } from '/assets/js/core/navigation.js';
+    import Navigation from '/assets/js/core/navigation.js';
 
     document.addEventListener("DOMContentLoaded", () => {
-        navigationManager.loadSidebarDynamic();
+        Navigation.init();
     });
 </script>
 
