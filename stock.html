@@ -24,11 +24,10 @@
         /* --- STYLES KHASSIN B L-IMPRESSION (PRINT) --- */
         @media print {
             body {
-                background-color: #white !important;
+                background-color: white !important;
                 color: black !important;
                 padding: 0 !important;
             }
-            /* Khabbi l-header, les boutons, les filtres w dakchi li machi mohim */
             header, 
             #btn-export-excel, 
             #btn-export-pdf, 
@@ -38,14 +37,13 @@
             .no-print {
                 display: none !important;
             }
-            /* Rjja3 l-background w les cartes bydin w wdaḥin l-printer */
             .custom-card {
                 background-color: white !important;
                 border: 1px solid #ddd !important;
                 box-shadow: none !important;
                 color: black !important;
             }
-            text, h1, h2, h3, p, span, td, th {
+            h1, h2, h3, p, span, td, th {
                 color: black !important;
             }
             table {
@@ -63,6 +61,27 @@
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-6 font-sans">
+
+    <!-- Modal / Alerte dyal Ɛadam S-Ṣalaḥiyya (Mkhabbé f l-aṣl) -->
+    <div id="access-denied-modal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden">
+        <div class="bg-gray-800 border border-red-600 p-8 rounded-xl shadow-2xl text-center max-w-md w-full mx-4 space-y-4">
+            <div class="text-red-500 text-5xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white">Accès Refusé</h2>
+            <p class="text-gray-300 text-sm">
+                Désolé, vous n'avez pas les privilèges nécessaires pour accéder à cette page de gestion des stocks.
+            </p>
+            <div class="text-indigo-400 text-xs font-semibold">
+                Redirection automatique vers le Dashboard dans <span id="countdown-timer" class="text-white font-bold text-sm">3</span> secondes...
+            </div>
+            <div>
+                <a href="dashboard.html" class="inline-block bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-xs font-semibold transition">
+                    Retourner immédiatement
+                </a>
+            </div>
+        </div>
+    </div>
 
     <!-- Header -->
     <header class="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-md mb-6">
@@ -222,17 +241,78 @@
         const btnExportExcel = document.getElementById("btn-export-excel");
         const btnExportPdf = document.getElementById("btn-export-pdf");
         const btnPrint = document.getElementById("btn-print");
+        const accessDeniedModal = document.getElementById("access-denied-modal");
+        const countdownTimer = document.getElementById("countdown-timer");
 
         let allStockData = [];
         let filteredStockData = [];
 
         document.addEventListener("DOMContentLoaded", async () => {
             const user = await getUser();
-            if (user) {
-                emailSpan.textContent = user.email || "Admin";
+            
+            if (!user) {
+                // Ila makanch m-connecté ga3, sivoi l login
+                window.location.href = "index.html";
+                return;
             }
+
+            emailSpan.textContent = user.email || "Admin";
+
+            // --- TAḤAQQOQ MIN S-ṢALAḤIYYAT (ACCESS CONTROL) ---
+            const hasAccess = await checkUserStockPermission(user.id);
+
+            if (!hasAccess) {
+                // Afficher Modal d'accès refusé
+                accessDeniedModal.classList.remove("hidden");
+                let timeLeft = 3;
+                
+                const timerInterval = setInterval(() => {
+                    timeLeft--;
+                    countdownTimer.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        window.location.href = "dashboard.html";
+                    }
+                }, 1000);
+                return;
+            }
+
+            // Ila 3ndo s-ṣalaḥiyya, khellih y-kammel
             loadAllStockView();
         });
+
+        // Function dyal t-tḥaqqouq min l-permissions (t-9dar t-mddilha la logique dyal table profiles wla roles)
+        async function checkUserStockPermission(userId) {
+            try {
+                const { data, error } = await supabase
+                    .from("profiles") // Awla table dyal roles/permissions 3ndk f database
+                    .select("role, is_active")
+                    .eq("id", userId)
+                    .single();
+
+                if (error) {
+                    console.warn("Verification profile error:", error.message);
+                    return true; // Ila bġiti t-khalih yodkhil 7tta t-qaddem l j جدول dyal profiles
+                }
+
+                if (data) {
+                    // Exemple: Ila kan account m-bloqué wla role dyalu ma kay-samahch
+                    if (data.is_active === false) return false;
+                    
+                    // Zid l-anwa3 dyal les rôles li 3ndhom l-haqq (Bhal Admin, Responsable Stock, Magasinier...)
+                    // Ila kan bġiti gaa3 l-utilisateurs yodkhlo khalliha true, wla 7ddad 3la ḥsab l-ixtisas
+                    const allowedRoles = ['admin', 'gestionnaire', 'magasinier', 'superviseur'];
+                    if (data.role && !allowedRoles.includes(data.role.toLowerCase())) {
+                        return false;
+                    }
+                }
+
+                return true;
+            } catch (err) {
+                console.error("Erreur check permission:", err);
+                return true; // Defaut bach ma n-bloviwch l-khadma ila taḥet chi mochkil f query
+            }
+        }
 
         async function loadAllStockView() {
             try {
