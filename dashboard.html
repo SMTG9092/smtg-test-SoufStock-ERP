@@ -365,7 +365,7 @@
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
-            <!-- Ghadi t-3mmar otomatikan mn NavigationManager -->
+            <!-- Ghadi t-3mmar otomatikan mn Navigation -->
         </nav>
 
         <div class="sidebar-footer">
@@ -569,17 +569,37 @@
         // 2. Initialiser la navigation
         Navigation.init();
 
-        // 3. Récupérer le profil et le rôle réel de l'utilisateur connecté
-        const profile = await SessionManager.getProfile();
-        if (!profile) return;
+        // 3. Récupérer le profil et le rôle réel de l'utilisateur connecté avec Jointure SQL (roles)
+        const user = await SessionManager.getUser();
+        if (!user) return;
 
-        // 4. Extraire le nom complet selon APP_CONFIG
-        const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
-                           `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_PROFILE.NOM] || profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
-                           profile.nom_complet ||
+        // Requête Supabase explicite pour charger user_profiles + la table roles liée
+        const { data: profile, error } = await SessionManager.supabase
+            .from('user_profiles')
+            .select(`
+                *,
+                roles:role_id (
+                    id,
+                    code,
+                    nom,
+                    description
+                )
+            `)
+            .eq('id', user.id)
+            .single();
+
+        if (error || !profile) {
+            console.error("Erreur de chargement du profil:", error);
+            return;
+        }
+
+        // 4. Extraire le nom complet proprement
+        const nomComplet = profile.nom_complet || 
+                           `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 
+                           profile[APP_CONFIG.PROFILE?.NOM_COMPLET] ||
                            "Utilisateur";
 
-        // 5. Extraire le rôle réel depuis la relation table roles (nom ou code)
+        // 5. Extraire le rôle réel depuis la table roles (priorité à 'nom' (ex: Administrateur) puis 'code' (ex: ADMIN))
         const roleNom = profile.roles?.nom || 
                         profile.roles?.code || 
                         profile.role || 
