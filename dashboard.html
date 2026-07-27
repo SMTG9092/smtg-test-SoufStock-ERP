@@ -17,6 +17,7 @@
             --card-border: rgba(16, 185, 129, 0.2);
             --card-border-hover: rgba(16, 185, 129, 0.5);
             --primary-glow: #10b981;
+            --danger-glow: #ef4444;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -125,6 +126,7 @@
             border-radius: 12px;
             padding: 12px;
             text-align: center;
+            margin-bottom: 10px;
         }
 
         .sidebar-user-box h4 {
@@ -136,6 +138,30 @@
         .sidebar-user-box span {
             font-size: 11px;
             color: var(--primary-glow);
+        }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--danger-glow);
+            color: #fff;
+            border-color: var(--danger-glow);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
         }
 
         /* --- Main Content Area --- */
@@ -346,6 +372,10 @@
                 <h4 id="userNameSidebar">Chargement...</h4>
                 <span id="userRoleSidebar">...</span>
             </div>
+            <!-- Bouton Déconnexion (Log Out) -->
+            <button id="btnLogout" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
         </div>
     </aside>
 
@@ -524,32 +554,32 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Initialize Navigation & Strict Session Validation & Profile Loading -->
+<!-- Initialize Navigation & Strict Session Validation & Profile Loading & Logout Handler -->
 <script type="module">
     import Navigation from '/assets/js/core/navigation.js';
     import SessionManager from '/assets/js/core/session.js';
     import APP_CONFIG from '/assets/js/core/config.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // 1. Strict Session Check: Ila makantch session wla ma kan-ch m-connecté, SessionManager.requireAuth() ğadi y-dir redirection automatique l l-login
+        // 1. Strict Session Check
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
-        // 2. Initialiser la navigation ba3d ma t-takadna mn l-session
+        // 2. Initialiser la navigation
         Navigation.init();
 
         // 3. Récupérer le profil réel de l'utilisateur connecté
         const profile = await SessionManager.getProfile();
         if (!profile) return;
 
-        // 4. Extraire le nom complet et le rôle en s'appuyant sur APP_CONFIG
+        // 4. Extraire le nom complet et le rôle
         const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
                            `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
                            "Utilisateur";
 
         const roleNom = profile.roles?.nom || profile.role || "Admin Congelé";
 
-        // 5. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
+        // 5. Mettre à jour l'affichage dynamique
         const welcomeTitleEl = document.getElementById('welcomeTitle');
         if (welcomeTitleEl) {
             welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
@@ -563,6 +593,16 @@
         const userRoleSidebarEl = document.getElementById('userRoleSidebar');
         if (userRoleSidebarEl) {
             userRoleSidebarEl.textContent = roleNom;
+        }
+
+        // 6. Configurer l'action du bouton de déconnexion (Logout)
+        const btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', async () => {
+                if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
+                    await SessionManager.logout();
+                }
+            });
         }
     });
 </script>
