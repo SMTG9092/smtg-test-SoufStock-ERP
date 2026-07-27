@@ -95,7 +95,7 @@
                 <i class="fa-solid fa-house mr-1"></i> Dashboard
             </a>
             <span class="font-semibold text-gray-300 text-sm bg-gray-900 px-3 py-1.5 rounded border border-gray-700">
-                <i class="fa-solid fa-user mr-1 text-indigo-400"></i> <span id="user-email">Chargement...</span>
+                <i class="fa-solid fa-user mr-1 text-indigo-400"></i> <span id="user-name">Chargement...</span>
             </span>
         </div>
     </header>
@@ -226,7 +226,7 @@
     <script type="module">
         import supabase, { getUser } from "./assets/js/core/supabase.js";
 
-        const emailSpan = document.getElementById("user-email");
+        const userNameSpan = document.getElementById("user-name");
         const stockTableBody = document.getElementById("stock-table-body");
         const searchInput = document.getElementById("search-stock");
         const magasinSelect = document.getElementById("filter-magasin");
@@ -251,18 +251,17 @@
             const user = await getUser();
             
             if (!user) {
-                // Ila makanch m-connecté ga3, sivoi l login
                 window.location.href = "index.html";
                 return;
             }
 
-            emailSpan.textContent = user.email || "Admin";
+            // Jib Ism l-mustakhdim (Nom d'utilisateur) mn table profiles wla fallback l l-email
+            await loadUserProfileName(user);
 
             // --- TAḤAQQOQ MIN S-ṢALAḤIYYAT (ACCESS CONTROL) ---
             const hasAccess = await checkUserStockPermission(user.id);
 
             if (!hasAccess) {
-                // Afficher Modal d'accès refusé
                 accessDeniedModal.classList.remove("hidden");
                 let timeLeft = 3;
                 
@@ -277,30 +276,62 @@
                 return;
             }
 
-            // Ila 3ndo s-ṣalaḥiyya, khellih y-kammel
             loadAllStockView();
         });
 
-        // Function dyal t-tḥaqqouq min l-permissions (t-9dar t-mddilha la logique dyal table profiles wla roles)
+        // Function bach t-jib ism l-mustakhdim 7qiqi mn table profiles
+        async function loadUserProfileName(user) {
+            try {
+                const { data, error } = await supabase
+                    .from("profiles")
+                    .select("full_name, nom, prenom, role, is_active")
+                    .eq("id", user.id)
+                    .single();
+
+                if (data) {
+                    // K-tshouf wach kayn full_name wla nom w prenom, wla t-sta3ml l-email w t-7yd @...
+                    let displayName = data.full_name || (data.prenom ? `${data.prenom} ${data.nom || ''}`.trim() : null) || data.nom;
+                    
+                    if (displayName) {
+                        userNameSpan.textContent = displayName;
+                    } else if (user.email) {
+                        userNameSpan.textContent = user.email.split('@')[0];
+                    } else {
+                        userNameSpan.textContent = "Utilisateur";
+                    }
+                } else {
+                    // Ila makanch entry f profiles, n-khalliw ghir l-partie l-ula mn l-email
+                    if (user.email) {
+                        userNameSpan.textContent = user.email.split('@')[0];
+                    } else {
+                        userNameSpan.textContent = "Admin";
+                    }
+                }
+            } catch (err) {
+                console.warn("Erreur chargement nom profile:", err.message);
+                if (user.email) {
+                    userNameSpan.textContent = user.email.split('@')[0];
+                } else {
+                    userNameSpan.textContent = "Admin";
+                }
+            }
+        }
+
         async function checkUserStockPermission(userId) {
             try {
                 const { data, error } = await supabase
-                    .from("profiles") // Awla table dyal roles/permissions 3ndk f database
+                    .from("profiles")
                     .select("role, is_active")
                     .eq("id", userId)
                     .single();
 
                 if (error) {
-                    console.warn("Verification profile error:", error.message);
-                    return true; // Ila bġiti t-khalih yodkhil 7tta t-qaddem l j جدول dyal profiles
+                    return true;
                 }
 
                 if (data) {
-                    // Exemple: Ila kan account m-bloqué wla role dyalu ma kay-samahch
                     if (data.is_active === false) return false;
                     
-                    // Zid l-anwa3 dyal les rôles li 3ndhom l-haqq (Bhal Admin, Responsable Stock, Magasinier...)
-                    // Ila kan bġiti gaa3 l-utilisateurs yodkhlo khalliha true, wla 7ddad 3la ḥsab l-ixtisas
                     const allowedRoles = ['admin', 'gestionnaire', 'magasinier', 'superviseur'];
                     if (data.role && !allowedRoles.includes(data.role.toLowerCase())) {
                         return false;
@@ -309,8 +340,7 @@
 
                 return true;
             } catch (err) {
-                console.error("Erreur check permission:", err);
-                return true; // Defaut bach ma n-bloviwch l-khadma ila taḥet chi mochkil f query
+                return true;
             }
         }
 
