@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoufStock ERP - Gestion des Permissions</title>
+    <title>SoufStock ERP - Gestion Avancée des Rôles & Permissions</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -39,34 +39,35 @@
         <!-- Notification Message -->
         <div id="alert-box" class="hidden p-4 rounded-lg text-sm font-semibold"></div>
 
-        <!-- Tableau des Utilisateurs & Permissions -->
-        <div class="custom-card p-5 rounded-lg shadow overflow-hidden">
-            <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-700">
-                <h2 class="text-base font-bold text-indigo-300">
-                    <i class="fa-solid fa-users-gear mr-1"></i> Liste des Utilisateurs et Accès (<span id="total-users">0</span>)
+        <!-- Layout Grid: 1. Gestion des Rôles | 2. Matrice des Permissions -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <!-- Section 1: Liste des Rôles -->
+            <div class="custom-card p-5 rounded-lg shadow lg:col-span-1 space-y-4">
+                <h2 class="text-base font-bold text-indigo-300 border-b border-gray-700 pb-3">
+                    <i class="fa-solid fa-user-tag mr-1"></i> Rôles Disponibles
                 </h2>
+                <div id="roles-list" class="space-y-2">
+                    <p class="text-xs text-gray-500">Chargement des rôles...</p>
+                </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm border-collapse text-left">
-                    <thead class="bg-gray-900 text-gray-400 uppercase text-xs border-b border-gray-700">
-                        <tr>
-                            <th class="p-3">Utilisateur / Nom</th>
-                            <th class="p-3">Email</th>
-                            <th class="p-3">Rôle Actuel</th>
-                            <th class="p-3 text-center">Statut du Compte</th>
-                            <th class="p-3 text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table-body" class="text-gray-300">
-                        <tr>
-                            <td colspan="5" class="p-6 text-center text-gray-500">
-                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement des utilisateurs...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Section 2: Matrice / Permissions dyal Rôle M-khtar -->
+            <div class="custom-card p-5 rounded-lg shadow lg:col-span-3 space-y-4">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-3">
+                    <h2 class="text-base font-bold text-indigo-300">
+                        <i class="fa-solid fa-key mr-1"></i> Permissions pour le rôle: <span id="selected-role-title" class="text-white font-mono">-</span>
+                    </h2>
+                    <button id="btn-save-permissions" onclick="window.saveRolePermissions()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded text-xs font-semibold transition shadow flex items-center gap-1 hidden">
+                        <i class="fa-solid fa-floppy-disk"></i> Enregistrer les modifications
+                    </button>
+                </div>
+
+                <div id="permissions-container" class="overflow-x-auto">
+                    <p class="text-xs text-gray-500 p-4 text-center">Veuillez sélectionner un rôle à gauche pour afficher ses permissions.</p>
+                </div>
             </div>
+
         </div>
 
     </main>
@@ -76,11 +77,16 @@
         import supabase, { getUser } from "./assets/js/core/supabase.js";
 
         const userNameSpan = document.getElementById("user-name");
-        const usersTableBody = document.getElementById("users-table-body");
-        const totalUsersSpan = document.getElementById("total-users");
+        const rolesListContainer = document.getElementById("roles-list");
+        const permissionsContainer = document.getElementById("permissions-container");
+        const selectedRoleTitle = document.getElementById("selected-role-title");
+        const btnSavePermissions = document.getElementById("btn-save-permissions");
         const alertBox = document.getElementById("alert-box");
 
-        let allUsers = [];
+        let currentRoleId = null;
+        let allRoles = [];
+        let allPermissions = [];
+        let currentRolePermissions = new Set();
 
         document.addEventListener("DOMContentLoaded", async () => {
             const user = await getUser();
@@ -91,12 +97,12 @@
 
             await loadUserProfileName(user);
             await checkAdminAccess(user.id);
-            await loadUsersList();
+            await loadRolesAndPermissions();
         });
 
         async function loadUserProfileName(user) {
             try {
-                const { data } = await supabase.from("profiles").select("full_name, nom, prenom").eq("id", user.id).single();
+                const { data } = await supabase.from("profiles").select("full_name, prenom").eq("id", user.id).single();
                 if (data) {
                     userNameSpan.textContent = data.full_name || data.prenom || user.email.split('@')[0];
                 } else {
@@ -119,77 +125,167 @@
             }
         }
 
-        async function loadUsersList() {
+        async function loadRolesAndPermissions() {
             try {
-                const { data, error } = await supabase
-                    .from("profiles")
+                // 1. Jib Roles
+                const { data: rolesData, error: rolesError } = await supabase
+                    .from("roles")
                     .select("*")
-                    .order("updated_at", { ascending: false });
+                    .order("ordre_affichage", { ascending: true });
 
-                if (error) throw error;
+                if (rolesError) throw rolesError;
+                allRoles = rolesData || [];
 
-                allUsers = data || [];
-                totalUsersSpan.textContent = allUsers.length;
-                renderUsersTable(allUsers);
+                // 2. Jib Permissions
+                const { data: permData, error: permError } = await supabase
+                    .from("permissions")
+                    .select("*")
+                    .eq("actif", true)
+                    .order("module", { ascending: true });
+
+                if (permError) throw permError;
+                allPermissions = permData || [];
+
+                renderRolesList();
+
+                if (allRoles.length > 0) {
+                    selectRole(allRoles[0].id, allRoles[0].nom);
+                }
 
             } catch (err) {
-                console.error("Erreur chargement users:", err.message);
-                usersTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">Erreur: ${err.message}</td></tr>`;
+                console.error("Erreur chargement:", err.message);
+                rolesListContainer.innerHTML = `<p class="text-xs text-red-400">Erreur de chargement: ${err.message}</p>`;
             }
         }
 
-        function renderUsersTable(users) {
-            if (!users || users.length === 0) {
-                usersTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Aucun utilisateur trouvé.</td></tr>`;
+        function renderRolesList() {
+            if (allRoles.length === 0) {
+                rolesListContainer.innerHTML = `<p class="text-xs text-gray-500">Aucun rôle trouvé dans la table roles.</p>`;
                 return;
             }
 
-            usersTableBody.innerHTML = users.map(u => {
-                const fullName = u.full_name || `${u.prenom || ''} ${u.nom || ''}`.trim() || 'Non défini';
-                const isActive = u.is_active !== false;
-
-                return `
-                    <tr class="border-b border-gray-700 hover:bg-gray-750 transition text-xs">
-                        <td class="p-3 font-bold text-white">${fullName}</td>
-                        <td class="p-3 text-gray-300 font-mono">${u.email || 'N/A'}</td>
-                        <td class="p-3">
-                            <select id="role-${u.id}" class="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white focus:outline-none focus:border-indigo-500">
-                                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-                                <option value="gestionnaire" ${u.role === 'gestionnaire' ? 'selected' : ''}>Gestionnaire</option>
-                                <option value="magasinier" ${u.role === 'magasinier' ? 'selected' : ''}>Magasinier</option>
-                                <option value="superviseur" ${u.role === 'superviseur' ? 'selected' : ''}>Superviseur</option>
-                            </select>
-                        </td>
-                        <td class="p-3 text-center">
-                            <input type="checkbox" id="active-${u.id}" ${isActive ? 'checked' : ''} class="w-4 h-4 accent-indigo-600 cursor-pointer">
-                        </td>
-                        <td class="p-3 text-center">
-                            <button onclick="window.saveUserPermissions('${u.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded font-semibold transition shadow">
-                                <i class="fa-solid fa-floppy-disk mr-1"></i> Enregistrer
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            rolesListContainer.innerHTML = allRoles.map(r => `
+                <button onclick="window.selectRole(${r.id}, '${r.nom}')" id="role-btn-${r.id}" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold transition bg-gray-900 border border-gray-700 hover:border-indigo-500 flex justify-between items-center">
+                    <span><i class="fa-solid fa-shield mr-2" style="color: ${r.couleur || '#6366f1'}"></i> ${r.nom}</span>
+                    <span class="text-[10px] text-gray-400 font-mono">${r.code}</span>
+                </button>
+            `).join('');
         }
 
-        // Fonction globale bach t-dir mise à jour f database
-        window.saveUserPermissions = async function(userId) {
-            const newRole = document.getElementById(`role-${userId}`).value;
-            const isActive = document.getElementById(`active-${userId}`).checked;
+        window.selectRole = async function(roleId, roleName) {
+            currentRoleId = roleId;
+            selectedRoleTitle.textContent = roleName;
+            btnSavePermissions.classList.remove("hidden");
 
+            // Highlight selected button
+            document.querySelectorAll('#roles-list button').forEach(btn => {
+                btn.classList.remove('border-indigo-500', 'bg-gray-800');
+            });
+            const activeBtn = document.getElementById(`role-btn-${roleId}`);
+            if (activeBtn) activeBtn.classList.add('border-indigo-500', 'bg-gray-800');
+
+            // Jib role_permissions dyal had role
             try {
-                const { error } = await supabase
-                    .from("profiles")
-                    .update({ role: newRole, is_active: isActive, updated_at: new Date() })
-                    .eq("id", userId);
+                const { data, error } = await supabase
+                    .from("role_permissions")
+                    .select("permission_id, autorise")
+                    .eq("role_id", roleId);
 
                 if (error) throw error;
 
-                showNotification("Permissions mises à jour avec succès !", "success");
+                currentRolePermissions.clear();
+                (data || []).forEach(rp => {
+                    if (rp.autorise) {
+                        currentRolePermissions.add(rp.permission_id);
+                    }
+                });
+
+                renderPermissionsMatrix();
             } catch (err) {
-                console.error("Erreur update:", err.message);
-                showNotification(`Erreur lors de la mise à jour: ${err.message}`, "error");
+                console.error("Erreur fetch role permissions:", err.message);
+            }
+        };
+
+        function renderPermissionsMatrix() {
+            if (allPermissions.length === 0) {
+                permissionsContainer.innerHTML = `<p class="text-xs text-gray-500">Aucune permission enregistrée.</p>`;
+                return;
+            }
+
+            // Grouper b module
+            const groupedByModule = allPermissions.reduce((acc, p) => {
+                if (!acc[p.module]) acc[p.module] = [];
+                acc[p.module].push(p);
+                return acc;
+            }, {});
+
+            let html = `<div class="space-y-4">`;
+
+            for (const [moduleName, perms] of Object.entries(groupedByModule)) {
+                html += `
+                    <div class="bg-gray-900 border border-gray-700 rounded-lg p-3">
+                        <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2 pb-1 border-b border-gray-800">
+                            Module: ${moduleName}
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                `;
+
+                perms.forEach(p => {
+                    const isChecked = currentRolePermissions.has(p.id);
+                    html += `
+                        <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-800 cursor-pointer transition text-xs border border-gray-800">
+                            <input type="checkbox" value="${p.id}" ${isChecked ? 'checked' : ''} class="perm-checkbox w-4 h-4 accent-indigo-600 rounded">
+                            <div>
+                                <span class="font-semibold text-white block">${p.action}</span>
+                                <span class="text-[10px] text-gray-400">${p.description || p.code}</span>
+                            </div>
+                        </label>
+                    `;
+                });
+
+                html += `</div></div>`;
+            }
+
+            html += `</div>`;
+            permissionsContainer.innerHTML = html;
+        }
+
+        window.saveRolePermissions = async function() {
+            if (!currentRoleId) return;
+
+            const checkboxes = document.querySelectorAll('.perm-checkbox');
+            const selectedPermissionIds = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => parseInt(cb.value));
+
+            try {
+                // 1. Supprimer l-9dim kaml wla upsert
+                // Ṭriqa sahla: N-supprimiw role_permissions dyal had role w n-sajjlou jdad
+                const { error: deleteError } = await supabase
+                    .from("role_permissions")
+                    .delete()
+                    .eq("role_id", currentRoleId);
+
+                if (deleteError) throw deleteError;
+
+                if (selectedPermissionIds.length > 0) {
+                    const insertPayload = selectedPermissionIds.map(permId => ({
+                        role_id: currentRoleId,
+                        permission_id: permId,
+                        autorise: true
+                    }));
+
+                    const { error: insertError } = await supabase
+                        .from("role_permissions")
+                        .insert(insertPayload);
+
+                    if (insertError) throw insertError;
+                }
+
+                showNotification("Permissions enregistrées avec succès !", "success");
+            } catch (err) {
+                console.error("Erreur sauvegarde permissions:", err.message);
+                showNotification(`Erreur: ${err.message}`, "error");
             }
         };
 
