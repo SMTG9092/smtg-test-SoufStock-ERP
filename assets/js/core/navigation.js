@@ -1,13 +1,10 @@
 /**
  * =====================================================
  * * SoufStock Enterprise ERP
- * * navigation.js (Dynamic Supabase Integration)
+ * * navigation.js (Cleaned Imports & Dynamic Supabase Sidebar)
  * =====================================================
  */
 
-import { Loader, Toast } from "./utils.js";
-import Sidebar from "./sidebar.js";
-import { hasPermission } from "./auth-guard.js";
 import { supabase } from "./supabase.js";
 
 class NavigationManager {
@@ -26,20 +23,6 @@ class NavigationManager {
             roles: "roles.html",
             permissions: "permissions.html",
             parametres: "settings.html"
-        };
-
-        this.permissionsMap = {
-            dashboard: "dashboard.view",
-            stock: "stock.view",
-            mouvements: "stock.view",
-            commandes: "commandes.view",
-            picking: "picking.view",
-            reservations: "reservations.view",
-            expeditions: "expeditions.view",
-            utilisateurs: "users.view",
-            roles: "roles.view",
-            permissions: "permissions.view",
-            parametres: "settings.view"
         };
     }
 
