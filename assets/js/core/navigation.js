@@ -1,11 +1,11 @@
 /**
  * ============================================================
  * SoufStock Enterprise ERP
- * navigation.js
+ * assets/js/core/navigation.js
  * ============================================================
  */
 
-import { Loader, Toast } from "./utils.js";
+import { Loader, Toast } from "../utils.js";
 import Sidebar from "./sidebar.js";
 
 class NavigationManager {
@@ -260,4 +260,6 @@ class NavigationManager {
 
 const Navigation = new NavigationManager();
 
+// Export par défaut + Named exports pour éviter les erreurs d'import (navigationManager / Navigation)
+export { NavigationManager, Navigation as navigationManager };
 export default Navigation;
