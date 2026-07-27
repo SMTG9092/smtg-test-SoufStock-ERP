@@ -343,8 +343,8 @@
 
         <div class="sidebar-footer">
             <div class="sidebar-user-box">
-                <h4 id="userNameSidebar">Yahya Soufiane</h4>
-                <span>Admin Congelé</span>
+                <h4 id="userNameSidebar">Chargement...</h4>
+                <span id="userRoleSidebar">...</span>
             </div>
         </div>
     </aside>
@@ -356,7 +356,7 @@
         
         <div class="welcome-banner">
             <div>
-                <h1 id="welcomeTitle">Bienvenue, Yahya Soufiane !</h1>
+                <h1 id="welcomeTitle">Bienvenue, Chargement...</h1>
                 <p>Voici l'état général de votre activité aujourd'hui.</p>
             </div>
             <div style="text-align: right; font-size: 12px; color: var(--text-muted);">
@@ -524,12 +524,45 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Initialize Navigation Manager -->
+<!-- Initialize Navigation & Dynamic User Session Profile -->
 <script type="module">
-    import Navigation from '/assets/js/core/navigation.js';
+    import Navigation from './assets/js/core/navigation.js';
+    import SessionManager from './assets/js/core/session.js';
+    import APP_CONFIG from './assets/js/config.js';
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
+        // 1. Initialiser la navigation
         Navigation.init();
+
+        // 2. Vérifier la session et récupérer le profil réel
+        const isAuth = await SessionManager.requireAuth();
+        if (!isAuth) return;
+
+        const profile = await SessionManager.getProfile();
+        if (!profile) return;
+
+        // 3. Extraire le nom complet et le rôle selon APP_CONFIG
+        const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
+                           `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
+                           "Utilisateur";
+
+        const roleNom = profile.roles?.nom || profile.role || "Admin Congelé";
+
+        // 4. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
+        const welcomeTitleEl = document.getElementById('welcomeTitle');
+        if (welcomeTitleEl) {
+            welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
+        }
+
+        const userNameSidebarEl = document.getElementById('userNameSidebar');
+        if (userNameSidebarEl) {
+            userNameSidebarEl.textContent = nomComplet;
+        }
+
+        const userRoleSidebarEl = document.getElementById('userRoleSidebar');
+        if (userRoleSidebarEl) {
+            userRoleSidebarEl.textContent = roleNom;
+        }
     });
 </script>
 
