@@ -5,7 +5,7 @@
  * ============================================================
  */
 
-import { Loader, Toast } from "../utils.js";
+import { Loader, Toast } from "./utils.js";
 import Sidebar from "./sidebar.js";
 
 class NavigationManager {
