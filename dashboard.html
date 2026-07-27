@@ -554,32 +554,36 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Initialize Navigation & Strict Session Validation & Profile Loading & Logout Handler -->
+<!-- Initialize Navigation & Strict Session Validation & Real Role Extraction & Logout -->
 <script type="module">
     import Navigation from '/assets/js/core/navigation.js';
     import SessionManager from '/assets/js/core/session.js';
     import APP_CONFIG from '/assets/js/core/config.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // 1. Strict Session Check
+        // 1. Vérification stricte de la session (Redirection automatique vers login si non connecté)
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
         // 2. Initialiser la navigation
         Navigation.init();
 
-        // 3. Récupérer le profil réel de l'utilisateur connecté
+        // 3. Récupérer le profil et le rôle réel de l'utilisateur connecté
         const profile = await SessionManager.getProfile();
         if (!profile) return;
 
-        // 4. Extraire le nom complet et le rôle
+        // 4. Extraire le nom complet selon APP_CONFIG
         const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
                            `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
                            "Utilisateur";
 
-        const roleNom = profile.roles?.nom || profile.role || "Admin Congelé";
+        // 5. Extraire le rôle réel depuis la relation table roles (nom, code, etc.)
+        const roleNom = profile.roles?.nom || 
+                        profile.roles?.code || 
+                        profile.role || 
+                        "Utilisateur";
 
-        // 5. Mettre à jour l'affichage dynamique
+        // 6. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
         const welcomeTitleEl = document.getElementById('welcomeTitle');
         if (welcomeTitleEl) {
             welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
@@ -595,7 +599,7 @@
             userRoleSidebarEl.textContent = roleNom;
         }
 
-        // 6. Configurer l'action du bouton de déconnexion (Logout)
+        // 7. Gérer le bouton de déconnexion (Logout)
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
