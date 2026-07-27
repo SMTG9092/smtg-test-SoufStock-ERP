@@ -326,7 +326,7 @@
 <div class="app">
 
     <!-- ===================================================== -->
-    <!-- SIDEBAR PRO (Dynamic Pages from Table `public.pages`) -->
+    <!-- SIDEBAR PRO -->
     <!-- ===================================================== -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -338,7 +338,7 @@
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
-            <!-- Ghadi t-3mmar otomatikan mn table public.pages -->
+            <!-- Ghadi t-3mmar otomatikan mn NavigationManager -->
         </nav>
 
         <div class="sidebar-footer">
@@ -524,61 +524,12 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Scripts Dynamic Sidebar Loader connected with config.js -->
+<!-- Initialize Navigation Manager -->
 <script type="module">
-    import { SUPABASE } from './assets/js/core/config.js';
-    
-    const iconMapping = {
-        'dashboard': 'fa-chart-line',
-        'stock': 'fa-boxes',
-        'mouvements': 'fa-exchange-alt',
-        'chambres': 'fa-warehouse',
-        'picking': 'fa-dolly',
-        'expeditions': 'fa-truck',
-        'reservations': 'fa-bookmark',
-        'alertes': 'fa-exclamation-triangle',
-        'produits': 'fa-tags',
-        'rapports': 'fa-chart-bar',
-        'utilisateurs': 'fa-users',
-        'parametres': 'fa-cogs'
-    };
-
-    async function loadPagesFromDatabase() {
-        try {
-            const response = await fetch(`${SUPABASE.URL}/rest/v1/pages?actif=eq.true&order=ordre_affichage.asc`, {
-                headers: {
-                    'apikey': SUPABASE.ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE.ANON_KEY}`
-                }
-            });
-            
-            if(response.ok) {
-                const pages = await response.json();
-                const sidebarNav = document.getElementById('sidebarNav');
-                sidebarNav.innerHTML = '';
-
-                pages.forEach(page => {
-                    const iconClass = iconMapping[page.code] || 'fa-folder';
-                    const isActive = window.location.pathname.includes(page.url) ? 'active' : '';
-                    
-                    const link = document.createElement('a');
-                    link.href = page.url;
-                    link.className = `nav-item ${isActive}`;
-                    link.setAttribute('data-page', page.code);
-                    link.innerHTML = `<i class="fas ${iconClass}"></i><span>${page.nom}</span>`;
-                    
-                    sidebarNav.appendChild(link);
-                });
-            } else {
-                console.error("Erreur Response Supabase:", await response.text());
-            }
-        } catch (err) {
-            console.error("Erreur chargement sidebar dynamique:", err);
-        }
-    }
+    import { navigationManager } from './assets/js/core/navigation.js';
 
     document.addEventListener("DOMContentLoaded", () => {
-        loadPagesFromDatabase();
+        navigationManager.loadSidebarDynamic();
     });
 </script>
 
