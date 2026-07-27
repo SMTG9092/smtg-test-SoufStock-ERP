@@ -338,8 +338,7 @@
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
-            <!-- Ghadi t-3mmar otomatikan mn base de données -->
-            <a href="dashboard.html" class="nav-item active" data-page="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+            <!-- Ghadi t-3mmar otomatikan mn table public.pages -->
         </nav>
 
         <div class="sidebar-footer">
@@ -525,11 +524,8 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Scripts Dynamic Sidebar Loader -->
+<!-- Scripts Dynamic Sidebar Loader from Table `public.pages` -->
 <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-    // 💡 3ti l-credentials dyal Supabase dyalk hna ila makantch m-fita f config khor
     const SUPABASE_URL = 'YOUR_SUPABASE_URL';
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     
@@ -551,8 +547,6 @@
 
     async function loadPagesFromDatabase() {
         try {
-            // Ila knti msta3ml supabase client m-wjod f project dyalk qdr tstakhdmh direct
-            // Hna ndiro fetch b SQL query wla supabase table query:
             const response = await fetch(`${SUPABASE_URL}/rest/v1/pages?actif=eq.true&order=ordre_affichage.asc`, {
                 headers: {
                     'apikey': SUPABASE_ANON_KEY,
@@ -579,7 +573,7 @@
                 });
             }
         } catch (err) {
-            console.error("Erreur chargement sidebar dynamics:", err);
+            console.error("Erreur chargement sidebar dynamique:", err);
         }
     }
 
