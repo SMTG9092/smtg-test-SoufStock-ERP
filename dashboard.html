@@ -9,10 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     
-    <!-- 💡 CSS kamil m-jmoɛ hna bash y-t-khdda m-3a l-browser b zzerb blama yt-bloqa -->
     <style>
         :root {
             --bg-main: #0b131b;
+            --sidebar-bg: #070d13;
             --card-bg: rgba(17, 24, 39, 0.85);
             --card-border: rgba(16, 185, 129, 0.2);
             --card-border-hover: rgba(16, 185, 129, 0.5);
@@ -38,14 +38,112 @@
         .app {
             display: flex;
             width: 100%;
+            min-height: 100vh;
         }
 
-        /* --- Main Content Area --- *//* --- Main Content Area --- */
+        /* --- Sidebar Pro Styling --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-logo {
+            font-size: 24px;
+            color: var(--primary-glow);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .sidebar-brand span {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .sidebar-nav {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+            color: var(--primary-glow);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-user-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .sidebar-user-box h4 {
+            font-size: 13px;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-user-box span {
+            font-size: 11px;
+            color: var(--primary-glow);
+        }
+
+        /* --- Main Content Area --- */
         .main {
             flex: 1;
             padding: 25px;
             overflow-y: auto;
-            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.05), transparent 40%);
+            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.04), transparent 40%);
         }
 
         /* --- Welcome Banner --- */
@@ -76,7 +174,7 @@
         /* --- Top KPI Stats Grid (6 Items Pro) --- */
         .stats-grid-pro {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -230,6 +328,41 @@
 <body>
 
 <div class="app">
+
+    <!-- ===================================================== -->
+    <!-- SIDEBAR PRO -->
+    <!-- ===================================================== -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-snowflake sidebar-logo"></i>
+            <div class="sidebar-brand">
+                <h2>SoufStock</h2>
+                <span>Gestion Congelé</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" id="sidebarNav">
+            <a href="dashboard.html" class="nav-item active" data-page="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+            <a href="stock.html" class="nav-item" data-page="stock"><i class="fas fa-boxes"></i><span>Stock</span></a>
+            <a href="mouvements.html" class="nav-item" data-page="mouvements"><i class="fas fa-exchange-alt"></i><span>Mouvements</span></a>
+            <a href="chambres.html" class="nav-item" data-page="chambres"><i class="fas fa-warehouse"></i><span>Chambres Froides</span></a>
+            <a href="picking.html" class="nav-item" data-page="picking"><i class="fas fa-dolly"></i><span>Préparation (Picking)</span></a>
+            <a href="expeditions.html" class="nav-item" data-page="expeditions"><i class="fas fa-truck"></i><span>Expéditions</span></a>
+            <a href="reservations.html" class="nav-item" data-page="reservations"><i class="fas fa-bookmark"></i><span>Réservations</span></a>
+            <a href="alertes.html" class="nav-item" data-page="alertes"><i class="fas fa-exclamation-triangle"></i><span>Alertes</span></a>
+            <a href="produits.html" class="nav-item" data-page="produits"><i class="fas fa-tags"></i><span>Produits</span></a>
+            <a href="rapports.html" class="nav-item" data-page="rapports"><i class="fas fa-chart-bar"></i><span>Rapports</span></a>
+            <a href="utilisateurs.html" class="nav-item" data-page="utilisateurs"><i class="fas fa-users"></i><span>Utilisateurs</span></a>
+            <a href="parametres.html" class="nav-item" data-page="parametres"><i class="fas fa-cogs"></i><span>Paramètres</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user-box">
+                <h4 id="userNameSidebar">Yahya Soufiane</h4>
+                <span>Admin Congelé</span>
+            </div>
+        </div>
+    </aside>
 
     <!-- ===================================================== -->
     <!-- MAIN CONTENT -->
