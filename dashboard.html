@@ -146,7 +146,6 @@
             background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.04), transparent 40%);
         }
 
-        /* --- Welcome Banner --- */
         .welcome-banner {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.06) 100%);
             border: 1px solid var(--card-border);
@@ -171,7 +170,6 @@
             font-size: 13px;
         }
 
-        /* --- Top KPI Stats Grid (6 Items Pro) --- */
         .stats-grid-pro {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -236,7 +234,6 @@
         .trend.up { color: #10b981; }
         .trend.down { color: #ef4444; }
 
-        /* --- Analytics & Charts Grid --- */
         .dashboard-grid-pro {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr;
@@ -273,7 +270,6 @@
             color: #fff;
         }
 
-        /* --- Tables Pro Style --- */
         .table-pro {
             width: 100%;
             border-collapse: collapse;
@@ -330,7 +326,7 @@
 <div class="app">
 
     <!-- ===================================================== -->
-    <!-- SIDEBAR PRO -->
+    <!-- SIDEBAR PRO (Dynamic Pages from Table `public.pages`) -->
     <!-- ===================================================== -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -342,18 +338,8 @@
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
+            <!-- Ghadi t-3mmar otomatikan mn base de données -->
             <a href="dashboard.html" class="nav-item active" data-page="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
-            <a href="stock.html" class="nav-item" data-page="stock"><i class="fas fa-boxes"></i><span>Stock</span></a>
-            <a href="mouvements.html" class="nav-item" data-page="mouvements"><i class="fas fa-exchange-alt"></i><span>Mouvements</span></a>
-            <a href="chambres.html" class="nav-item" data-page="chambres"><i class="fas fa-warehouse"></i><span>Chambres Froides</span></a>
-            <a href="picking.html" class="nav-item" data-page="picking"><i class="fas fa-dolly"></i><span>Préparation (Picking)</span></a>
-            <a href="expeditions.html" class="nav-item" data-page="expeditions"><i class="fas fa-truck"></i><span>Expéditions</span></a>
-            <a href="reservations.html" class="nav-item" data-page="reservations"><i class="fas fa-bookmark"></i><span>Réservations</span></a>
-            <a href="alertes.html" class="nav-item" data-page="alertes"><i class="fas fa-exclamation-triangle"></i><span>Alertes</span></a>
-            <a href="produits.html" class="nav-item" data-page="produits"><i class="fas fa-tags"></i><span>Produits</span></a>
-            <a href="rapports.html" class="nav-item" data-page="rapports"><i class="fas fa-chart-bar"></i><span>Rapports</span></a>
-            <a href="utilisateurs.html" class="nav-item" data-page="utilisateurs"><i class="fas fa-users"></i><span>Utilisateurs</span></a>
-            <a href="parametres.html" class="nav-item" data-page="parametres"><i class="fas fa-cogs"></i><span>Paramètres</span></a>
         </nav>
 
         <div class="sidebar-footer">
@@ -369,7 +355,6 @@
     <!-- ===================================================== -->
     <main class="main">
         
-        <!-- Welcome Banner -->
         <div class="welcome-banner">
             <div>
                 <h1 id="welcomeTitle">Bienvenue, Yahya Soufiane !</h1>
@@ -381,7 +366,6 @@
             </div>
         </div>
 
-        <!-- Top KPI Stats (6 Cards Pro) -->
         <div class="stats-grid-pro">
             <div class="stat-box">
                 <div class="stat-box-header">
@@ -444,7 +428,6 @@
             </div>
         </div>
 
-        <!-- Charts & Analytics Section -->
         <div class="dashboard-grid-pro">
             <div class="pro-card">
                 <div class="pro-card-header">
@@ -478,7 +461,6 @@
             </div>
         </div>
 
-        <!-- Bottom Tables Section -->
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
             <div class="pro-card">
                 <div class="pro-card-header">
@@ -543,10 +525,67 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Scripts -->
+<!-- Scripts Dynamic Sidebar Loader -->
 <script type="module">
-    import Navigation from "./assets/js/navigation.js";
-    import "./assets/js/dashboard.js";
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // 💡 3ti l-credentials dyal Supabase dyalk hna ila makantch m-fita f config khor
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    
+    // Mapping icons dyal s-sfhat 3la hsab l-code dyalhom f table pages
+    const iconMapping = {
+        'dashboard': 'fa-chart-line',
+        'stock': 'fa-boxes',
+        'mouvements': 'fa-exchange-alt',
+        'chambres': 'fa-warehouse',
+        'picking': 'fa-dolly',
+        'expeditions': 'fa-truck',
+        'reservations': 'fa-bookmark',
+        'alertes': 'fa-exclamation-triangle',
+        'produits': 'fa-tags',
+        'rapports': 'fa-chart-bar',
+        'utilisateurs': 'fa-users',
+        'parametres': 'fa-cogs'
+    };
+
+    async function loadPagesFromDatabase() {
+        try {
+            // Ila knti msta3ml supabase client m-wjod f project dyalk qdr tstakhdmh direct
+            // Hna ndiro fetch b SQL query wla supabase table query:
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/pages?actif=eq.true&order=ordre_affichage.asc`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+            
+            if(response.ok) {
+                const pages = await response.json();
+                const sidebarNav = document.getElementById('sidebarNav');
+                sidebarNav.innerHTML = '';
+
+                pages.forEach(page => {
+                    const iconClass = iconMapping[page.code] || 'fa-folder';
+                    const isActive = window.location.pathname.includes(page.url) ? 'active' : '';
+                    
+                    const link = document.createElement('a');
+                    link.href = page.url;
+                    link.className = `nav-item ${isActive}`;
+                    link.setAttribute('data-page', page.code);
+                    link.innerHTML = `<i class="fas ${iconClass}"></i><span>${page.nom}</span>`;
+                    
+                    sidebarNav.appendChild(link);
+                });
+            }
+        } catch (err) {
+            console.error("Erreur chargement sidebar dynamics:", err);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadPagesFromDatabase();
+    });
 </script>
 
 </body>
