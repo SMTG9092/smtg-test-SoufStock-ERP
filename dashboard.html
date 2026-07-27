@@ -555,36 +555,32 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Initialize Navigation & Strict Session Validation & Clean Role Fetching -->
+<!-- Initialize Navigation & Strict Session Validation & SessionManager Profile Integration -->
 <script type="module">
     import Navigation from '/assets/js/core/navigation.js';
     import SessionManager from '/assets/js/core/session.js';
     import APP_CONFIG from '/assets/js/core/config.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
+        // 1. Vérification stricte de la session
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
+        // 2. Initialiser la navigation
         Navigation.init();
 
-        const user = await SessionManager.getUser();
-        if (!user) return;
-
-        // 1. Jib user_profiles
-        const { data: profile, error } = await SessionManager.supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-
-        if (error || !profile) {
-            console.error("Erreur profile:", error);
+        // 3. Récupérer le profil via SessionManager
+        const profile = await SessionManager.getProfile();
+        if (!profile) {
+            console.error("Aucun profil trouvé dans la session.");
             return;
         }
 
-        // 2. Jib l-role b ṭariqa mofassala mn la table roles
-        let roleNom = ""; 
+        // 4. Jib l-role b ṭariqa mofassala mn la table roles ila kan `role_id` mawjoud
+        let roleNom = "";
         if (profile.role_id) {
+            const userSupabase = SessionManager.supabase || (await SessionManager.getUser());
+            // Ila kano bghaw y-sta3mlo l-client dyal supabase direct aw 3abr query mofassala
             const { data: roleData, error: roleError } = await SessionManager.supabase
                 .from('roles')
                 .select('nom, code')
@@ -596,18 +592,22 @@
             }
         }
 
-        // 3. Extraire le nom complet
+        // 5. Extraire le nom complet proprement
         const nomComplet = profile.nom_complet || 
                            `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 
                            profile[APP_CONFIG.PROFILE?.NOM_COMPLET] ||
                            "Utilisateur";
 
-        // 4. Affichage dynamique
+        // 6. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
         const welcomeTitleEl = document.getElementById('welcomeTitle');
-        if (welcomeTitleEl) welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
+        if (welcomeTitleEl) {
+            welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
+        }
 
         const userNameSidebarEl = document.getElementById('userNameSidebar');
-        if (userNameSidebarEl) userNameSidebarEl.textContent = nomComplet;
+        if (userNameSidebarEl) {
+            userNameSidebarEl.textContent = nomComplet;
+        }
 
         const userRoleSidebarEl = document.getElementById('userRoleSidebar');
         if (userRoleSidebarEl) {
@@ -619,7 +619,7 @@
             }
         }
 
-        // 5. Logout
+        // 7. Gérer le bouton de déconnexion (Logout)
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
