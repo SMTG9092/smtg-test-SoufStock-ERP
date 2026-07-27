@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoufStock ERP - Gestion des Permissions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .custom-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-6 font-sans">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-md mb-6">
+        <div class="flex items-center gap-3">
+            <h1 class="text-xl font-bold text-gray-100">
+                <i class="fa-solid fa-shield-halved mr-2 text-indigo-400"></i> SoufStock ERP - Gestion des Rôles & Permissions
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="dashboard.html" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded text-sm font-semibold transition">
+                <i class="fa-solid fa-house mr-1"></i> Dashboard
+            </a>
+            <span class="font-semibold text-gray-300 text-sm bg-gray-900 px-3 py-1.5 rounded border border-gray-700">
+                <i class="fa-solid fa-user mr-1 text-indigo-400"></i> <span id="user-name">Chargement...</span>
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full space-y-6">
+        
+        <!-- Notification Message -->
+        <div id="alert-box" class="hidden p-4 rounded-lg text-sm font-semibold"></div>
+
+        <!-- Tableau des Utilisateurs & Permissions -->
+        <div class="custom-card p-5 rounded-lg shadow overflow-hidden">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-700">
+                <h2 class="text-base font-bold text-indigo-300">
+                    <i class="fa-solid fa-users-gear mr-1"></i> Liste des Utilisateurs et Accès (<span id="total-users">0</span>)
+                </h2>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse text-left">
+                    <thead class="bg-gray-900 text-gray-400 uppercase text-xs border-b border-gray-700">
+                        <tr>
+                            <th class="p-3">Utilisateur / Nom</th>
+                            <th class="p-3">Email</th>
+                            <th class="p-3">Rôle Actuel</th>
+                            <th class="p-3 text-center">Statut du Compte</th>
+                            <th class="p-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body" class="text-gray-300">
+                        <tr>
+                            <td colspan="5" class="p-6 text-center text-gray-500">
+                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Chargement des utilisateurs...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script JavaScript -->
+    <script type="module">
+        import supabase, { getUser } from "./assets/js/core/supabase.js";
+
+        const userNameSpan = document.getElementById("user-name");
+        const usersTableBody = document.getElementById("users-table-body");
+        const totalUsersSpan = document.getElementById("total-users");
+        const alertBox = document.getElementById("alert-box");
+
+        let allUsers = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const user = await getUser();
+            if (!user) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            await loadUserProfileName(user);
+            await checkAdminAccess(user.id);
+            await loadUsersList();
+        });
+
+        async function loadUserProfileName(user) {
+            try {
+                const { data } = await supabase.from("profiles").select("full_name, nom, prenom").eq("id", user.id).single();
+                if (data) {
+                    userNameSpan.textContent = data.full_name || data.prenom || user.email.split('@')[0];
+                } else {
+                    userNameSpan.textContent = user.email.split('@')[0];
+                }
+            } catch {
+                userNameSpan.textContent = "Admin";
+            }
+        }
+
+        async function checkAdminAccess(userId) {
+            try {
+                const { data } = await supabase.from("profiles").select("role").eq("id", userId).single();
+                if (!data || data.role !== 'admin') {
+                    alert("Accès réservé aux administrateurs !");
+                    window.location.href = "dashboard.html";
+                }
+            } catch {
+                window.location.href = "dashboard.html";
+            }
+        }
+
+        async function loadUsersList() {
+            try {
+                const { data, error } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .order("updated_at", { ascending: false });
+
+                if (error) throw error;
+
+                allUsers = data || [];
+                totalUsersSpan.textContent = allUsers.length;
+                renderUsersTable(allUsers);
+
+            } catch (err) {
+                console.error("Erreur chargement users:", err.message);
+                usersTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">Erreur: ${err.message}</td></tr>`;
+            }
+        }
+
+        function renderUsersTable(users) {
+            if (!users || users.length === 0) {
+                usersTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Aucun utilisateur trouvé.</td></tr>`;
+                return;
+            }
+
+            usersTableBody.innerHTML = users.map(u => {
+                const fullName = u.full_name || `${u.prenom || ''} ${u.nom || ''}`.trim() || 'Non défini';
+                const isActive = u.is_active !== false;
+
+                return `
+                    <tr class="border-b border-gray-700 hover:bg-gray-750 transition text-xs">
+                        <td class="p-3 font-bold text-white">${fullName}</td>
+                        <td class="p-3 text-gray-300 font-mono">${u.email || 'N/A'}</td>
+                        <td class="p-3">
+                            <select id="role-${u.id}" class="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white focus:outline-none focus:border-indigo-500">
+                                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                <option value="gestionnaire" ${u.role === 'gestionnaire' ? 'selected' : ''}>Gestionnaire</option>
+                                <option value="magasinier" ${u.role === 'magasinier' ? 'selected' : ''}>Magasinier</option>
+                                <option value="superviseur" ${u.role === 'superviseur' ? 'selected' : ''}>Superviseur</option>
+                            </select>
+                        </td>
+                        <td class="p-3 text-center">
+                            <input type="checkbox" id="active-${u.id}" ${isActive ? 'checked' : ''} class="w-4 h-4 accent-indigo-600 cursor-pointer">
+                        </td>
+                        <td class="p-3 text-center">
+                            <button onclick="window.saveUserPermissions('${u.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded font-semibold transition shadow">
+                                <i class="fa-solid fa-floppy-disk mr-1"></i> Enregistrer
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Fonction globale bach t-dir mise à jour f database
+        window.saveUserPermissions = async function(userId) {
+            const newRole = document.getElementById(`role-${userId}`).value;
+            const isActive = document.getElementById(`active-${userId}`).checked;
+
+            try {
+                const { error } = await supabase
+                    .from("profiles")
+                    .update({ role: newRole, is_active: isActive, updated_at: new Date() })
+                    .eq("id", userId);
+
+                if (error) throw error;
+
+                showNotification("Permissions mises à jour avec succès !", "success");
+            } catch (err) {
+                console.error("Erreur update:", err.message);
+                showNotification(`Erreur lors de la mise à jour: ${err.message}`, "error");
+            }
+        };
+
+        function showNotification(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `p-4 rounded-lg text-sm font-semibold ${type === 'success' ? 'bg-emerald-900 text-emerald-200 border border-emerald-700' : 'bg-red-900 text-red-200 border border-red-700'}`;
+            alertBox.classList.remove("hidden");
+            setTimeout(() => {
+                alertBox.classList.add("hidden");
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
