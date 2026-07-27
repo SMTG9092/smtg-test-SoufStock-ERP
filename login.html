@@ -552,5 +552,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Script li kay-interagir m3a login.js dyalk -->
+    <script>
+        const passwordInput = document.getElementById("password");
+        const toggleSpan = document.querySelector(".password-toggle");
+
+        if (toggleSpan && passwordInput) {
+            toggleSpan.addEventListener("click", () => {
+                const isPassword = passwordInput.type === "password";
+                passwordInput.type = isPassword ? "text" : "password";
+                const icon = toggleSpan.querySelector("i");
+                if (icon) {
+                    icon.classList.toggle("fa-eye", !isPassword);
+                    icon.classList.toggle("fa-eye-slash", isMatrix = isPassword); // toggles icon
+                }
+            });
+        }
+    </script>
 </body>
 </html>
