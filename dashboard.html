@@ -524,31 +524,32 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Initialize Navigation & Dynamic User Session Profile -->
+<!-- Initialize Navigation & Strict Session Validation & Profile Loading -->
 <script type="module">
     import Navigation from './assets/js/core/navigation.js';
     import SessionManager from './assets/js/core/session.js';
     import APP_CONFIG from './assets/js/config.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // 1. Initialiser la navigation
-        Navigation.init();
-
-        // 2. Vérifier la session et récupérer le profil réel
+        // 1. Strict Session Check: Ila makantch session wla ma kan-ch m-connecté, SessionManager.requireAuth() ğadi y-dir redirection automatique l l-login
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
+        // 2. Initialiser la navigation ba3d ma t-takadna mn l-session
+        Navigation.init();
+
+        // 3. Récupérer le profil réel de l'utilisateur connecté
         const profile = await SessionManager.getProfile();
         if (!profile) return;
 
-        // 3. Extraire le nom complet et le rôle selon APP_CONFIG
+        // 4. Extraire le nom complet et le rôle en s'appuyant sur APP_CONFIG
         const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
                            `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
                            "Utilisateur";
 
         const roleNom = profile.roles?.nom || profile.role || "Admin Congelé";
 
-        // 4. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
+        // 5. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
         const welcomeTitleEl = document.getElementById('welcomeTitle');
         if (welcomeTitleEl) {
             welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
