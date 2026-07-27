@@ -371,7 +371,7 @@
         <div class="sidebar-footer">
             <div class="sidebar-user-box">
                 <h4 id="userNameSidebar">Chargement...</h4>
-                <span id="userRoleSidebar">...</span>
+                <span id="userRoleSidebar" style="display: none;"></span>
             </div>
             <!-- Bouton Déconnexion (Log Out) -->
             <button id="btnLogout" class="btn-logout">
@@ -555,72 +555,71 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Initialize Navigation & Strict Session Validation & Direct Role Fetching -->
+<!-- Initialize Navigation & Strict Session Validation & Clean Role Fetching -->
 <script type="module">
     import Navigation from '/assets/js/core/navigation.js';
     import SessionManager from '/assets/js/core/session.js';
     import APP_CONFIG from '/assets/js/core/config.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // 1. Vérification stricte de la session
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
-        // 2. Initialiser la navigation
         Navigation.init();
 
-        // 3. Récupérer l'utilisateur authentifié
         const user = await SessionManager.getUser();
         if (!user) return;
 
-        // 4. Requête explicite pour lier user_profiles b role_id m3a la table roles
+        // 1. Jib user_profiles
         const { data: profile, error } = await SessionManager.supabase
             .from('user_profiles')
-            .select(`
-                *,
-                roles:role_id (
-                    id,
-                    code,
-                    nom,
-                    description
-                )
-            `)
+            .select('*')
             .eq('id', user.id)
             .single();
 
         if (error || !profile) {
-            console.error("Erreur de chargement du profil:", error);
+            console.error("Erreur profile:", error);
             return;
         }
 
-        // 5. Extraire le nom complet
+        // 2. Jib l-role b ṭariqa mofassala mn la table roles
+        let roleNom = ""; 
+        if (profile.role_id) {
+            const { data: roleData, error: roleError } = await SessionManager.supabase
+                .from('roles')
+                .select('nom, code')
+                .eq('id', profile.role_id)
+                .single();
+
+            if (!roleError && roleData) {
+                roleNom = roleData.nom || roleData.code || "";
+            }
+        }
+
+        // 3. Extraire le nom complet
         const nomComplet = profile.nom_complet || 
                            `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 
                            profile[APP_CONFIG.PROFILE?.NOM_COMPLET] ||
                            "Utilisateur";
 
-        // 6. Extraire le rôle réel exact (b l-priorité l 'nom' mrawaj wla 'code' dyal la table roles)
-        const roleNom = profile.roles?.nom || 
-                        profile.roles?.code || 
-                        "Inconnu";
-
-        // 7. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
+        // 4. Affichage dynamique
         const welcomeTitleEl = document.getElementById('welcomeTitle');
-        if (welcomeTitleEl) {
-            welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
-        }
+        if (welcomeTitleEl) welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
 
         const userNameSidebarEl = document.getElementById('userNameSidebar');
-        if (userNameSidebarEl) {
-            userNameSidebarEl.textContent = nomComplet;
-        }
+        if (userNameSidebarEl) userNameSidebarEl.textContent = nomComplet;
 
         const userRoleSidebarEl = document.getElementById('userRoleSidebar');
         if (userRoleSidebarEl) {
-            userRoleSidebarEl.textContent = roleNom;
+            if (roleNom) {
+                userRoleSidebarEl.textContent = roleNom;
+                userRoleSidebarEl.style.display = 'inline-block';
+            } else {
+                userRoleSidebarEl.style.display = 'none'; // Kay-t-masah n-neha2iyan ila makaynch role
+            }
         }
 
-        // 8. Gérer le bouton de déconnexion (Logout)
+        // 5. Logout
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
