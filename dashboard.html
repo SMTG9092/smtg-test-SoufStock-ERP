@@ -524,12 +524,10 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Scripts Dynamic Sidebar Loader from Table `public.pages` -->
+<!-- Scripts Dynamic Sidebar Loader connected with config.js -->
 <script type="module">
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    import { SUPABASE } from './assets/js/core/config.js';
     
-    // Mapping icons dyal s-sfhat 3la hsab l-code dyalhom f table pages
     const iconMapping = {
         'dashboard': 'fa-chart-line',
         'stock': 'fa-boxes',
@@ -547,10 +545,10 @@
 
     async function loadPagesFromDatabase() {
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/pages?actif=eq.true&order=ordre_affichage.asc`, {
+            const response = await fetch(`${SUPABASE.URL}/rest/v1/pages?actif=eq.true&order=ordre_affichage.asc`, {
                 headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    'apikey': SUPABASE.ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE.ANON_KEY}`
                 }
             });
             
@@ -571,6 +569,8 @@
                     
                     sidebarNav.appendChild(link);
                 });
+            } else {
+                console.error("Erreur Response Supabase:", await response.text());
             }
         } catch (err) {
             console.error("Erreur chargement sidebar dynamique:", err);
