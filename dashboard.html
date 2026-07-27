@@ -1,361 +1,207 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoufStock Enterprise ERP - Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- ===================================================== -->
+<!-- DASHBOARD PRO CONTENT -->
+<!-- ===================================================== -->
+<section class="content" id="dashboardContent">
     
-    <link rel="stylesheet" href="assets/css/dashboard-page.css">
-    <link rel="stylesheet" href="assets/css/dashboard.css">
-
-    <!-- Modern UI / UX Upgrade Style -->
-    <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --glass-blur: blur(12px);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.2);
-        }
-
-        .stat-icon {
-            width: 55px;
-            height: 55px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #fff;
-        }
-
-        .stat-icon.success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .stat-icon.primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
-        .stat-icon.warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-        .stat-icon.danger  { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-
-        .stat-content span {
-            font-size: 13px;
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .stat-content h2 {
-            font-size: 26px;
-            font-weight: 700;
-            color: #f8fafc;
-            margin-top: 4px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-
-        .card-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--card-border);
-        }
-
-        .card-header h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #f8fafc;
-        }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            padding: 20px;
-        }
-
-        .action-btn {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 18px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            color: #cbd5e1;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn i {
-            font-size: 22px;
-            color: #6366f1;
-            transition: transform 0.3s ease;
-        }
-
-        .action-btn span {
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .action-btn:hover {
-            background: var(--primary-gradient);
-            color: #fff;
-            border-color: transparent;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
-        }
-
-        .action-btn:hover i {
-            color: #fff;
-            transform: scale(1.15);
-        }
-    </style>
-</head>
-<body>
-
-<div class="app">
-
-    <!-- ===================================================== -->
-    <!-- SIDEBAR -->
-    <!-- ===================================================== -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <img src="assets/img/favicon.png" class="sidebar-logo" alt="SoufStock">
-            <div class="sidebar-brand">
-                <h2>SoufStock</h2>
-                <span>Enterprise ERP</span>
-            </div>
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <div>
+            <h1 id="welcomeTitle">Bienvenue, Yahya Soufiane !</h1>
+            <p>Voici l'état général de votre activité aujourd'hui.</p>
         </div>
-
-        <button id="sidebarToggle" class="sidebar-toggle">☰</button>
-
-        <!-- Navigation dynamika (NavigationManager kay-gerha) -->
-        <nav id="sidebarNav" class="sidebar-nav">
-            <a href="dashboard.html" class="nav-item active" data-page="dashboard">
-                <i class="fas fa-chart-line"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="stock.html" class="nav-item" data-page="stock">
-                <i class="fas fa-boxes"></i>
-                <span>Stock</span>
-            </a>
-            <a href="commandes.html" class="nav-item" data-page="commandes">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Commandes</span>
-            </a>
-            <a href="picking.html" class="nav-item" data-page="picking">
-                <i class="fas fa-dolly"></i>
-                <span>Préparation</span>
-            </a>
-            <a href="utilisateurs.html" class="nav-item" data-page="utilisateurs">
-                <i class="fas fa-users"></i>
-                <span>Utilisateurs</span>
-            </a>
-            <a href="parametres.html" class="nav-item" data-page="parametres">
-                <i class="fas fa-cogs"></i>
-                <span>Paramètres</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div id="sidebarUser" class="sidebar-user">
-                <img id="sidebarAvatar" src="assets/img/avatar.png" alt="Avatar">
-                <div>
-                    <h4 id="sidebarUserName">Chargement...</h4>
-                    <span id="sidebarUserRole">...</span>
-                </div>
-            </div>
-            <button id="logoutBtn" class="logout-btn">Déconnexion</button>
+        <div style="text-align: right; font-size: 13px; color: var(--text-muted);">
+            <i class="fas fa-calendar-alt"></i> <span id="currentDateBanner">Mercredi 25 Juin 2026</span> &nbsp;|&nbsp; 
+            <i class="fas fa-clock"></i> <span id="currentTimeBanner">10:24:35</span>
         </div>
-    </aside>
-
-    <!-- ===================================================== -->
-    <!-- MAIN -->
-    <!-- ===================================================== -->
-    <main class="main">
-
-        <!-- ================= TOPBAR ================= -->
-        <header class="topbar">
-            <div class="topbar-left">
-                <h1 id="pageTitle">Dashboard</h1>
-                <span id="breadcrumb"><span>Accueil</span><span> / </span><strong>Dashboard</strong></span>
-            </div>
-            <div class="topbar-right">
-                <div class="topbar-item">
-                    <i class="fas fa-calendar"></i>
-                    <span id="live-date">--/--/----</span>
-                </div>
-                <div class="topbar-item">
-                    <i class="fas fa-clock"></i>
-                    <span id="live-time">--:--:--</span>
-                </div>
-                <button id="themeToggle" class="icon-btn"><i class="fas fa-moon"></i></button>
-                <button id="languageToggle" class="icon-btn"><i class="fas fa-language"></i></button>
-                <button id="fullscreenBtn" class="icon-btn"><i class="fas fa-expand"></i></button>
-                <div class="notification-box">
-                    <button id="notifBtn" class="icon-btn">
-                        <i class="fas fa-bell"></i>
-                        <span id="notifCount" class="badge">0</span>
-                    </button>
-                    <div id="notifPanel" class="notification-panel">
-                        <div class="panel-header">
-                            <h3>Notifications</h3>
-                        </div>
-                        <div id="notifList" class="panel-body"></div>
-                    </div>
-                </div>
-                <div id="userMenu" class="user-menu">
-                    <img id="topbarAvatar" src="assets/img/avatar.png">
-                    <div>
-                        <h4 id="topbarUserName">Chargement...</h4>
-                        <span id="topbarUserRole">...</span>
-                    </div>
-                    <i class="fas fa-chevron-down"></i>
-                    <div id="userDropdown" class="dropdown-menu">
-                        <a href="#"><i class="fas fa-user"></i> Profil</a>
-                        <a href="#"><i class="fas fa-cog"></i> Paramètres</a>
-                        <hr>
-                        <a href="#" id="menuLogout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- ================= CONTENT ================= -->
-        <section class="content" id="dashboardContent">
-            
-            <div id="dashboardView">
-                <div class="page-header">
-                    <div>
-                        <h2>Tableau de bord</h2>
-                        <p>Bienvenue <strong id="welcomeName">...</strong></p>
-                    </div>
-                </div>
-
-                <!-- ================= KPI STATS ================= -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon success"><i class="fas fa-boxes"></i></div>
-                        <div class="stat-content">
-                            <span>Stock Total</span>
-                            <h2 id="stockTotal">0</h2>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon primary"><i class="fas fa-dolly"></i></div>
-                        <div class="stat-content">
-                            <span>Préparation</span>
-                            <h2 id="pickingCount">0</h2>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon warning"><i class="fas fa-file-invoice"></i></div>
-                        <div class="stat-content">
-                            <span>Commandes</span>
-                            <h2 id="ordersCount">0</h2>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon danger"><i class="fas fa-truck"></i></div>
-                        <div class="stat-content">
-                            <span>Expéditions</span>
-                            <h2 id="expeditionCount">0</h2>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ================= QUICK ACTIONS ================= -->
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Actions Rapides</h3>
-                        </div>
-                        <div class="card-body quick-actions">
-                            <button class="action-btn" data-page="stock">
-                                <i class="fas fa-boxes"></i>
-                                <span>Stock</span>
-                            </button>
-                            <button class="action-btn" data-page="production">
-                                <i class="fas fa-industry"></i>
-                                <span>Production</span>
-                            </button>
-                            <button class="action-btn" data-page="commandes">
-                                <i class="fas fa-file-invoice"></i>
-                                <span>Commandes</span>
-                            </button>
-                            <button class="action-btn" data-page="picking">
-                                <i class="fas fa-dolly"></i>
-                                <span>Préparation</span>
-                            </button>
-                            <button class="action-btn" data-page="utilisateurs">
-                                <i class="fas fa-users"></i>
-                                <span>Utilisateurs</span>
-                            </button>
-                            <button class="action-btn" data-page="parametres">
-                                <i class="fas fa-cogs"></i>
-                                <span>Paramètres</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-    </main>
-</div>
-
-<!-- Loader -->
-<div id="fullscreenLoader" class="fullscreen-loader">
-    <div class="loader-content">
-        <div class="spinner"></div>
-        <h3 id="loaderTitle">Chargement...</h3>
-        <p id="loaderMessage">Veuillez patienter...</p>
     </div>
-</div>
 
-<!-- Toast -->
-<div id="toastContainer" class="toast-container"></div>
+    <!-- Top KPI Stats (6 Cards Pro) -->
+    <div class="stats-grid-pro">
+        <div class="stat-box">
+            <div class="stat-box-header">
+                <h3>Stock Total</h3>
+                <div class="stat-box-icon" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fas fa-boxes"></i></div>
+            </div>
+            <div class="value" id="kpiStockTotal">1 248 732.450</div>
+            <div style="font-size: 11px; color: var(--text-muted);">KG / Pce</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> +4.35% vs hier</div>
+        </div>
 
-<!-- Libraries -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js"></script>
+        <div class="stat-box">
+            <div class="stat-box-header">
+                <h3>Articles</h3>
+                <div class="stat-box-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><i class="fas fa-tags"></i></div>
+            </div>
+            <div class="value" id="kpiArticles">1 256</div>
+            <div style="font-size: 11px; color: var(--text-muted);">actifs</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> +2.10% vs hier</div>
+        </div>
 
-<!-- Scripts (Navigation + Dashboard Module) -->
-<script type="module">
-    import Navigation from "./assets/js/navigation.js";
-    import "./assets/js/dashboard.js";
-</script>
+        <div class="stat-box">
+            <div class="stat-box-header">
+                <h3>Commandes</h3>
+                <div class="stat-box-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);"><i class="fas fa-file-invoice"></i></div>
+            </div>
+            <div class="value" id="kpiCommandes">342</div>
+            <div style="font-size: 11px; color: var(--text-muted);">en cours</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> +6.25% vs hier</div>
+        </div>
 
-</body>
-</html>
+        <div class="stat-box">
+            <div class="stat-box-header">
+                <h3>Picking</h3>
+                <div class="stat-box-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fas fa-dolly"></i></div>
+            </div>
+            <div class="value" id="kpiPicking">128</div>
+            <div style="font-size: 11px; color: var(--text-muted);">en cours</div>
+            <div class="trend down"><i class="fas fa-arrow-down"></i> -1.15% vs hier</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-box-header">
+                <h3>Expéditions</h3>
+                <div class="stat-box-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);"><i class="fas fa-truck"></i></div>
+            </div>
+            <div class="value" id="kpiExpeditions">98</div>
+            <div style="font-size: 11px; color: var(--text-muted);">aujourd'hui</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> +8.47% vs hier</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-box-header">
+                <h3>Réservations</h3>
+                <div class="stat-box-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);"><i class="fas fa-bookmark"></i></div>
+            </div>
+            <div class="value" id="kpiReservations">76 432</div>
+            <div style="font-size: 11px; color: var(--text-muted);">KG / Pce</div>
+            <div class="trend down"><i class="fas fa-arrow-down"></i> -3.12% vs hier</div>
+        </div>
+    </div>
+
+    <!-- Charts & Analytics Section -->
+    <div class="dashboard-grid-pro">
+        <!-- Entrées vs Sorties Chart -->
+        <div class="pro-card">
+            <div class="pro-card-header">
+                <h3>Entrées vs Sorties (7 derniers jours)</h3>
+                <select style="background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 12px;">
+                    <option>7 jours</option>
+                </select>
+            </div>
+            <div style="height: 220px; position: relative;">
+                <canvas id="entriesExitsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Stock par Magasin (Donut Chart) -->
+        <div class="pro-card">
+            <div class="pro-card-header">
+                <h3>Stock par Magasin</h3>
+            </div>
+            <div style="height: 180px; position: relative; display: flex; justify-content: center;">
+                <canvas id="stockMagasinChart"></canvas>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 10px; display: flex; justify-content: space-around;">
+                <span><i class="fas fa-circle" style="color: #10b981;"></i> ABPG (52.2%)</span>
+                <span><i class="fas fa-circle" style="color: #3b82f6;"></i> AB10 (25.7%)</span>
+                <span><i class="fas fa-circle" style="color: #8b5cf6;"></i> Congelé (15.9%)</span>
+            </div>
+        </div>
+
+        <!-- Occupation des Emplacements -->
+        <div class="pro-card">
+            <div class="pro-card-header">
+                <h3>Occupation des Emplacements</h3>
+            </div>
+            <div style="text-align: center; padding: 15px 0;">
+                <h2 style="font-size: 36px; font-weight: 800; color: #10b981;">68%</h2>
+                <span style="font-size: 12px; color: var(--text-muted);">Occupation (680 / 1000)</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px;">
+                <div style="width: 68%; background: #10b981; height: 100%;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 15px;">
+                <span><i class="fas fa-circle" style="color: #10b981;"></i> Occupé: 680</span>
+                <span><i class="fas fa-circle" style="color: #3b82f6;"></i> Disponible: 320</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Tables Section -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+        <!-- Derniers Mouvements -->
+        <div class="pro-card">
+            <div class="pro-card-header">
+                <h3>Derniers Mouvements</h3>
+            </div>
+            <table class="table-pro">
+                <thead>
+                    <tr>
+                        <th>Date / Heure</th>
+                        <th>Type</th>
+                        <th>Article</th>
+                        <th>Lot</th>
+                        <th>Emplacement</th>
+                        <th>Qté</th>
+                        <th>Magasin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>25/06/2026 10:15</td>
+                        <td><span class="badge-status entree">Entrée</span></td>
+                        <td>220000264</td>
+                        <td>26106PC844</td>
+                        <td>A407</td>
+                        <td>1 250.000</td>
+                        <td>ABPG</td>
+                    </tr>
+                    <tr>
+                        <td>25/06/2026 09:48</td>
+                        <td><span class="badge-status sortie">Sortie</span></td>
+                        <td>220000285</td>
+                        <td>26106PC845</td>
+                        <td>A408</td>
+                        <td>850.000</td>
+                        <td>ABPG</td>
+                    </tr>
+                    <tr>
+                        <td>25/06/2026 09:30</td>
+                        <td><span class="badge-status entree">Entrée</span></td>
+                        <td>220000286</td>
+                        <td>26106PC846</td>
+                        <td>A409</td>
+                        <td>2 100.000</td>
+                        <td>Congelé</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn-view-all" data-page="mouvements">Voir tous les mouvements</button>
+        </div>
+
+        <!-- Alertes & DLC -->
+        <div class="pro-card">
+            <div class="pro-card-header">
+                <h3>Alertes Stock Minimum</h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-size: 13px; color: #fff;">Burger 100g</strong>
+                        <div style="font-size: 11px; color: var(--text-muted);">A408 • Min: 500 KG</div>
+                    </div>
+                    <span style="color: #ef4444; font-weight: 700; font-size: 13px;">120.000 KG</span>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-size: 13px; color: #fff;">Steak Haché</strong>
+                        <div style="font-size: 11px; color: var(--text-muted);">A409 • Min: 300 KG</div>
+                    </div>
+                    <span style="color: #ef4444; font-weight: 700; font-size: 13px;">80.000 KG</span>
+                </div>
+            </div>
+            <button class="btn-view-all" data-page="alertes">Voir toutes les alertes</button>
+        </div>
+    </div>
+
+</section>
