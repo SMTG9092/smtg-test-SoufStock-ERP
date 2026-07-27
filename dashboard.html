@@ -555,7 +555,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Initialize Navigation & Strict Session Validation & Real Role Extraction & Logout -->
+<!-- Initialize Navigation & Strict Session Validation & Direct Role Fetching -->
 <script type="module">
     import Navigation from '/assets/js/core/navigation.js';
     import SessionManager from '/assets/js/core/session.js';
@@ -569,11 +569,11 @@
         // 2. Initialiser la navigation
         Navigation.init();
 
-        // 3. Récupérer le profil et le rôle réel de l'utilisateur connecté avec Jointure SQL (roles)
+        // 3. Récupérer l'utilisateur authentifié
         const user = await SessionManager.getUser();
         if (!user) return;
 
-        // Requête Supabase explicite pour charger user_profiles + la table roles liée
+        // 4. Requête explicite pour lier user_profiles b role_id m3a la table roles
         const { data: profile, error } = await SessionManager.supabase
             .from('user_profiles')
             .select(`
@@ -593,19 +593,18 @@
             return;
         }
 
-        // 4. Extraire le nom complet proprement
+        // 5. Extraire le nom complet
         const nomComplet = profile.nom_complet || 
                            `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 
                            profile[APP_CONFIG.PROFILE?.NOM_COMPLET] ||
                            "Utilisateur";
 
-        // 5. Extraire le rôle réel depuis la table roles (priorité à 'nom' (ex: Administrateur) puis 'code' (ex: ADMIN))
+        // 6. Extraire le rôle réel exact (b l-priorité l 'nom' mrawaj wla 'code' dyal la table roles)
         const roleNom = profile.roles?.nom || 
                         profile.roles?.code || 
-                        profile.role || 
-                        "Utilisateur";
+                        "Inconnu";
 
-        // 6. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
+        // 7. Mettre à jour l'affichage dynamique (Welcome banner + Sidebar)
         const welcomeTitleEl = document.getElementById('welcomeTitle');
         if (welcomeTitleEl) {
             welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
@@ -621,7 +620,7 @@
             userRoleSidebarEl.textContent = roleNom;
         }
 
-        // 7. Gérer le bouton de déconnexion (Logout)
+        // 8. Gérer le bouton de déconnexion (Logout)
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
