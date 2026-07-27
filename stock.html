@@ -20,6 +20,46 @@
         .custom-card:hover {
             border-color: #6366f1;
         }
+
+        /* --- STYLES KHASSIN B L-IMPRESSION (PRINT) --- */
+        @media print {
+            body {
+                background-color: #white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+            /* Khabbi l-header, les boutons, les filtres w dakchi li machi mohim */
+            header, 
+            #btn-export-excel, 
+            #btn-export-pdf, 
+            #btn-print, 
+            #filter-magasin, 
+            #search-stock,
+            .no-print {
+                display: none !important;
+            }
+            /* Rjja3 l-background w les cartes bydin w wdaḥin l-printer */
+            .custom-card {
+                background-color: white !important;
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+                color: black !important;
+            }
+            text, h1, h2, h3, p, span, td, th {
+                color: black !important;
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            th, td {
+                border: 1px solid #ddd !important;
+                padding: 6px !important;
+            }
+            thead {
+                background-color: #f3f4f6 !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-6 font-sans">
@@ -102,7 +142,7 @@
             </div>
         </div>
 
-        <!-- Tableau Liste des Stocks (View: v_stock_disponible) -->
+        <!-- Tableau Liste des Stocks -->
         <div class="custom-card p-5 rounded-lg shadow overflow-hidden">
             <div class="flex flex-col xl:flex-row justify-between items-center mb-4 pb-3 border-b border-gray-700 gap-3">
                 <h2 class="text-base font-bold text-indigo-300">
