@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import { supabase } from "../supabase.js";
+import { supabase } from "./supabase.js";
 
 class NavigationManager {
     constructor() {
