@@ -138,6 +138,7 @@
         .sidebar-user-box span {
             font-size: 11px;
             color: var(--primary-glow);
+            font-weight: 600;
         }
 
         .btn-logout {
@@ -561,7 +562,7 @@
     import APP_CONFIG from '/assets/js/core/config.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // 1. Vérification stricte de la session (Redirection automatique vers login si non connecté)
+        // 1. Vérification stricte de la session
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
@@ -574,10 +575,11 @@
 
         // 4. Extraire le nom complet selon APP_CONFIG
         const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
-                           `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
+                           `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_PROFILE.NOM] || profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
+                           profile.nom_complet ||
                            "Utilisateur";
 
-        // 5. Extraire le rôle réel depuis la relation table roles (nom, code, etc.)
+        // 5. Extraire le rôle réel depuis la relation table roles (nom ou code)
         const roleNom = profile.roles?.nom || 
                         profile.roles?.code || 
                         profile.role || 
