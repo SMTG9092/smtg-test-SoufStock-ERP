@@ -225,7 +225,7 @@
     <!-- Script JavaScript -->
     <script type="module">
         import supabase, { getUser } from "./assets/js/core/supabase.js";
-        import { applyPagePermissions } from "./assets/js/core/auth-guard.js";
+        import { applyPagePermissions, hasPermission } from "./assets/js/core/auth-guard.js";
 
         const userNameSpan = document.getElementById("user-name");
         const stockTableBody = document.getElementById("stock-table-body");
@@ -256,20 +256,28 @@
                 return;
             }
 
-            // Jib Ism l-mustakhdim (Nom d'utilisateur) mn table profiles
+            // 1. Jib Ism l-mustakhdim (Nom d'utilisateur)
             await loadUserProfileName(user);
 
-            // --- TAḤAQQOQ MIN S-ṢALAḤIYYAT (BIJEDID WL-AUTH-GUARD) ---
-            // 1. Appliquer les permissions de la page 'stock' (kay-vérifier wach 3ndo 'view' wla kay-khfi les boutons)
+            // 2. TAḤAQQOQ SARIM (STRICT CHECK) MIN Ṣ-ṢALAḤIYYA DYAL S-SAFHA
+            // Kan-t-checkiw wach l-user 3ndo s-salhiyyat 'view' 3la safha 'stock'
+            const canView = await hasPermission("stock", "view");
+            if (canView === false) {
+                showAccessDeniedModal();
+                return;
+            }
+
+            // 3. Appliquer les permissions sur les boutons et actions (ex: excel, pdf, imprimer)
             await applyPagePermissions("stock");
 
-            // 2. Vérification rapide f profiles (wach is_active true)
+            // 4. Vérification wach l-user active f profiles
             const isActive = await checkUserActiveStatus(user.id);
             if (!isActive) {
                 showAccessDeniedModal();
                 return;
             }
 
+            // Ila daz kolchi bikhir, chargi l-data d stock
             loadAllStockView();
         });
 
@@ -301,7 +309,6 @@
             }
         }
 
-        // Function bach t-jib ism l-mustakhdim 7qiqi mn table profiles
         async function loadUserProfileName(user) {
             try {
                 const { data, error } = await supabase
