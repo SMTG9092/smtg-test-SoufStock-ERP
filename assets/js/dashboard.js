@@ -1,372 +1,61 @@
-/**
- * ==========================================================================
- * SoufStock Enterprise ERP/WMS
- * File: assets/js/dashboard.js
- * Central Dashboard Controller
- * ==========================================================================
- */
-
-import APP_CONFIG from "./core/config.js";
-import SessionManager from "./core/session.js";
-import ThemeManager from "./core/theme.js";
-import LanguageManager from "./core/language.js";
-import * as Permissions from "./core/permissions.js";
-import { Loader, Toast } from "./core/utils.js";
-import Profile from "./core/profile.js";
-import Sidebar from "./core/sidebar.js";
-import DashboardData from "./core/dashboard-data.js";
-import Charts from "./core/charts.js";
-import Notifications from "./core/notifications.js";
-import Navigation from "./core/navigation.js";
-import Realtime from "./core/realtime.js";
-
-class Dashboard {
-
-    constructor() {
-
-        this.initialized = false;
-
-        this.refreshInterval = null;
-
-        this.clockInterval = null;
-
-    }
-
-    /**
-     * ============================================================
-     * INITIALISATION GLOBALE
-     * ============================================================
-     */
-
-    async init() {
-
-        try {
-
-            Loader.show(
-
-                "Chargement...",
-
-                "Initialisation système..."
-
-            );
-
-            /* ======================================================
-               CORE
-            ====================================================== */
-
-            ThemeManager.init();
-
-            LanguageManager.init();
-
-            await SessionManager.init();
-
-            /* ======================================================
-               AUTH
-            ====================================================== */
-
-            const authenticated = await SessionManager.isAuthenticated();
-
-            if (!authenticated) {
-
-                window.location.replace(
-
-                    APP_CONFIG.ROUTES.LOGIN
-
-                );
-
-                return;
-
+document.addEventListener("DOMContentLoaded", () => {
+    // Chart 1: Entrées vs Sorties
+    const ctxLines = document.getElementById('entriesExitsChart');
+    if (ctxLines) {
+        new Chart(ctxLines, {
+            type: 'line',
+            data: {
+                labels: ['19/06', '20/06', '21/06', '22/06', '23/06', '24/06', '25/06'],
+                datasets: [
+                    {
+                        label: 'Entrées (KG)',
+                        data: [150000, 110000, 180000, 100000, 160000, 90000, 120000],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Sorties (KG)',
+                        data: [50000, 130000, 80000, 60000, 40000, 110000, 130000],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.03)' } }
+                }
             }
-
-            /* ======================================================
-               LOAD
-            ====================================================== */
-
-            await Promise.all([
-
-                Permissions.initPermissions(),
-
-                Profile.load(),
-
-                DashboardData.load()
-
-            ]);
-
-            /* ======================================================
-               UI
-            ====================================================== */
-
-            this.setupUI();
-
-            this.startClock();
-
-            Realtime.init();
-
-            this.startAutoRefresh();
-
-            this.initialized = true;
-
-            Loader.hide();
-
-            console.log(
-
-                "[Dashboard] Système opérationnel."
-
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-
-                "[Dashboard] Init Error:",
-
-                error
-
-            );
-
-            Loader.hide();
-
-            Toast.error(
-
-                "Système",
-
-                error.message ||
-
-                "Erreur lors du chargement du Dashboard."
-
-            );
-
-        }
-
+        });
     }
-    
-/**
- * ============================================================
- * SETUP UI
- * ============================================================
- */
 
-setupUI() {
-
-    Sidebar.init();
-
-    Navigation.init();
-
-    Notifications.init();
-
-    /* ======================================================
-       LOGOUT
-    ====================================================== */
-
-    const logout = async (e) => {
-
-        e?.preventDefault();
-
-        try {
-
-            if (typeof SessionManager.logout === "function") {
-
-                await SessionManager.logout();
-
+    // Chart 2: Stock par Magasin (Donut)
+    const ctxDonut = document.getElementById('stockMagasinChart');
+    if (ctxDonut) {
+        new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: ['ABPG', 'AB10', 'Congelé', 'Autres'],
+                datasets: [{
+                    data: [652120, 321450, 198300, 77862],
+                    backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '75%'
             }
-
-        } catch (error) {
-
-            console.warn(error);
-
-        }
-
-        window.location.replace(APP_CONFIG.ROUTES.LOGIN);
-
-    };
-
-    document
-        .getElementById("logoutBtn")
-        ?.addEventListener("click", logout);
-
-    document
-        .getElementById("menuLogout")
-        ?.addEventListener("click", logout);
-
-    if (typeof Charts.renderAll === "function") {
-
-        Charts.renderAll();
-
+        });
     }
-
-    document.addEventListener("keydown", (e) => {
-
-        if (e.ctrlKey && e.key.toLowerCase() === "r") {
-
-            e.preventDefault();
-
-            this.refresh();
-
-        }
-
-    });
-
-}
-    /**
-     * ============================================================
-     * CLOCK
-     * ============================================================
-     */
-
-    startClock() {
-
-        const update = () => {
-
-            const now = new Date();
-
-               const timeEl = document.getElementById("live-time");
-
-               const dateEl = document.getElementById("live-date");
-
-            if (timeEl) {
-
-                timeEl.textContent = now.toLocaleTimeString("fr-FR");
-
-            }
-
-            if (dateEl) {
-
-                dateEl.textContent = now.toLocaleDateString("fr-FR");
-
-            }
-
-        };
-
-        update();
-
-        this.clockInterval = setInterval(update, 1000);
-
-    }
-
-    /**
-     * ============================================================
-     * AUTO REFRESH
-     * ============================================================
-     */
-
-    startAutoRefresh() {
-
-        this.refreshInterval = setInterval(
-
-            () => this.refresh(),
-
-            60000
-
-        );
-
-    }
-
-    /**
-     * ============================================================
-     * REFRESH
-     * ============================================================
-     */
-
-    async refresh() {
-
-        try {
-
-            console.log(
-
-                "[Dashboard] Mise à jour..."
-
-            );
-
-            await DashboardData.load();
-
-            if (typeof Charts.renderAll === "function") {
-
-                await Charts.renderAll();
-
-            }
-
-            Toast.info(
-
-                "Dashboard",
-
-                "Données mises à jour."
-
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-
-                "[Dashboard Refresh]",
-
-                error
-
-            );
-
-        }
-
-    }
-
-    /**
-     * ============================================================
-     * DESTROY
-     * ============================================================
-     */
-
-    destroy() {
-
-        clearInterval(this.refreshInterval);
-
-        clearInterval(this.clockInterval);
-
-        if (Realtime?.destroy) {
-
-            Realtime.destroy();
-
-        }
-
-        if (Charts?.destroyAll) {
-
-            Charts.destroyAll();
-
-        }
-
-        if (Notifications?.clear) {
-
-            Notifications.clear();
-
-        }
-
-        console.log(
-
-            "[Dashboard] Ressources libérées."
-
-        );
-
-    }
-
-}
-
-const dashboard = new Dashboard();
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    () => dashboard.init()
-
-);
-
-window.addEventListener(
-
-    "beforeunload",
-
-    () => dashboard.destroy()
-
-);
-
-export default dashboard;
+});
