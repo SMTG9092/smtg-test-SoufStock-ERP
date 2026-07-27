@@ -98,10 +98,11 @@
 
         async function loadStockView() {
             try {
-                // Kan-jibohom mn la vue v_stock_disponible
+                // Kan-jibohom mn la vue v_stock_disponible m3a range l 1000 ligne
                 const { data, error } = await supabase
                     .from("v_stock_disponible")
-                    .select("*");
+                    .select("*")
+                    .range(0, 999);
 
                 if (error) throw error;
 
@@ -110,7 +111,7 @@
 
             } catch (err) {
                 console.error("Erreur chargement view stock:", err.message);
-                stockTableBody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erreur lors du chargement des données.</td></tr>`;
+                stockTableBody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erreur lors du chargement: ${err.message}</td></tr>`;
             }
         }
 
