@@ -30,20 +30,18 @@
         </div>
     </div>
 
-    <!-- Script JavaScript dyal Redirection w t-taḥaqquq -->
+    <!-- Script JavaScript dyal Redirection -->
     <script type="module">
         import { getUser } from "./assets/js/core/supabase.js";
 
         document.addEventListener("DOMContentLoaded", async () => {
             const user = await getUser();
             
-            // Ila kan l-user ga3 ma m-loji, ddiih l index.html
             if (!user) {
                 window.location.href = "index.html";
                 return;
             }
 
-            // BDDAW D-COUNTER D 3 D S-TAWA W REDIRECTION
             let timeLeft = 3;
             const countdownTimer = document.getElementById("countdown-timer");
 
