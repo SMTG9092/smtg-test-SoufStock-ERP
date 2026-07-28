@@ -89,31 +89,6 @@
             flex: 1;
         }
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item i {
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
-            color: var(--primary-glow);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
         .sidebar-footer {
             padding: 15px;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -340,6 +315,7 @@
             font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
+            text-decoration: none;
         }
         .btn-view-all:hover {
             background: var(--primary-glow);
@@ -352,9 +328,7 @@
 
 <div class="app">
 
-    <!-- ===================================================== -->
     <!-- SIDEBAR PRO -->
-    <!-- ===================================================== -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-snowflake sidebar-logo"></i>
@@ -365,7 +339,7 @@
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
-            <!-- Ghadi t-3mmar otomatikan mn Navigation -->
+            <!-- Ghadi t-3mmar otomatikan mn Navigation.js -->
         </nav>
 
         <div class="sidebar-footer">
@@ -373,16 +347,13 @@
                 <h4 id="userNameSidebar">Chargement...</h4>
                 <span id="userRoleSidebar" style="display: none;"></span>
             </div>
-            <!-- Bouton Déconnexion (Log Out) -->
             <button id="btnLogout" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i> Déconnexion
             </button>
         </div>
     </aside>
 
-    <!-- ===================================================== -->
     <!-- MAIN CONTENT -->
-    <!-- ===================================================== -->
     <main class="main">
         
         <div class="welcome-banner">
@@ -508,28 +479,14 @@
                             <th>Magasin</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="mouvementsTableBody">
+                        <!-- Ghadi t-3mmar automatiquement mn Supabase (mouvements_stock) -->
                         <tr>
-                            <td>25/06/2026 10:15</td>
-                            <td><span class="badge-status entree">Entrée</span></td>
-                            <td>220000264</td>
-                            <td>26106PC844</td>
-                            <td>A407</td>
-                            <td>1 250.000</td>
-                            <td>ABPG</td>
-                        </tr>
-                        <tr>
-                            <td>25/06/2026 09:48</td>
-                            <td><span class="badge-status sortie">Sortie</span></td>
-                            <td>220000285</td>
-                            <td>26106PC845</td>
-                            <td>A408</td>
-                            <td>850.000</td>
-                            <td>ABPG</td>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted);">Chargement des mouvements...</td>
                         </tr>
                     </tbody>
                 </table>
-                <button class="btn-view-all" data-page="mouvements">Voir tous les mouvements</button>
+                <a href="mouvements.html" class="btn-view-all">Voir tous les mouvements</a>
             </div>
 
             <div class="pro-card">
@@ -545,7 +502,7 @@
                         <span style="color: #ef4444; font-weight: 700; font-size: 12px;">120.000 KG</span>
                     </div>
                 </div>
-                <button class="btn-view-all" data-page="alertes">Voir toutes les alertes</button>
+                <a href="alertes.html" class="btn-view-all">Voir toutes les alertes</a>
             </div>
         </div>
 
@@ -555,7 +512,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Initialize Navigation & Robust Profile & Role Fetching -->
+<!-- Logique Principale w Jbd d L-ma3lomat mn Supabase -->
 <script type="module">
     import Navigation from "/assets/js/core/navigation.js";
     import SessionManager from "/assets/js/core/session.js";
@@ -567,69 +524,50 @@
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
-        // 1. Initialiser les permissions awalan bash activePagesCache t-3mmar w la sidebar t-ban
+        // 1. Initialiser les permissions et la sidebar
         await initPermissions();
-
-        // 2. Initialiser la navigation w sidebar
         Navigation.init();
 
         const user = await SessionManager.getUser();
         if (!user) return;
 
-        // 3. Jib user_profiles
+        // 2. Charger profil utilisateur
         const { data: profile, error } = await supabase
             .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
             .select('*')
             .eq(APP_CONFIG.PROFILE.ID, user.id)
             .single();
 
-        if (error || !profile) {
-            console.error("Erreur profile:", error);
-            return;
-        }
+        if (!error && profile) {
+            let roleNom = "";
+            if (profile[APP_CONFIG.PROFILE.ROLE_ID]) {
+                const { data: roleData } = await supabase
+                    .from(APP_CONFIG.DATABASE.ROLES_TABLE)
+                    .select(`${APP_CONFIG.ROLE.NOM}, ${APP_CONFIG.ROLE.CODE}`)
+                    .eq(APP_CONFIG.ROLE.ID, profile[APP_CONFIG.PROFILE.ROLE_ID])
+                    .single();
 
-        // 4. Jib l-role b ṭariqa mofassala mn la table roles
-        let roleNom = "";
-        if (profile[APP_CONFIG.PROFILE.ROLE_ID]) {
-            const { data: roleData, error: roleError } = await supabase
-                .from(APP_CONFIG.DATABASE.ROLES_TABLE)
-                .select(`${APP_CONFIG.ROLE.NOM}, ${APP_CONFIG.ROLE.CODE}`)
-                .eq(APP_CONFIG.ROLE.ID, profile[APP_CONFIG.PROFILE.ROLE_ID])
-                .single();
+                if (roleData) {
+                    roleNom = roleData[APP_CONFIG.ROLE.NOM] || roleData[APP_CONFIG.ROLE.CODE] || "";
+                }
+            }
 
-            if (!roleError && roleData) {
-                roleNom = roleData[APP_CONFIG.ROLE.NOM] || roleData[APP_CONFIG.ROLE.CODE] || "";
+            const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
+                               profile.nom_complet || 
+                               `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
+                               "Utilisateur";
+
+            document.getElementById('welcomeTitle').textContent = `Bienvenue, ${nomComplet} !`;
+            document.getElementById('userNameSidebar').textContent = nomComplet;
+
+            const userRoleEl = document.getElementById('userRoleSidebar');
+            if (roleNom && userRoleEl) {
+                userRoleEl.textContent = roleNom;
+                userRoleEl.style.display = 'inline-block';
             }
         }
 
-        // 5. Extraire le nom complet
-        const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
-                           profile.nom_complet || 
-                           `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
-                           "Utilisateur";
-
-        // 6. Affichage dynamique
-        const welcomeTitleEl = document.getElementById('welcomeTitle');
-        if (welcomeTitleEl) {
-            welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
-        }
-
-        const userNameSidebarEl = document.getElementById('userNameSidebar');
-        if (userNameSidebarEl) {
-            userNameSidebarEl.textContent = nomComplet;
-        }
-
-        const userRoleSidebarEl = document.getElementById('userRoleSidebar');
-        if (userRoleSidebarEl) {
-            if (roleNom) {
-                userRoleSidebarEl.textContent = roleNom;
-                userRoleSidebarEl.style.display = 'inline-block';
-            } else {
-                userRoleSidebarEl.style.display = 'none';
-            }
-        }
-
-        // 7. Logout
+        // 3. Bouton Déconnexion
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
@@ -638,7 +576,118 @@
                 }
             });
         }
+
+        // 4. Charger Graphiques w Données Réelles de mouvements_stock
+        initCharts();
+        await loadDashboardMouvements();
     });
+
+    function initCharts() {
+        const ctxLines = document.getElementById('entriesExitsChart');
+        if (ctxLines) {
+            new Chart(ctxLines, {
+                type: 'line',
+                data: {
+                    labels: ['19/06', '20/06', '21/06', '22/06', '23/06', '24/06', '25/06'],
+                    datasets: [
+                        {
+                            label: 'Entrées (KG)',
+                            data: [150000, 110000, 180000, 100000, 160000, 90000, 120000],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Sorties (KG)',
+                            data: [50000, 130000, 80000, 60000, 40000, 110000, 130000],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.03)' } }
+                    }
+                }
+            });
+        }
+
+        const ctxDonut = document.getElementById('stockMagasinChart');
+        if (ctxDonut) {
+            new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ABPG', 'AB10', 'Congelé', 'Autres'],
+                    datasets: [{
+                        data: [652120, 321450, 198300, 77862],
+                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '75%'
+                }
+            });
+        }
+    }
+
+    async function loadDashboardMouvements() {
+        try {
+            const { data: mouvements, error } = await supabase
+                .from('mouvements_stock')
+                .select('date_mouvement, type_mouvement, article, lot, emplacement, quantite, magasin')
+                .order('date_mouvement', { ascending: false })
+                .limit(5);
+
+            const tbody = document.getElementById('mouvementsTableBody');
+            if (!tbody) return;
+
+            if (error || !mouvements || mouvements.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Aucun mouvement récent trouvé.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            mouvements.forEach(item => {
+                const isEntree = ['AJOUT', 'IMPORT', 'RETOUR', 'ENTREE'].includes((item.type_mouvement || '').toUpperCase());
+                const badgeClass = isEntree ? 'entree' : 'sortie';
+                const badgeLabel = isEntree ? 'Entrée' : 'Sortie';
+                
+                let formattedDate = '';
+                if (item.date_mouvement) {
+                    const d = new Date(item.date_mouvement);
+                    formattedDate = d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                }
+
+                html += `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td><span class="badge-status ${badgeClass}">${badgeLabel}</span></td>
+                        <td>${item.article || ''}</td>
+                        <td>${item.lot || ''}</td>
+                        <td>${item.emplacement || ''}</td>
+                        <td>${item.quantite ? Number(item.quantite).toLocaleString('fr-FR', {minimumFractionDigits: 3}) : ''}</td>
+                        <td>${item.magasin || ''}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+
+        } catch (err) {
+            console.error("Erreur chargement tableau mouvements:", err);
+        }
+    }
 </script>
 
 </body>
