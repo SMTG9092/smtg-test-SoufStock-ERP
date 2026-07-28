@@ -13,8 +13,24 @@ class NavigationManager {
 
     constructor() {
         this.currentPage = "";
-        this.routes = {}; // Ghadi t-3mmar otomatikan mn Supabase
+        this.routes = {}; 
         this.initialized = false;
+        
+        // Configuration dyal les icônes w les noms wḍahin 
+        this.pageConfig = {
+            'dashboard': { name: 'Tableau de bord', icon: 'fas fa-chart-pie' },
+            'import_stock': { name: 'Import Stock', icon: 'fas fa-file-excel' },
+            'import_commandes_kg': { name: 'Import Commandes KG', icon: 'fas fa-weight-hanging' },
+            'import_commandes_pieces': { name: 'Import Commandes Pcs', icon: 'fas fa-boxes-stacked' },
+            'stock': { name: 'Gestion Stock', icon: 'fas fa-warehouse' },
+            'commandes': { name: 'Commandes', icon: 'fas fa-shopping-cart' },
+            'picking': { name: 'Préparation Picking', icon: 'fas fa-dolly' },
+            'ab10': { name: 'Magasin AB10', icon: 'fas fa-box-open' },
+            'expeditions': { name: 'Expéditions', icon: 'fas fa-truck-fast' },
+            'utilisateurs': { name: 'Utilisateurs', icon: 'fas fa-users-cog' },
+            'parametres': { name: 'Paramètres', icon: 'fas fa-sliders' },
+            'roles': { name: 'Rôles & Permissions', icon: 'fas fa-shield-alt' }
+        };
     }
 
     /* ============================================================
@@ -24,7 +40,6 @@ class NavigationManager {
     async init() {
         this.detectCurrentPage();
         
-        // Jib les routes w r-render dyal sidebar mn la base de données
         await this.loadRoutesFromDatabase();
         await this.renderSidebar();
 
@@ -63,7 +78,7 @@ class NavigationManager {
                         if (cleanUrl.startsWith('/')) {
                             cleanUrl = cleanUrl.substring(1);
                         }
-                        this.routes[page.code] = cleanUrl;
+                        this.routes[page.code.toLowerCase()] = cleanUrl;
                     }
                 });
             }
@@ -92,18 +107,47 @@ class NavigationManager {
             }
 
             if (pages) {
-                let html = '';
+                let html = '<div class="nav-menu-list" style="display: flex; flex-direction: column; gap: 4px;">';
+                
                 pages.forEach(page => {
-                    const pageLabel = this.format(page.code);
-                    const pageIcon = 'fas fa-file'; // Icon par défaut
+                    const pageKey = (page.code || '').toLowerCase();
                     
+                    // Jib smiya w icône mn dictionnaire, wla gaddhoum otomatikan ila tzadate page jdida
+                    let config = this.pageConfig[pageKey];
+                    if (!config) {
+                        let formattedName = page.code.replace(/_/g, ' ');
+                        formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1);
+                        config = {
+                            name: formattedName,
+                            icon: 'fas fa-folder-open'
+                        };
+                    }
+
+                    const isActive = this.currentPage === pageKey;
+
                     html += `
-                        <a href="${page.url}" class="sidebar-item ${this.currentPage === page.code ? 'active' : ''}" data-page="${page.code}">
-                            <i class="${pageIcon}"></i>
-                            <span>${pageLabel}</span>
+                        <a href="${page.url}" class="sidebar-item ${isActive ? 'active' : ''}" data-page="${page.code}" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            padding: 10px 14px;
+                            border-radius: 10px;
+                            color: ${isActive ? '#fff' : '#94a3b8'};
+                            background: ${isActive ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))' : 'transparent'};
+                            border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.4)' : 'transparent'};
+                            text-decoration: none;
+                            font-size: 13px;
+                            font-weight: ${isActive ? '600' : '500'};
+                            transition: all 0.2s ease;
+                        " onmouseover="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.color='#fff';" 
+                           onmouseout="this.style.background='${isActive ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))' : 'transparent'}'; this.style.color='${isActive ? '#fff' : '#94a3b8'}';">
+                            <i class="${config.icon}" style="width: 18px; text-align: center; color: ${isActive ? '#10b981' : '#64748b'};"></i>
+                            <span>${config.name}</span>
                         </a>
                     `;
                 });
+
+                html += '</div>';
                 navContainer.innerHTML = html;
             }
         } catch (err) {
@@ -133,14 +177,15 @@ class NavigationManager {
     async navigate(page) {
         if (!page) return;
 
-        if (page === this.currentPage)
+        const pageKey = page.toLowerCase();
+        if (pageKey === this.currentPage)
             return;
 
         if (Object.keys(this.routes).length === 0) {
             await this.loadRoutesFromDatabase();
         }
 
-        const route = this.routes[page];
+        const route = this.routes[pageKey];
 
         if (!route) {
             Toast.error(
@@ -167,7 +212,8 @@ class NavigationManager {
             window.location.pathname
                 .split("/")
                 .pop()
-                .replace(".html", "");
+                .replace(".html", "")
+                .toLowerCase();
 
         this.currentPage =
             file || "dashboard";
@@ -225,8 +271,12 @@ class NavigationManager {
      */
     format(text) {
         if (!text) return "";
+        const lowerKey = text.toLowerCase();
+        if (this.pageConfig[lowerKey]) {
+            return this.pageConfig[lowerKey].name;
+        }
         return text
-            .replace(/-/g, " ")
+            .replace(/_/g, " ")
             .replace(
                 /\b\w/g,
                 c => c.toUpperCase()
