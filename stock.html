@@ -109,7 +109,7 @@
                             <i class="fas fa-warehouse text-emerald-400"></i> État Global du Stock
                         </h2>
                         <p class="text-xs text-slate-400 mt-1">
-                            Consultation en direct. Quantité Totale Disponible : <span id="totalStockBadge" class="text-emerald-400 font-bold font-mono">0</span>
+                            Consultation en direct. Quantité Totale Disponible : <span id="totalStockBadge" class="text-emerald-400 font-bold font-mono">Chargement...</span>
                         </p>
                     </div>
                     
@@ -183,7 +183,7 @@
         import supabase from './assets/js/core/supabase.js';
 
         let currentPage = 1;
-        const pageSize = 50; // Nombre de lignes par page
+        const pageSize = 50; 
         let totalRecords = 0;
         let currentSearch = "";
         let currentMagasin = "";
@@ -196,13 +196,9 @@
         document.addEventListener("DOMContentLoaded", async () => {
             await Navigation.init();
 
-            // Remplir la liste des magasins initialement (pour le filtre)
             await populateMagasinFilterDropdown();
-
-            // Charger les données de la première page
             await loadStockData();
 
-            // Événements de recherche et filtre
             const searchInput = document.getElementById("searchInput");
             const magasinFilter = document.getElementById("magasinFilter");
 
@@ -212,7 +208,7 @@
                     clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(async () => {
                         currentSearch = e.target.value.trim();
-                        currentPage = 1; // Retour à la première page
+                        currentPage = 1; 
                         await loadStockData();
                     }, 300);
                 });
@@ -221,7 +217,7 @@
             if (magasinFilter) {
                 magasinFilter.addEventListener("change", async (e) => {
                     currentMagasin = e.target.value;
-                    currentPage = 1; // Retour à la première page
+                    currentPage = 1; 
                     await loadStockData();
                 });
             }
@@ -237,7 +233,8 @@
 
         async function populateMagasinFilterDropdown() {
             try {
-                const { data, error } = await supabase.from('vw_stock').select('magasin');
+                // Get unique magasins without strict row limits
+                const { data, error } = await supabase.from('vw_stock').select('magasin').limit(5000);
                 if (error || !data) return;
 
                 const magasins = [...new Set(data.map(item => item.magasin).filter(Boolean))].sort();
@@ -260,7 +257,6 @@
             const tbody = document.getElementById("stockTableBody");
             
             try {
-                // 1. Construire la requête de base pour les données paginées
                 let query = supabase.from('vw_stock').select('*', { count: 'exact' });
 
                 if (currentSearch !== "") {
@@ -270,7 +266,6 @@
                     query = query.eq('magasin', currentMagasin);
                 }
 
-                // Pagination range
                 const start = (currentPage - 1) * pageSize;
                 const end = start + pageSize - 1;
                 query = query.range(start, end).order('article', { ascending: true });
@@ -287,8 +282,8 @@
                 renderTable(data || []);
                 updatePaginationControls();
 
-                // 2. Calculer le Sommet Total Global (Quantité Disponible Totale) indépendamment des pages
-                await loadTotalGlobalQuantity();
+                // Solution robuste pour récupérer le total global exact même avec plus de 1000 lignes (par blocs de 1000)
+                await calculateExactTotalGlobalQuantity();
 
             } catch (err) {
                 console.error("Erreur technique:", err);
@@ -296,28 +291,50 @@
             }
         }
 
-        async function loadTotalGlobalQuantity() {
+        async function calculateExactTotalGlobalQuantity() {
             try {
-                let query = supabase.from('vw_stock').select('stock_disponible');
+                let grandTotal = 0;
+                let step = 1000;
+                let rangeStart = 0;
+                let hasMore = true;
 
-                if (currentSearch !== "") {
-                    query = query.or(`article.ilike.%${currentSearch}%,designation_article.ilike.%${currentSearch}%,lot.ilike.%${currentSearch}%`);
+                while (hasMore) {
+                    let query = supabase.from('vw_stock').select('stock_disponible');
+
+                    if (currentSearch !== "") {
+                        query = query.or(`article.ilike.%${currentSearch}%,designation_article.ilike.%${currentSearch}%,lot.ilike.%${currentSearch}%`);
+                    }
+                    if (currentMagasin !== "") {
+                        query = query.eq('magasin', currentMagasin);
+                    }
+
+                    query = query.range(rangeStart, rangeStart + step - 1);
+                    const { data, error } = await query;
+
+                    if (error || !data || data.length === 0) {
+                        hasMore = false;
+                        break;
+                    }
+
+                    data.forEach(item => {
+                        grandTotal += Number(item.stock_disponible || 0);
+                    });
+
+                    if (data.length < step) {
+                        hasMore = false;
+                    } else {
+                        rangeStart += step;
+                    }
                 }
-                if (currentMagasin !== "") {
-                    query = query.eq('magasin', currentMagasin);
-                }
 
-                const { data, error } = await query;
-                if (error || !data) return;
-
-                let grandTotal = data.reduce((sum, item) => sum + Number(item.stock_disponible || 0), 0);
-                
                 const totalStockBadge = document.getElementById("totalStockBadge");
                 if (totalStockBadge) {
-                    totalStockBadge.textContent = grandTotal.toLocaleString();
+                    totalStockBadge.textContent = grandTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
             } catch (err) {
-                console.error("Erreur calcul total global:", err);
+                console.error("Erreur calcul total global exact:", err);
+                const totalStockBadge = document.getElementById("totalStockBadge");
+                if (totalStockBadge) totalStockBadge.textContent = "Erreur calcul";
             }
         }
 
