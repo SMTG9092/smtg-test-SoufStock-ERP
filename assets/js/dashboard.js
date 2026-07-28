@@ -1,4 +1,17 @@
-document.addEventListener("DOMContentLoaded", () => {
+import supabase from "../core/supabase.js";
+
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Charger les graphiques (Charts)
+    initCharts();
+
+    // 2. Charger les données réelles depuis la table mouvements_stock
+    await loadDashboardData();
+});
+
+/* ============================================================
+ * INIT CHARTS
+ * ============================================================ */
+function initCharts() {
     // Chart 1: Entrées vs Sorties
     const ctxLines = document.getElementById('entriesExitsChart');
     if (ctxLines) {
@@ -58,4 +71,53 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-});
+}
+
+/* ============================================================
+ * LOAD DATA FROM SUPABASE (mouvements_stock)
+ * ============================================================ */
+async function loadDashboardData() {
+    try {
+        const { data: mouvements, error } = await supabase
+            .from('mouvements_stock')
+            .select('date_mouvement, type_mouvement, article, lot, emplacement, quantite, magasin')
+            .order('date_mouvement', { ascending: false })
+            .limit(5);
+
+        if (error) {
+            console.error("Erreur chargement mouvements_stock:", error.message);
+            return;
+        }
+
+        const tbody = document.getElementById('mouvementsTableBody');
+        if (!tbody || !mouvements) return;
+
+        let html = '';
+        mouvements.forEach(item => {
+            const isEntree = ['AJOUT', 'IMPORT', 'RETOUR'].includes(item.type_mouvement);
+            const badgeClass = isEntree ? 'bg-success' : 'bg-danger';
+            
+            let formattedDate = '';
+            if (item.date_mouvement) {
+                const d = new Date(item.date_mouvement);
+                formattedDate = d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+
+            html += `
+                <tr>
+                    <td>${formattedDate}</td>
+                    <td><span class="badge ${badgeClass}">${item.type_mouvement}</span></td>
+                    <td>${item.article || ''}</td>
+                    <td>${item.lot || ''}</td>
+                    <td>${item.emplacement || ''}</td>
+                    <td>${item.quantite || ''}</td>
+                    <td>${item.magasin || ''}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+
+    } catch (err) {
+        console.error("Erreur de connexion Supabase:", err);
+    }
+}
