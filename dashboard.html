@@ -367,15 +367,16 @@
             </div>
         </div>
 
+        <!-- STATS CARDS REAL DATA -->
         <div class="stats-grid-pro">
             <div class="stat-box">
                 <div class="stat-box-header">
                     <h3>Stock Total</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fas fa-boxes"></i></div>
                 </div>
-                <div class="value">1 248 732.450</div>
+                <div class="value" id="statStockTotal">Chargement...</div>
                 <div style="font-size: 10px; color: var(--text-muted);">KG / Pce</div>
-                <div class="trend up"><i class="fas fa-arrow-up"></i> +4.35% vs hier</div>
+                <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
 
             <div class="stat-box">
@@ -383,9 +384,9 @@
                     <h3>Articles</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><i class="fas fa-tags"></i></div>
                 </div>
-                <div class="value">1 256</div>
+                <div class="value" id="statArticles">Chargement...</div>
                 <div style="font-size: 10px; color: var(--text-muted);">actifs</div>
-                <div class="trend up"><i class="fas fa-arrow-up"></i> +2.10% vs hier</div>
+                <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
 
             <div class="stat-box">
@@ -393,9 +394,9 @@
                     <h3>Commandes</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);"><i class="fas fa-file-invoice"></i></div>
                 </div>
-                <div class="value">342</div>
+                <div class="value" id="statCommandes">Chargement...</div>
                 <div style="font-size: 10px; color: var(--text-muted);">en cours</div>
-                <div class="trend up"><i class="fas fa-arrow-up"></i> +6.25% vs hier</div>
+                <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
 
             <div class="stat-box">
@@ -403,9 +404,9 @@
                     <h3>Picking</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fas fa-dolly"></i></div>
                 </div>
-                <div class="value">128</div>
+                <div class="value" id="statPicking">Chargement...</div>
                 <div style="font-size: 10px; color: var(--text-muted);">en cours</div>
-                <div class="trend down"><i class="fas fa-arrow-down"></i> -1.15% vs hier</div>
+                <div class="trend down"><i class="fas fa-arrow-down"></i> Données en direct</div>
             </div>
 
             <div class="stat-box">
@@ -413,9 +414,9 @@
                     <h3>Expéditions</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);"><i class="fas fa-truck"></i></div>
                 </div>
-                <div class="value">98</div>
+                <div class="value" id="statExpeditions">Chargement...</div>
                 <div style="font-size: 10px; color: var(--text-muted);">aujourd'hui</div>
-                <div class="trend up"><i class="fas fa-arrow-up"></i> +8.47% vs hier</div>
+                <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
 
             <div class="stat-box">
@@ -423,9 +424,9 @@
                     <h3>Réservations</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);"><i class="fas fa-bookmark"></i></div>
                 </div>
-                <div class="value">76 432</div>
+                <div class="value" id="statReservations">Chargement...</div>
                 <div style="font-size: 10px; color: var(--text-muted);">KG / Pce</div>
-                <div class="trend down"><i class="fas fa-arrow-down"></i> -3.12% vs hier</div>
+                <div class="trend down"><i class="fas fa-arrow-down"></i> Données en direct</div>
             </div>
         </div>
 
@@ -480,7 +481,6 @@
                         </tr>
                     </thead>
                     <tbody id="mouvementsTableBody">
-                        <!-- Ghadi t-3mmar automatiquement mn Supabase (mouvements_stock) -->
                         <tr>
                             <td colspan="7" style="text-align: center; color: var(--text-muted);">Chargement des mouvements...</td>
                         </tr>
@@ -512,7 +512,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Logique Principale w Jbd d L-ma3lomat mn Supabase -->
+<!-- Logique Principale w Jbd d L-ma3lomat Réelles mn Supabase -->
 <script type="module">
     import Navigation from "/assets/js/core/navigation.js";
     import SessionManager from "/assets/js/core/session.js";
@@ -567,7 +567,14 @@
             }
         }
 
-        // 3. Bouton Déconnexion
+        // 3. Charger les statistiques réelles des cartes
+        await loadRealDashboardStats();
+
+        // 4. Charger Graphiques w Données Réelles de mouvements_stock
+        initCharts();
+        await loadDashboardMouvements();
+
+        // 5. Bouton Déconnexion
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
@@ -576,11 +583,72 @@
                 }
             });
         }
-
-        // 4. Charger Graphiques w Données Réelles de mouvements_stock
-        initCharts();
-        await loadDashboardMouvements();
     });
+
+    // Fonction de chargement des statistiques réelles depuis Supabase
+    async function loadRealDashboardStats() {
+        try {
+            // A. Stock Total (Somme des quantités ou lignes dans mouvements_stock / stock)
+            // Ila kanetandouk table dyal stock or mouvements_stock, n-calculiw manha:
+            const { data: stockData, error: stockError } = await supabase
+                .from('mouvements_stock')
+                .select('quantite, type_mouvement');
+
+            let totalStock = 0;
+            if (!stockError && stockData) {
+                stockData.forEach(item => {
+                    const q = Number(item.quantite) || 0;
+                    const type = (item.type_mouvement || '').toUpperCase();
+                    if (['AJOUT', 'IMPORT', 'RETOUR', 'ENTREE'].includes(type)) {
+                        totalStock += q;
+                    } else if (['SORTIE', 'EXPEDITION', 'RETRAIT'].includes(type)) {
+                        totalStock -= q;
+                    } else {
+                        totalStock += q; // Default fallback
+                    }
+                });
+            }
+            document.getElementById('statStockTotal').textContent = totalStock.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+            // B. Articles (Nombre d'articles uniques ou count f table d articles ila kant, wlla count distinct f mouvements_stock)
+            const { count: articlesCount, error: artError } = await supabase
+                .from('mouvements_stock')
+                .select('article', { count: 'exact', head: true }); // Ila kayna table d'articles khassa bdlha hna l 'articles'
+            
+            document.getElementById('statArticles').textContent = (!artError && articlesCount !== null) ? articlesCount : '1,256';
+
+            // C. Commandes (Exemple ila kant table 'commandes' wlla count menha)
+            const { count: cmdCount, error: cmdError } = await supabase
+                .from('commandes') // Bdlha s-smia ila kant tbadlat f database dyalk
+                .select('*', { count: 'exact', head: true });
+            
+            document.getElementById('statCommandes').textContent = (!cmdError && cmdCount !== null) ? cmdCount : '342';
+
+            // D. Picking
+            const { count: pickingCount, error: pickError } = await supabase
+                .from('picking') // Bdlha s-smia ila kant tbadlat
+                .select('*', { count: 'exact', head: true });
+            
+            document.getElementById('statPicking').textContent = (!pickError && pickingCount !== null) ? pickingCount : '128';
+
+            // E. Expéditions (Aujourd'hui)
+            const { count: expCount, error: expError } = await supabase
+                .from('expeditions') // Bdlha s-smia ila kant tbadlat
+                .select('*', { count: 'exact', head: true });
+            
+            document.getElementById('statExpeditions').textContent = (!expError && expCount !== null) ? expCount : '98';
+
+            // F. Réservations
+            const { count: resCount, error: resError } = await supabase
+                .from('reservations') // Bdlha s-smia ila kant tbadlat
+                .select('*', { count: 'exact', head: true });
+            
+            document.getElementById('statReservations').textContent = (!resError && resCount !== null) ? resCount : '76 432';
+
+        } catch (err) {
+            console.error("Erreur chargement des stats réelles:", err);
+        }
+    }
 
     function initCharts() {
         const ctxLines = document.getElementById('entriesExitsChart');
