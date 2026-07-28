@@ -5,51 +5,56 @@ const Navigation = {
         const navContainer = document.getElementById('sidebarNav');
         if (!navContainer) return;
 
-        // Jib les pages actifs mn la table public.pages
         const { data: pages, error } = await supabase
             .from('pages')
-            .select('code, nom, url, ordre_affichage')
-            .eq('actif', true)
+            .select('*')
             .order('ordre_affichage', { ascending: true });
 
         if (error) {
-            console.error("Erreur chargement navigation:", error);
-            navContainer.innerHTML = `<div style="color: #ef4444; font-size: 11px; padding: 10px;">Erreur de chargement du menu</div>`;
+            console.error("Erreur chargement navigation Supabase:", error);
+            navContainer.innerHTML = `<div style="color: #ef4444; font-size: 11px; padding: 10px;">Erreur: ${error.message}</div>`;
             return;
         }
 
         if (!pages || pages.length === 0) {
-            navContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 11px; padding: 10px;">Aucune page configurée</div>`;
+            navContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 11px; padding: 10px;">Aucune page trouvée</div>`;
             return;
         }
 
-        // 3raf l'URL dyal la page li nta fiha daba bash t-ban "active"
         const currentPath = window.location.pathname;
 
-        // Mapping dyal les icônes 3la hsab l'code wla l'nom dyal la page
         const iconsMap = {
             'dashboard': 'fa-chart-pie',
-            'mouvements': 'fa-exchange-alt',
-            'articles': 'fa-boxes',
-            'stocks': 'fa-warehouse',
+            'import_stock': 'fa-file-import',
+            'import_commandes_kg': 'fa-file-excel',
+            'import_commandes_pieces': 'fa-file-excel',
+            'stock': 'fa-warehouse',
             'commandes': 'fa-file-invoice',
             'picking': 'fa-dolly',
+            'ab10': 'fa-box-open',
             'expeditions': 'fa-truck',
             'utilisateurs': 'fa-users',
-            'pages': 'fa-sitemap',
-            'parametres': 'fa-cog'
+            'parametres': 'fa-cog',
+            'roles': 'fa-user-shield'
         };
 
-        // Génération dynamique dyal HTML dyal la navigation
         navContainer.innerHTML = pages.map(page => {
-            // Khod l'icône wla ddiro default (fa-circle)
-            const iconClass = iconsMap[page.code.toLowerCase()] || 'fa-folder';
+            if (page.actif === false) return '';
+
+            const codeKey = (page.code || '').toLowerCase();
+            const iconClass = iconsMap[codeKey] || 'fa-folder';
             
-            // Wesh had la page hiya lli mftouha daba?
-            const isActive = currentPath.includes(page.url) ? 'active' : '';
+            // Traitement dyal l'URL bach ykoun flexible (m3a wla bla /pages/)
+            let pageUrl = page.url || '#';
+            if (!pageUrl.startsWith('http') && !pageUrl.startsWith('/')) {
+                pageUrl = '/' + pageUrl;
+            }
+
+            // Vérification wach la page hiya li mftouha daba
+            const isActive = currentPath.endsWith(page.url) || currentPath.includes(page.code);
 
             return `
-                <a href="${page.url}" class="nav-item ${isActive}">
+                <a href="${pageUrl}" class="nav-item ${isActive ? 'active' : ''}">
                     <i class="fas ${iconClass}"></i>
                     <span>${page.nom}</span>
                 </a>
