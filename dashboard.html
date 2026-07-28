@@ -561,17 +561,22 @@
     import SessionManager from "/assets/js/core/session.js";
     import APP_CONFIG from "/assets/js/core/config.js";
     import supabase from "/assets/js/core/supabase.js";
+    import { initPermissions } from "/assets/js/core/permissions.js";
 
     document.addEventListener("DOMContentLoaded", async () => {
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
+        // 1. Initialiser les permissions awalan bash activePagesCache t-3mmar w la sidebar t-ban
+        await initPermissions();
+
+        // 2. Initialiser la navigation w sidebar
         Navigation.init();
 
         const user = await SessionManager.getUser();
         if (!user) return;
 
-        // 1. Jib user_profiles
+        // 3. Jib user_profiles
         const { data: profile, error } = await supabase
             .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
             .select('*')
@@ -583,7 +588,7 @@
             return;
         }
 
-        // 2. Jib l-role b ṭariqa mofassala mn la table roles
+        // 4. Jib l-role b ṭariqa mofassala mn la table roles
         let roleNom = "";
         if (profile[APP_CONFIG.PROFILE.ROLE_ID]) {
             const { data: roleData, error: roleError } = await supabase
@@ -597,13 +602,13 @@
             }
         }
 
-        // 3. Extraire le nom complet
+        // 5. Extraire le nom complet
         const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
                            profile.nom_complet || 
                            `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
                            "Utilisateur";
 
-        // 4. Affichage dynamique
+        // 6. Affichage dynamique
         const welcomeTitleEl = document.getElementById('welcomeTitle');
         if (welcomeTitleEl) {
             welcomeTitleEl.textContent = `Bienvenue, ${nomComplet} !`;
@@ -624,7 +629,7 @@
             }
         }
 
-        // 5. Logout
+        // 7. Logout
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
