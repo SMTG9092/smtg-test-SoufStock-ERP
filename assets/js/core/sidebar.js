@@ -28,7 +28,7 @@ class SidebarManager {
         // 1. Jib les pages mn Supabase w rmihoum f la Sidebar awalan
         await this.loadPagesIntoSidebar();
 
-        // 2. Jama3 les liens morama t-bnawo
+        // 2. Jama3 les liens morama t-bnawo w t-tchearjaw
         this.links = [
             ...document.querySelectorAll(".nav-item")
         ];
@@ -112,6 +112,11 @@ class SidebarManager {
                 `;
             }).join('');
 
+            // ** Mouhim: 3awd jma3 les liens jdads mn baab t-generation dyalhoum DOM w t-biko 3lihoum permissions w events **
+            this.links = [...document.querySelectorAll(".nav-item")];
+            this.applyPermissions();
+            this.bindLinks();
+
         } catch (err) {
             console.error("Erreur technique f loadPagesIntoSidebar:", err);
         }
@@ -122,29 +127,18 @@ class SidebarManager {
      * ============================================================ */
 
     applyPermissions() {
-
         this.links.forEach(link => {
-
-            const permission =
-
-                link.dataset.permission;
-
+            const permission = link.dataset.permission;
             if (!permission) return;
 
             if (Permissions.can(permission)) {
-
                 link.hidden = false;
-
-            }
-
-            else {
-
+                link.style.display = ""; // Bach t-bayan flex/block l'original dialha CSS
+            } else {
                 link.hidden = true;
-
+                link.style.display = "none";
             }
-
         });
-
     }
 
     /* ============================================================
@@ -152,45 +146,32 @@ class SidebarManager {
      * ============================================================ */
 
     bindLinks() {
-
         this.links.forEach(link => {
+            // Eviter d'ajouter plusieurs event listeners ila t-3awdat l'appel
+            if (link.dataset.bound === "true") return;
+            link.dataset.bound = "true";
 
             link.addEventListener("click", e => {
-
-                e.preventDefault();
-
-                const page =
-
-                    link.dataset.page;
-
+                // Ila kanti bghiti tkhdm SPA (Single Page Application) w t-preventiw default navigation:
+                // e.preventDefault();
+                
+                const page = link.dataset.page;
                 if (!page) return;
 
                 this.setActive(page);
 
                 window.dispatchEvent(
-
                     new CustomEvent(
-
                         "navigate",
-
                         {
-
                             detail: {
-
                                 page
-
                             }
-
                         }
-
                     )
-
                 );
-
             });
-
         });
-
     }
 
     /* ============================================================
@@ -198,23 +179,12 @@ class SidebarManager {
      * ============================================================ */
 
     setActive(page) {
-
         this.links.forEach(link => {
-
             link.classList.remove("active");
-
-            if (
-
-                link.dataset.page === page
-
-            ) {
-
+            if (link.dataset.page === page) {
                 link.classList.add("active");
-
             }
-
         });
-
     }
 
     /* ============================================================
@@ -222,35 +192,16 @@ class SidebarManager {
      * ============================================================ */
 
     bindToggle() {
-
-        if (
-
-            !this.sidebar ||
-
-            !this.toggle
-
-        ) return;
-
+        if (!this.sidebar || !this.toggle) return;
         this.toggle.addEventListener(
-
             "click",
-
             () => this.toggleSidebar()
-
         );
-
     }
 
     toggleSidebar() {
-
-        this.sidebar.classList.toggle(
-
-            "collapsed"
-
-        );
-
+        this.sidebar.classList.toggle("collapsed");
         this.save();
-
     }
 
     /* ============================================================
@@ -258,45 +209,17 @@ class SidebarManager {
      * ============================================================ */
 
     save() {
-
         localStorage.setItem(
-
             this.storageKey,
-
-            this.sidebar.classList.contains(
-
-                "collapsed"
-
-            )
-
+            this.sidebar.classList.contains("collapsed")
         );
-
     }
 
     restore() {
-
-        const value =
-
-            localStorage.getItem(
-
-                this.storageKey
-
-            );
-
-        if (
-
-            value === "true"
-
-        ) {
-
-            this.sidebar?.classList.add(
-
-                "collapsed"
-
-            );
-
+        const value = localStorage.getItem(this.storageKey);
+        if (value === "true") {
+            this.sidebar?.classList.add("collapsed");
         }
-
     }
 
     /* ============================================================
@@ -304,37 +227,17 @@ class SidebarManager {
      * ============================================================ */
 
     collapse() {
-
-        this.sidebar?.classList.add(
-
-            "collapsed"
-
-        );
-
+        this.sidebar?.classList.add("collapsed");
         this.save();
-
     }
 
     expand() {
-
-        this.sidebar?.classList.remove(
-
-            "collapsed"
-
-        );
-
+        this.sidebar?.classList.remove("collapsed");
         this.save();
-
     }
 
     isCollapsed() {
-
-        return this.sidebar?.classList.contains(
-
-            "collapsed"
-
-        );
-
+        return this.sidebar?.classList.contains("collapsed");
     }
 
 }
