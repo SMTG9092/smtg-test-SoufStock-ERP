@@ -8,7 +8,6 @@
 import { Loader, Toast } from "./utils.js";
 import Sidebar from "./sidebar.js";
 import supabase from "./supabase.js";
-import { hasPermission } from "./auth-guard.js";
 
 class NavigationManager {
 
@@ -113,6 +112,7 @@ class NavigationManager {
                 pages.forEach(page => {
                     const pageKey = (page.code || '').toLowerCase();
                     
+                    // Jib smiya w icône mn dictionnaire, wla gaddhoum otomatikan ila tzadate page jdida
                     let config = this.pageConfig[pageKey];
                     if (!config) {
                         let formattedName = page.code.replace(/_/g, ' ');
@@ -149,21 +149,6 @@ class NavigationManager {
 
                 html += '</div>';
                 navContainer.innerHTML = html;
-
-                // Zidna l-event listener l les liens dyal la sidebar bach mli l-user y-cliki y-vérifi 9bl ma yfto7
-                const sidebarLinks = navContainer.querySelectorAll("a.sidebar-item");
-                sidebarLinks.forEach(link => {
-                    link.addEventListener("click", async (e) => {
-                        e.preventDefault();
-                        const pageCode = link.getAttribute("data-page");
-                        if (pageCode) {
-                            await this.navigate(pageCode);
-                        } else {
-                            const href = link.getAttribute("href");
-                            window.location.href = href;
-                        }
-                    });
-                });
             }
         } catch (err) {
             console.error("Erreur generation sidebar:", err);
@@ -186,7 +171,7 @@ class NavigationManager {
     }
 
     /* ============================================================
-     * NAVIGATE (M3a Vérification dyal Ṣ-Ṣalḥiyya)
+     * NAVIGATE
      * ============================================================
      */
     async navigate(page) {
@@ -207,21 +192,6 @@ class NavigationManager {
                 "Navigation",
                 "Page introuvable."
             );
-            return;
-        }
-
-        try {
-            // Vérification wach l-user 3ndo ṣ-ṣalḥiyya bash y-chof had la page (view)
-            const canView = await hasPermission(pageKey, "view");
-
-            if (canView === false) {
-                // Ila ma3ndouch ṣ-ṣalḥiyya, twajjah otomatikian l 444.html
-                window.location.href = "444.html";
-                return;
-            }
-        } catch (err) {
-            console.error("Erreur vérification permission navigation:", err);
-            window.location.href = "444.html";
             return;
         }
 
