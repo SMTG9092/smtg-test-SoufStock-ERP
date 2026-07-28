@@ -20,7 +20,7 @@ let permissions = [];
 let activePagesCache = [];
 
 /* ============================================================
-   LOAD PERMISSIONS (Updated for user_page_actions)
+   LOAD PERMISSIONS & PAGES
 ============================================================ */
 
 export async function loadPermissions() {
@@ -36,16 +36,21 @@ export async function loadPermissions() {
     const userId = profile.id;
 
     try {
-        // 1. Njibo les page_actions li m-autorisin l-had l-user b dabet mn user_page_actions
+        // 1. Njibo les enregistrements dyal user_page_actions b dabet
         const { data: userPerms, error } = await supabase
             .from("user_page_actions")
             .select(`
                 autorise,
+                page_action_id,
                 page_actions (
+                    id,
+                    page_id,
+                    action_id,
                     pages (
                         code,
                         url,
-                        module
+                        module,
+                        nom
                     ),
                     actions (
                         code,
@@ -64,12 +69,15 @@ export async function loadPermissions() {
                 .filter(item => item.autorise && item.page_actions)
                 .map(item => {
                     const pa = item.page_actions;
-                    const pageCode = pa.pages?.code || '';
-                    const actionCode = pa.actions?.code || '';
+                    const page = pa.pages || {};
+                    const action = pa.actions || {};
+                    
+                    const pageCode = page.code || '';
+                    const actionCode = action.code || '';
                     
                     return {
                         code: actionCode ? `${pageCode}.${actionCode}` : pageCode,
-                        module: pa.pages?.module,
+                        module: page.module,
                         page: pageCode,
                         action: actionCode
                     };
@@ -108,13 +116,13 @@ export function getPermissions() {
 export function can(code) {
     if (!code) return true;
 
-    // Wach kayna f permissions dyal l-user (user_page_actions)?
+    // 1. Wach l-user 3ndo permission explicit f user_page_actions?
     const hasPerm = permissions.some(
         permission => permission.code === code || permission.page === code
     );
     if (hasPerm) return true;
 
-    // Ila kant la page mojoda w actif f public.pages
+    // 2. Fallback flexible: Ila kant la page mojoda w actif f public.pages, n-khalliwha t-ban
     const pageExists = activePagesCache.some(p => p.code === code);
     if (pageExists) {
         return true; 
