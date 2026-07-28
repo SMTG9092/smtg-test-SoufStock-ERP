@@ -8,6 +8,7 @@
 import { Loader, Toast } from "./utils.js";
 import Sidebar from "./sidebar.js";
 import supabase from "./supabase.js";
+import { canPage, loadPermissions } from "./permissions.js";
 
 class NavigationManager {
 
@@ -16,7 +17,6 @@ class NavigationManager {
         this.routes = {}; 
         this.initialized = false;
         
-        // Configuration dyal les icônes w les noms wḍahin 
         this.pageConfig = {
             'dashboard': { name: 'Tableau de bord', icon: 'fas fa-chart-pie' },
             'import_stock': { name: 'Import Stock', icon: 'fas fa-file-excel' },
@@ -33,13 +33,12 @@ class NavigationManager {
         };
     }
 
-    /* ============================================================
-     * INIT
-     * ============================================================
-     */
     async init() {
         this.detectCurrentPage();
         
+        // Chargement dyal les permissions lowlīn bash l-cache y-kon 3mri
+        await loadPermissions();
+
         await this.loadRoutesFromDatabase();
         await this.renderSidebar();
 
@@ -54,10 +53,6 @@ class NavigationManager {
         this.initialized = true;
     }
 
-    /* ============================================================
-     * LOAD ROUTES FROM SUPABASE
-     * ============================================================
-     */
     async loadRoutesFromDatabase() {
         try {
             const { data: pages, error } = await supabase
@@ -87,10 +82,6 @@ class NavigationManager {
         }
     }
 
-    /* ============================================================
-     * RENDER SIDEBAR DYNAMICALLY
-     * ============================================================
-     */
     async renderSidebar() {
         const navContainer = document.getElementById("sidebarNav");
         if (!navContainer) return;
@@ -112,7 +103,6 @@ class NavigationManager {
                 pages.forEach(page => {
                     const pageKey = (page.code || '').toLowerCase();
                     
-                    // Jib smiya w icône mn dictionnaire, wla gaddhoum otomatikan ila tzadate page jdida
                     let config = this.pageConfig[pageKey];
                     if (!config) {
                         let formattedName = page.code.replace(/_/g, ' ');
@@ -149,16 +139,27 @@ class NavigationManager {
 
                 html += '</div>';
                 navContainer.innerHTML = html;
+
+                // Interception dyal l-clicks 3la les liens d la sidebar b souhola
+                const sidebarLinks = navContainer.querySelectorAll("a.sidebar-item");
+                sidebarLinks.forEach(link => {
+                    link.addEventListener("click", async (e) => {
+                        e.preventDefault();
+                        const pageCode = link.getAttribute("data-page");
+                        if (pageCode) {
+                            await this.navigate(pageCode);
+                        } else {
+                            const href = link.getAttribute("href");
+                            window.location.href = href;
+                        }
+                    });
+                });
             }
         } catch (err) {
             console.error("Erreur generation sidebar:", err);
         }
     }
 
-    /* ============================================================
-     * EVENTS
-     * ============================================================
-     */
     bindEvents() {
         window.addEventListener(
             "navigate",
@@ -170,16 +171,19 @@ class NavigationManager {
         );
     }
 
-    /* ============================================================
-     * NAVIGATE
-     * ============================================================
-     */
     async navigate(page) {
         if (!page) return;
 
         const pageKey = page.toLowerCase();
         if (pageKey === this.currentPage)
             return;
+
+        // Vérification b ḥalat wach 3ndo ṣ-ṣalḥiyya b canPage mn permissions.js
+        const hasAccess = canPage(pageKey);
+        if (!hasAccess) {
+            window.location.href = "444.html";
+            return;
+        }
 
         if (Object.keys(this.routes).length === 0) {
             await this.loadRoutesFromDatabase();
@@ -203,10 +207,6 @@ class NavigationManager {
         window.location.href = route;
     }
 
-    /* ============================================================
-     * DETECT CURRENT PAGE
-     * ============================================================
-     */
     detectCurrentPage() {
         const file =
             window.location.pathname
@@ -219,56 +219,23 @@ class NavigationManager {
             file || "dashboard";
     }
 
-    /* ============================================================
-     * TITLE
-     * ============================================================
-     */
     updateTitle() {
-        const title =
-            document.getElementById(
-                "pageTitle"
-            );
-
+        const title = document.getElementById("pageTitle");
         if (!title) return;
-
-        title.textContent =
-            this.format(
-                this.currentPage
-            );
+        title.textContent = this.format(this.currentPage);
     }
 
-    /* ============================================================
-     * BREADCRUMB
-     * ============================================================
-     */
     updateBreadcrumb() {
-        const breadcrumb =
-            document.getElementById(
-                "breadcrumb"
-            );
-
+        const breadcrumb = document.getElementById("breadcrumb");
         if (!breadcrumb) return;
 
-        breadcrumb.innerHTML =
-        `
-            <span>
-                Accueil
-            </span>
-            <span>
-                /
-            </span>
-            <strong>
-                ${this.format(
-                    this.currentPage
-                )}
-            </strong>
+        breadcrumb.innerHTML = `
+            <span>Accueil</span>
+            <span>/</span>
+            <strong>${this.format(this.currentPage)}</strong>
         `;
     }
 
-    /* ============================================================
-     * FORMAT
-     * ============================================================
-     */
     format(text) {
         if (!text) return "";
         const lowerKey = text.toLowerCase();
@@ -277,20 +244,12 @@ class NavigationManager {
         }
         return text
             .replace(/_/g, " ")
-            .replace(
-                /\b\w/g,
-                c => c.toUpperCase()
-            );
+            .replace(/\b\w/g, c => c.toUpperCase());
     }
 
-    /* ============================================================
-     * GET CURRENT PAGE
-     * ============================================================
-     */
     getCurrentPage() {
         return this.currentPage;
     }
-
 }
 
 const Navigation = new NavigationManager();
