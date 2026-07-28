@@ -94,7 +94,7 @@
             <div class="flex items-center gap-4 bg-slate-900/80 border border-slate-800 px-4 py-2 rounded-xl">
                 <div class="text-right">
                     <span id="currentDate" class="text-xs font-medium text-slate-300 block">Mardi 28 juillet 2026</span>
-                    <span id="currentTime" class="text-[10px] text-emerald-400 font-mono block">18:05:23</span>
+                    <span id="currentTime" class="text-[10px] text-emerald-400 font-mono block">18:16:00</span>
                 </div>
             </div>
         </header>
@@ -123,12 +123,12 @@
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
                                 <tr class="bg-slate-950/60 text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-800 font-semibold">
-                                    <th class="p-4">Document / Ligne</th>
+                                    <th class="p-4">Ligne / Document</th>
                                     <th class="p-4">Article & Désignation</th>
-                                    <th class="p-4">Client</th>
                                     <th class="p-4 text-center">Quantité Commandée</th>
+                                    <th class="p-4 text-center">Lot (Saisie)</th>
                                     <th class="p-4 text-center">Quantité Préparée</th>
-                                    <th class="p-4 text-center">Statut</th>
+                                    <th class="p-4 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="pickingTableBody" class="divide-y divide-slate-800/50">
@@ -216,6 +216,7 @@
                 data.forEach((item) => {
                     const qteCmd = Number(item.quantite_commandee || 0);
                     const qtePrep = Number(item.quantite_preparee || 0);
+                    const currentLot = item.magasin_source || ''; // Utilisé ici pour stocker/afficher le lot
                     
                     html += `
                         <tr class="hover:bg-slate-800/35 transition" data-id="${item.id}">
@@ -223,18 +224,22 @@
                                 ${item.document_vente} <span class="text-slate-500 font-normal">#${item.ligne_commande}</span>
                             </td>
                             <td class="p-4 text-slate-200 font-medium text-xs">
-                                <div class="text-slate-100">${item.designation_article}</div>
-                                <div class="text-[10px] text-slate-400 font-mono">Art: ${item.article} | Magasin: ${item.magasin_source || '-'}</div>
+                                <div class="text-slate-100 font-semibold">${item.designation_article}</div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">Code Art: ${item.article}</div>
                             </td>
-                            <td class="p-4 text-slate-300 font-medium text-xs">${item.client || '-'}</td>
                             <td class="p-4 text-center text-emerald-300 font-mono font-bold text-xs">${qteCmd.toLocaleString()} ${item.unite || 'KG'}</td>
                             <td class="p-4 text-center">
-                                <input type="number" value="${qtePrep}" class="qte-prep-input bg-slate-950 border border-slate-800 rounded-lg w-24 text-center py-1.5 text-xs text-emerald-400 font-mono focus:outline-none focus:border-emerald-500 shadow-inner" data-id="${item.id}">
+                                <input type="text" id="lot-${item.id}" value="${currentLot}" placeholder="Saisir Lot..." 
+                                    class="bg-slate-950 border border-slate-800 rounded-lg w-28 text-center py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500 shadow-inner">
                             </td>
                             <td class="p-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-semibold bg-slate-950 text-slate-300 border border-slate-800">
-                                    ${item.statut || 'IMPORTEE'}
-                                </span>
+                                <input type="number" id="qte-${item.id}" value="${qtePrep}" placeholder="0.00" 
+                                    class="bg-slate-950 border border-slate-800 rounded-lg w-24 text-center py-1.5 text-xs text-emerald-400 font-mono focus:outline-none focus:border-emerald-500 shadow-inner">
+                            </td>
+                            <td class="p-4 text-center">
+                                <button onclick="savePickingLine('${item.id}')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1 mx-auto">
+                                    <i class="fas fa-check"></i> Valider
+                                </button>
                             </td>
                         </tr>
                     `;
@@ -244,6 +249,48 @@
             } catch (err) {
                 console.error("Erreur technique:", err);
                 tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-400 text-xs">Erreur de connexion au serveur.</td></tr>`;
+            }
+        }
+
+        // Fonction globale pour valider et enregistrer la ligne de picking dans Supabase
+        window.savePickingLine = async function(id) {
+            const lotInput = document.getElementById(`lot-${id}`);
+            const qteInput = document.getElementById(`qte-${id}`);
+
+            const lotVal = lotInput ? lotInput.value.trim() : "";
+            const qteVal = qteInput ? parseFloat(qteInput.value) || 0 : 0;
+
+            try {
+                const { error } = await supabase
+                    .from('commandes_excel')
+                    .update({
+                        magasin_source: lotVal,       // Enregistrement du Lot
+                        quantite_preparee: qteVal,    // Enregistrement de la Quantité Préparée
+                        statut: 'EN_PICKING',         // Mise à jour du statut
+                        updated_at: new Date()
+                    })
+                    .eq('id', id);
+
+                if (error) {
+                    console.error("Erreur mise à jour:", error);
+                    alert("Erreur lors de l'enregistrement !");
+                    return;
+                }
+
+                // Petit feedback visuel de succès sur le bouton
+                const btn = event.target.closest('button');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = `<i class="fas fa-check-circle text-emerald-400"></i> Enregistré`;
+                btn.classList.add('bg-emerald-500/30');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('bg-emerald-500/30');
+                }, 1500);
+
+            } catch (err) {
+                console.error("Erreur technique:", err);
+                alert("Erreur de connexion lors de la sauvegarde.");
             }
         }
     </script>
