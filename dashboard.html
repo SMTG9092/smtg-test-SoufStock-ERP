@@ -406,7 +406,7 @@
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);"><i class="fas fa-file-invoice"></i></div>
                 </div>
                 <div class="value" id="statCommandes">0</div>
-                <div style="font-size: 10px; color: var(--text-muted);">en cours</div>
+                <div style="font-size: 10px; color: var(--text-muted);">en cours (v_commandes_kg)</div>
                 <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
 
@@ -538,7 +538,6 @@
     let entriesExitsChartInstance = null;
     let globalMouvementsData = [];
 
-    // --- Fonction Active Live Date & Time Shah 100% ---
     function startRealTimeClock() {
         const updateClock = () => {
             const now = new Date();
@@ -571,7 +570,6 @@
         const user = await SessionManager.getUser();
         if (!user) return;
 
-        // Charger profil utilisateur
         const { data: profile, error } = await supabase
             .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
             .select('*')
@@ -640,8 +638,9 @@
                 document.getElementById('statReservations').textContent = stockReserve.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             }
 
+            // Commandes l-jadida mn v_commandes_kg
             const { count: countCommandes, error: errCmd } = await supabase
-                .from('commandes')
+                .from('v_commandes_kg')
                 .select('*', { count: 'exact', head: true });
             
             if (!errCmd) {
@@ -674,21 +673,19 @@
     // --- System Filter Semaines b Dates (ex: 1 = 15-06-2026 / 21-06-2026) ---
     async function initEntriesExitsWithWeekFilter() {
         try {
-            // Jbed ga3 l-mouvements mn la base de données bach n-grouppiwihm simna b simna
             const { data, error } = await supabase
                 .from('mouvements_stock')
                 .select('date_mouvement, type_mouvement, quantite')
                 .order('date_mouvement', { ascending: true });
 
             if (error || !data) {
-                console.error("Erreurfetch mouvements pour graph:", error);
+                console.error("Erreur fetch mouvements pour graph:", error);
                 renderEmptyChart();
                 return;
             }
 
             globalMouvementsData = data;
 
-            // Ila makanoch data, ndiro simanat taqribiya wla dial l-waqt l-hali
             const weeksMap = generateWeeksMap(data);
             const selectEl = document.getElementById('weekFilterSelect');
             if (!selectEl) return;
@@ -702,22 +699,18 @@
                 return;
             }
 
-            // Trteb s-simanat mn l-jdid l l-qdim wla l-3ks
             keys.sort().reverse();
 
             keys.forEach((weekKey, index) => {
                 const weekInfo = weeksMap[weekKey];
                 const opt = document.createElement('option');
                 opt.value = weekKey;
-                // Format libikhdm b dbt: 1 = 15-06-2026 / 21-06-2026
                 opt.textContent = `${index + 1} = ${weekInfo.startDateFormatted} / ${weekInfo.endDateFormatted}`;
                 selectEl.appendChild(opt);
             });
 
-            // Afficher s-simana l-lwla (l-hadra/l-jdida)
             updateChartForWeek(keys[0], weeksMap);
 
-            //ila bdl l-utilisateur s-simana mn l-select
             selectEl.addEventListener('change', (e) => {
                 updateChartForWeek(e.target.value, weeksMap);
             });
@@ -727,7 +720,6 @@
         }
     }
 
-    // Fonction t-qssem les dates l simanat (Lundi -> Dimanche)
     function generateWeeksMap(mouvements) {
         const weeks = {};
 
@@ -736,7 +728,6 @@
             const d = new Date(m.date_mouvement);
             if (isNaN(d.getTime())) return;
 
-            // Jab l-lundi dyal s-simana
             const dayOfWeek = d.getDay();
             const diffToMonday = d.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
             const monday = new Date(d.setDate(diffToMonday));
@@ -746,7 +737,7 @@
             sunday.setDate(monday.getDate() + 6);
             sunday.setHours(23, 59, 59, 999);
 
-            const weekKey = monday.toISOString().split('T')[0]; // Key unique ex: 2026-06-15
+            const weekKey = monday.toISOString().split('T')[0];
 
             if (!weeks[weekKey]) {
                 weeks[weekKey] = {
@@ -756,7 +747,6 @@
                     endDateFormatted: formatDateFR(sunday),
                     days: {}
                 };
-                // Initialiser 7 jours dyal s-simana (Lundi tal Dimanche)
                 for (let i = 0; i < 7; i++) {
                     let currDay = new Date(monday);
                     currDay.setDate(monday.getDate() + i);
