@@ -47,9 +47,8 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex overflow-hidden">
 
-    <!-- SIDEBAR (Nfs l-layout w l-widt dyal dashboard) -->
+    <!-- SIDEBAR -->
     <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen p-4 select-none">
-        <!-- Logo Header -->
         <div class="flex items-center gap-3 px-2 mb-6">
             <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
                 <i class="fas fa-snowflake text-lg"></i>
@@ -60,12 +59,10 @@
             </div>
         </div>
         
-        <!-- Navigation Container (Dynamic Sidebar mn navigation.js) -->
         <nav id="sidebarNav" class="flex-1 overflow-y-auto pr-1">
-            <!-- Kaytseta otomatikan -->
+            <!-- Dynamic Sidebar -->
         </nav>
 
-        <!-- User Profile & Logout (Fl-lkhr dyal la sidebar bhal dashboard) -->
         <div class="pt-4 mt-auto border-t border-slate-800/80">
             <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 mb-2">
                 <span id="sidebarUserName" class="block text-xs font-bold text-slate-200 truncate uppercase">YAHYA SOUFIANE</span>
@@ -80,7 +77,7 @@
     <!-- MAIN CONTAINER -->
     <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
         
-        <!-- HEADER (Nfs l-header w l-banner dyal dashboard) -->
+        <!-- HEADER -->
         <header class="h-20 bg-slate-900/40 border-b border-slate-800/80 px-8 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-4">
                 <div>
@@ -101,23 +98,36 @@
             </div>
         </header>
 
-        <!-- PAGE BODY (Contenu dyal Stock m-gadd b l-istyl w l-férification) -->
+        <!-- PAGE BODY -->
         <main class="flex-1 p-8 overflow-y-auto">
             <div class="max-w-7xl mx-auto">
                 
-                <!-- Welcome Banner Style (Bhal dashboard) -->
-                <div class="bg-gradient-to-r from-slate-900 to-slate-900/80 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl flex items-center justify-between">
+                <!-- Welcome Banner Style (Zedt fih Total Qte + Magasin Filter) -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-900/80 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
                             <i class="fas fa-warehouse text-emerald-400"></i> État Global du Stock
                         </h2>
-                        <p class="text-xs text-slate-400 mt-1">Consultation en direct des articles, lots et magasins depuis la vue <span class="text-emerald-400 font-mono">vw_stock</span>.</p>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Consultation en direct. Quantité Totale Disponible : <span id="totalStockBadge" class="text-emerald-400 font-bold font-mono">0</span>
+                        </p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- Magasin Filter Select -->
+                        <div class="relative">
+                            <i class="fas fa-store absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <select id="magasinFilter" class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition shadow-inner appearance-none cursor-pointer">
+                                <option value="">Tous les magasins</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] pointer-events-none"></i>
+                        </div>
+
+                        <!-- Search Input -->
                         <div class="relative">
                             <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
                             <input type="text" id="searchInput" placeholder="Rechercher article, lot..." 
-                                class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-72 transition shadow-inner">
+                                class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-64 transition shadow-inner">
                         </div>
                     </div>
                 </div>
@@ -158,22 +168,25 @@
         import Navigation from './assets/js/core/navigation.js';
         import supabase from './assets/js/core/supabase.js';
 
+        let allStockData = []; // Stocker les données globales
+
         document.addEventListener("DOMContentLoaded", async () => {
-            // 1. Initialiser la navigation et la protection de la page (444.html)
             await Navigation.init();
 
-            // 2. Charger les données depuis vw_stock
+            // Charger les données initiales
             await loadStockData();
 
-            // 3. Activer la recherche dynamique
+            // Event listeners pour la recherche et le filtre magasin
             const searchInput = document.getElementById("searchInput");
+            const magasinFilter = document.getElementById("magasinFilter");
+
             if (searchInput) {
-                searchInput.addEventListener("input", (e) => {
-                    loadStockData(e.target.value);
-                });
+                searchInput.addEventListener("input", filterAndRenderTable);
+            }
+            if (magasinFilter) {
+                magasinFilter.addEventListener("change", filterAndRenderTable);
             }
 
-            // 4. Déconnexion handler
             const logoutBtn = document.getElementById("logoutBtn");
             if (logoutBtn) {
                 logoutBtn.addEventListener("click", async () => {
@@ -183,20 +196,14 @@
             }
         });
 
-        async function loadStockData(search = "") {
+        async function loadStockData() {
             const tbody = document.getElementById("stockTableBody");
             
             try {
-                let query = supabase
+                let { data, error } = await supabase
                     .from('vw_stock')
                     .select('*')
-                    .limit(150);
-
-                if (search.trim() !== "") {
-                    query = query.or(`article.ilike.%${search}%,designation_article.ilike.%${search}%,lot.ilike.%${search}%`);
-                }
-
-                const { data, error } = await query;
+                    .limit(500);
 
                 if (error) {
                     console.error("Erreur chargement stock:", error);
@@ -204,36 +211,94 @@
                     return;
                 }
 
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400 text-xs"><i class="fas fa-folder-open mr-2"></i> Aucun article trouvé.</td></tr>`;
-                    return;
-                }
+                allStockData = data || [];
+                
+                // Remplir le select des magasins dynamiquement
+                populateMagasinFilter(allStockData);
 
-                let html = "";
-                data.forEach(item => {
-                    html += `
-                        <tr class="hover:bg-slate-800/30 transition">
-                            <td class="p-4 font-semibold text-emerald-400 text-xs">${item.article || '-'}</td>
-                            <td class="p-4 text-slate-200 font-medium text-xs">${item.designation_article || '-'}</td>
-                            <td class="p-4 text-slate-400 font-mono text-xs">${item.lot || '-'}</td>
-                            <td class="p-4 text-slate-300 font-medium text-xs">${item.magasin || '-'}</td>
-                            <td class="p-4 text-slate-400 text-[11px] uppercase">${item.unite || '-'}</td>
-                            <td class="p-4 text-right font-semibold text-emerald-300 text-xs">${item.stock_disponible ?? 0}</td>
-                            <td class="p-4 text-right font-medium text-amber-400 text-xs">${item.stock_reserve ?? 0}</td>
-                            <td class="p-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-semibold bg-slate-950/80 text-slate-300 border border-slate-800 shadow-sm">
-                                    ${item.statut || 'DISPONIBLE'}
-                                </span>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                tbody.innerHTML = html;
+                // Afficher le tableau complet
+                renderTable(allStockData);
 
             } catch (err) {
                 console.error("Erreur technique:", err);
                 tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-400 text-xs">Erreur de connexion au serveur.</td></tr>`;
+            }
+        }
+
+        function populateMagasinFilter(data) {
+            const magasinFilter = document.getElementById("magasinFilter");
+            if (!magasinFilter) return;
+
+            // Extraire la liste unique des magasins
+            const magasins = [...new Set(data.map(item => item.magasin).filter(Boolean))].sort();
+            
+            // Conserver l'option par défaut
+            magasinFilter.innerHTML = `<option value="">Tous les magasins</option>`;
+            
+            magasins.forEach(mag => {
+                const opt = document.createElement("option");
+                opt.value = mag;
+                opt.textContent = mag;
+                magasinFilter.appendChild(opt);
+            });
+        }
+
+        function filterAndRenderTable() {
+            const search = document.getElementById("searchInput").value.toLowerCase().trim();
+            const selectedMagasin = document.getElementById("magasinFilter").value;
+
+            const filtered = allStockData.filter(item => {
+                const articleMatch = !search || 
+                    (item.article && item.article.toLowerCase().includes(search)) ||
+                    (item.designation_article && item.designation_article.toLowerCase().includes(search)) ||
+                    (item.lot && item.lot.toLowerCase().includes(search));
+
+                const magasinMatch = !selectedMagasin || item.magasin === selectedMagasin;
+
+                return articleMatch && magasinMatch;
+            });
+
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById("stockTableBody");
+            const totalStockBadge = document.getElementById("totalStockBadge");
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400 text-xs"><i class="fas fa-folder-open mr-2"></i> Aucun article trouvé.</td></tr>`;
+                if (totalStockBadge) totalStockBadge.textContent = "0";
+                return;
+            }
+
+            let totalQuantity = 0;
+            let html = "";
+
+            data.forEach(item => {
+                const qteDisp = Number(item.stock_disponible || 0);
+                totalQuantity += qteDisp;
+
+                html += `
+                    <tr class="hover:bg-slate-800/35 transition">
+                        <td class="p-4 font-semibold text-emerald-400 text-xs">${item.article || '-'}</td>
+                        <td class="p-4 text-slate-200 font-medium text-xs">${item.designation_article || '-'}</td>
+                        <td class="p-4 text-slate-400 font-mono text-xs">${item.lot || '-'}</td>
+                        <td class="p-4 text-slate-300 font-medium text-xs">${item.magasin || '-'}</td>
+                        <td class="p-4 text-slate-400 text-[11px] uppercase">${item.unite || '-'}</td>
+                        <td class="p-4 text-right font-semibold text-emerald-300 text-xs">${qteDisp.toLocaleString()}</td>
+                        <td class="p-4 text-right font-medium text-amber-400 text-xs">${Number(item.stock_reserve || 0).toLocaleString()}</td>
+                        <td class="p-4 text-center">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-semibold bg-slate-950/80 text-slate-300 border border-slate-800 shadow-sm">
+                                ${item.statut || 'DISPONIBLE'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            if (totalStockBadge) {
+                totalStockBadge.textContent = totalQuantity.toLocaleString();
             }
         }
     </script>
