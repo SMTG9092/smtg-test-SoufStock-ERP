@@ -102,7 +102,7 @@
         <main class="flex-1 p-8 overflow-y-auto">
             <div class="max-w-7xl mx-auto">
                 
-                <!-- Welcome Banner Style (Zedt fih Total Qte + Magasin Filter) -->
+                <!-- Welcome Banner -->
                 <div class="bg-gradient-to-r from-slate-900 to-slate-900/80 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
@@ -133,8 +133,8 @@
                 </div>
 
                 <!-- TABLE CONTAINER -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-                    <div class="overflow-x-auto">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                    <div class="overflow-x-auto flex-1">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
                                 <tr class="bg-slate-950/60 text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-800 font-semibold">
@@ -157,6 +157,20 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- PAGINATION BAR -->
+                    <div class="bg-slate-950/40 border-t border-slate-800 px-6 py-4 flex items-center justify-between text-xs text-slate-400">
+                        <div id="paginationInfo">Affichage de 0 à 0 sur 0 entrées</div>
+                        <div class="flex items-center gap-2">
+                            <button id="prevPageBtn" onclick="changePage(-1)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition">
+                                <i class="fas fa-chevron-left mr-1"></i> Précédent
+                            </button>
+                            <span id="pageIndicator" class="px-3 py-1 font-mono text-emerald-400 font-semibold">Page 1 / 1</span>
+                            <button id="nextPageBtn" onclick="changePage(1)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition">
+                                Suivant <i class="fas fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -168,23 +182,48 @@
         import Navigation from './assets/js/core/navigation.js';
         import supabase from './assets/js/core/supabase.js';
 
-        let allStockData = []; // Stocker les données globales
+        let currentPage = 1;
+        const pageSize = 50; // Nombre de lignes par page
+        let totalRecords = 0;
+        let currentSearch = "";
+        let currentMagasin = "";
+
+        window.changePage = async function(direction) {
+            currentPage += direction;
+            await loadStockData();
+        }
 
         document.addEventListener("DOMContentLoaded", async () => {
             await Navigation.init();
 
-            // Charger les données initiales
+            // Remplir la liste des magasins initialement (pour le filtre)
+            await populateMagasinFilterDropdown();
+
+            // Charger les données de la première page
             await loadStockData();
 
-            // Event listeners pour la recherche et le filtre magasin
+            // Événements de recherche et filtre
             const searchInput = document.getElementById("searchInput");
             const magasinFilter = document.getElementById("magasinFilter");
 
+            let searchTimeout;
             if (searchInput) {
-                searchInput.addEventListener("input", filterAndRenderTable);
+                searchInput.addEventListener("input", (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(async () => {
+                        currentSearch = e.target.value.trim();
+                        currentPage = 1; // Retour à la première page
+                        await loadStockData();
+                    }, 300);
+                });
             }
+
             if (magasinFilter) {
-                magasinFilter.addEventListener("change", filterAndRenderTable);
+                magasinFilter.addEventListener("change", async (e) => {
+                    currentMagasin = e.target.value;
+                    currentPage = 1; // Retour à la première page
+                    await loadStockData();
+                });
             }
 
             const logoutBtn = document.getElementById("logoutBtn");
@@ -196,14 +235,47 @@
             }
         });
 
+        async function populateMagasinFilterDropdown() {
+            try {
+                const { data, error } = await supabase.from('vw_stock').select('magasin');
+                if (error || !data) return;
+
+                const magasins = [...new Set(data.map(item => item.magasin).filter(Boolean))].sort();
+                const magasinFilter = document.getElementById("magasinFilter");
+                if (!magasinFilter) return;
+
+                magasinFilter.innerHTML = `<option value="">Tous les magasins</option>`;
+                magasins.forEach(mag => {
+                    const opt = document.createElement("option");
+                    opt.value = mag;
+                    opt.textContent = mag;
+                    magasinFilter.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Erreur chargement magasins:", err);
+            }
+        }
+
         async function loadStockData() {
             const tbody = document.getElementById("stockTableBody");
             
             try {
-                let { data, error } = await supabase
-                    .from('vw_stock')
-                    .select('*')
-                    .limit(500);
+                // 1. Construire la requête de base pour les données paginées
+                let query = supabase.from('vw_stock').select('*', { count: 'exact' });
+
+                if (currentSearch !== "") {
+                    query = query.or(`article.ilike.%${currentSearch}%,designation_article.ilike.%${currentSearch}%,lot.ilike.%${currentSearch}%`);
+                }
+                if (currentMagasin !== "") {
+                    query = query.eq('magasin', currentMagasin);
+                }
+
+                // Pagination range
+                const start = (currentPage - 1) * pageSize;
+                const end = start + pageSize - 1;
+                query = query.range(start, end).order('article', { ascending: true });
+
+                const { data, count, error } = await query;
 
                 if (error) {
                     console.error("Erreur chargement stock:", error);
@@ -211,13 +283,12 @@
                     return;
                 }
 
-                allStockData = data || [];
-                
-                // Remplir le select des magasins dynamiquement
-                populateMagasinFilter(allStockData);
+                totalRecords = count || 0;
+                renderTable(data || []);
+                updatePaginationControls();
 
-                // Afficher le tableau complet
-                renderTable(allStockData);
+                // 2. Calculer le Sommet Total Global (Quantité Disponible Totale) indépendamment des pages
+                await loadTotalGlobalQuantity();
 
             } catch (err) {
                 console.error("Erreur technique:", err);
@@ -225,59 +296,42 @@
             }
         }
 
-        function populateMagasinFilter(data) {
-            const magasinFilter = document.getElementById("magasinFilter");
-            if (!magasinFilter) return;
+        async function loadTotalGlobalQuantity() {
+            try {
+                let query = supabase.from('vw_stock').select('stock_disponible');
 
-            // Extraire la liste unique des magasins
-            const magasins = [...new Set(data.map(item => item.magasin).filter(Boolean))].sort();
-            
-            // Conserver l'option par défaut
-            magasinFilter.innerHTML = `<option value="">Tous les magasins</option>`;
-            
-            magasins.forEach(mag => {
-                const opt = document.createElement("option");
-                opt.value = mag;
-                opt.textContent = mag;
-                magasinFilter.appendChild(opt);
-            });
-        }
+                if (currentSearch !== "") {
+                    query = query.or(`article.ilike.%${currentSearch}%,designation_article.ilike.%${currentSearch}%,lot.ilike.%${currentSearch}%`);
+                }
+                if (currentMagasin !== "") {
+                    query = query.eq('magasin', currentMagasin);
+                }
 
-        function filterAndRenderTable() {
-            const search = document.getElementById("searchInput").value.toLowerCase().trim();
-            const selectedMagasin = document.getElementById("magasinFilter").value;
+                const { data, error } = await query;
+                if (error || !data) return;
 
-            const filtered = allStockData.filter(item => {
-                const articleMatch = !search || 
-                    (item.article && item.article.toLowerCase().includes(search)) ||
-                    (item.designation_article && item.designation_article.toLowerCase().includes(search)) ||
-                    (item.lot && item.lot.toLowerCase().includes(search));
-
-                const magasinMatch = !selectedMagasin || item.magasin === selectedMagasin;
-
-                return articleMatch && magasinMatch;
-            });
-
-            renderTable(filtered);
+                let grandTotal = data.reduce((sum, item) => sum + Number(item.stock_disponible || 0), 0);
+                
+                const totalStockBadge = document.getElementById("totalStockBadge");
+                if (totalStockBadge) {
+                    totalStockBadge.textContent = grandTotal.toLocaleString();
+                }
+            } catch (err) {
+                console.error("Erreur calcul total global:", err);
+            }
         }
 
         function renderTable(data) {
             const tbody = document.getElementById("stockTableBody");
-            const totalStockBadge = document.getElementById("totalStockBadge");
 
             if (!data || data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400 text-xs"><i class="fas fa-folder-open mr-2"></i> Aucun article trouvé.</td></tr>`;
-                if (totalStockBadge) totalStockBadge.textContent = "0";
                 return;
             }
 
-            let totalQuantity = 0;
             let html = "";
-
             data.forEach(item => {
                 const qteDisp = Number(item.stock_disponible || 0);
-                totalQuantity += qteDisp;
-
                 html += `
                     <tr class="hover:bg-slate-800/35 transition">
                         <td class="p-4 font-semibold text-emerald-400 text-xs">${item.article || '-'}</td>
@@ -297,9 +351,20 @@
             });
 
             tbody.innerHTML = html;
-            if (totalStockBadge) {
-                totalStockBadge.textContent = totalQuantity.toLocaleString();
-            }
+        }
+
+        function updatePaginationControls() {
+            const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startItem = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const endItem = Math.min(currentPage * pageSize, totalRecords);
+
+            document.getElementById("paginationInfo").textContent = `Affichage de ${startItem} à ${endItem} sur ${totalRecords} entrées`;
+            document.getElementById("pageIndicator").textContent = `Page ${currentPage} / ${totalPages}`;
+
+            document.getElementById("prevPageBtn").disabled = currentPage <= 1;
+            document.getElementById("nextPageBtn").disabled = currentPage >= totalPages;
         }
     </script>
 </body>
