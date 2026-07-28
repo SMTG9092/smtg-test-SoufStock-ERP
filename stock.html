@@ -8,7 +8,7 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Tailwind CSS Play CDN (Kay-dir CSS kamel dyal Tailwind otomatikan f l-metra) -->
+    <!-- Tailwind CSS Play CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -38,7 +38,7 @@
     </script>
 
     <style>
-        /* Custom scrollbars */
+        /* Custom scrollbars matching dashboard style */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #090d16; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
@@ -55,9 +55,9 @@
             <span class="font-bold text-lg tracking-wide">SoufStock</span>
         </div>
         
-        <!-- Navigation Container -->
+        <!-- Navigation Container (Dynamic Sidebar) -->
         <nav id="sidebarNav" class="flex-1 overflow-y-auto">
-            <!-- Les liens kaytsetaw hna otomatikan mn navigation.js -->
+            <!-- Kaytseta otomatikan mn navigation.js -->
         </nav>
     </aside>
 
@@ -75,7 +75,7 @@
             </div>
             
             <div class="flex items-center gap-4">
-                <span id="userName" class="text-sm font-medium">SoufStock Admin</span>
+                <span id="userName" class="text-sm font-medium">YAHYA SOUFIANE</span>
             </div>
         </header>
 
@@ -83,19 +83,25 @@
         <main class="flex-1 p-6 overflow-y-auto">
             <div class="max-w-7xl mx-auto">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-semibold">État Global du Stock (vw_stock)</h2>
+                    <div>
+                        <h2 class="text-xl font-semibold">État Global du Stock</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Données en direct depuis la vue <span class="text-emerald-400">vw_stock</span></p>
+                    </div>
                     <div class="flex items-center gap-3">
-                        <input type="text" id="searchInput" placeholder="Rechercher un article..." 
-                            class="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="text" id="searchInput" placeholder="Rechercher article, désignation, lot..." 
+                                class="bg-slate-900 border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 w-72 transition">
+                        </div>
                     </div>
                 </div>
 
                 <!-- TABLE CONTAINER -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
-                                <tr class="bg-slate-800/50 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800">
+                                <tr class="bg-slate-800/40 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800">
                                     <th class="p-4">Article</th>
                                     <th class="p-4">Désignation</th>
                                     <th class="p-4">Lot</th>
@@ -106,9 +112,11 @@
                                     <th class="p-4 text-center">Statut</th>
                                 </tr>
                             </thead>
-                            <tbody id="stockTableBody" class="divide-y divide-slate-800/60">
+                            <tbody id="stockTableBody" class="divide-y divide-slate-800/50">
                                 <tr>
-                                    <td colspan="8" class="p-6 text-center text-slate-400">Chargement des données du stock...</td>
+                                    <td colspan="8" class="p-8 text-center text-slate-400">
+                                        <i class="fas fa-spinner fa-spin mr-2 text-emerald-500"></i> Chargement des données du stock...
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -124,7 +132,7 @@
         import supabase from './assets/js/core/supabase.js';
 
         document.addEventListener("DOMContentLoaded", async () => {
-            // 1. Initialiser la navigation et les permissions (vérification 444.html)
+            // 1. Initialiser la navigation et la vérification des permissions (444.html)
             await Navigation.init();
 
             // 2. Charger les données depuis vw_stock
@@ -146,7 +154,7 @@
                 let query = supabase
                     .from('vw_stock')
                     .select('*')
-                    .limit(100);
+                    .limit(150);
 
                 if (search.trim() !== "") {
                     query = query.or(`article.ilike.%${search}%,designation_article.ilike.%${search}%,lot.ilike.%${search}%`);
@@ -156,29 +164,29 @@
 
                 if (error) {
                     console.error("Erreur chargement stock:", error);
-                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erreur lors du chargement des données.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-400"><i class="fas fa-exclamation-triangle mr-2"></i> Erreur lors du chargement des données.</td></tr>`;
                     return;
                 }
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">Aucun article trouvé.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><i class="fas fa-folder-open mr-2"></i> Aucun article trouvé.</td></tr>`;
                     return;
                 }
 
                 let html = "";
                 data.forEach(item => {
                     html += `
-                        <tr class="hover:bg-slate-800/40 transition">
+                        <tr class="hover:bg-slate-800/30 transition">
                             <td class="p-4 font-semibold text-emerald-400">${item.article || '-'}</td>
-                            <td class="p-4 text-slate-200">${item.designation_article || '-'}</td>
-                            <td class="p-4 text-slate-400">${item.lot || '-'}</td>
-                            <td class="p-4 text-slate-300">${item.magasin || '-'}</td>
-                            <td class="p-4 text-slate-400">${item.unite || '-'}</td>
-                            <td class="p-4 text-right font-medium text-emerald-300">${item.stock_disponible ?? 0}</td>
-                            <td class="p-4 text-right font-medium text-amber-300">${item.stock_reserve ?? 0}</td>
+                            <td class="p-4 text-slate-200 font-medium">${item.designation_article || '-'}</td>
+                            <td class="p-4 text-slate-400 font-mono text-xs">${item.lot || '-'}</td>
+                            <td class="p-4 text-slate-300 font-medium">${item.magasin || '-'}</td>
+                            <td class="p-4 text-slate-400 text-xs uppercase">${item.unite || '-'}</td>
+                            <td class="p-4 text-right font-semibold text-emerald-300">${item.stock_disponible ?? 0}</td>
+                            <td class="p-4 text-right font-medium text-amber-400">${item.stock_reserve ?? 0}</td>
                             <td class="p-4 text-center">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-                                    ${item.statut || 'N/A'}
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-300 border border-slate-700/60 shadow-sm">
+                                    ${item.statut || 'DISPONIBLE'}
                                 </span>
                             </td>
                         </tr>
@@ -189,7 +197,7 @@
 
             } catch (err) {
                 console.error("Erreur technique:", err);
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erreur de connexion.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-400">Erreur de connexion au serveur.</td></tr>`;
             }
         }
     </script>
