@@ -94,7 +94,7 @@
             <div class="flex items-center gap-4 bg-slate-900/80 border border-slate-800 px-4 py-2 rounded-xl">
                 <div class="text-right">
                     <span id="currentDate" class="text-xs font-medium text-slate-300 block">Mardi 28 juillet 2026</span>
-                    <span id="currentTime" class="text-[10px] text-emerald-400 font-mono block">16:47:21</span>
+                    <span id="currentTime" class="text-[10px] text-emerald-400 font-mono block">18:05:23</span>
                 </div>
             </div>
         </header>
@@ -103,24 +103,17 @@
         <main class="flex-1 p-8 overflow-y-auto">
             <div class="max-w-7xl mx-auto flex flex-col gap-6">
                 
-                <!-- TOP BAR -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-                            <i class="fas fa-clipboard-list text-emerald-400"></i> Liste des Commandes à Préparer
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1">
-                            Gestion et suivi des listes de picking pour la préparation des tournées et commandes.
-                        </p>
-                    </div>
-                    
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <!-- Search Input -->
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="text" id="searchInput" placeholder="Rechercher bon, client..." 
-                                class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-60 transition shadow-inner">
-                        </div>
+                <!-- SCANNER / SAISIE DOCUMENT DE VENTE -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        <i class="fas fa-barcode text-emerald-400 mr-1.5"></i> Scanner ou Saisir le Document de Vente
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="docVenteInput" placeholder="Ex: BL-2026-00123 (Appuyez sur Entrée)" 
+                            class="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 w-full max-w-md transition shadow-inner font-mono">
+                        <button id="searchDocBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2 shadow-lg cursor-pointer">
+                            <i class="fas fa-search"></i> Charger le Bon
+                        </button>
                     </div>
                 </div>
 
@@ -130,18 +123,18 @@
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
                                 <tr class="bg-slate-950/60 text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-800 font-semibold">
-                                    <th class="p-4">N° Bon / Commande</th>
+                                    <th class="p-4">Document / Ligne</th>
+                                    <th class="p-4">Article & Désignation</th>
                                     <th class="p-4">Client</th>
-                                    <th class="p-4">Date</th>
-                                    <th class="p-4 text-center">Articles Total</th>
-                                    <th class="p-4 text-center">Statut Picking</th>
-                                    <th class="p-4 text-center">Actions</th>
+                                    <th class="p-4 text-center">Quantité Commandée</th>
+                                    <th class="p-4 text-center">Quantité Préparée</th>
+                                    <th class="p-4 text-center">Statut</th>
                                 </tr>
                             </thead>
                             <tbody id="pickingTableBody" class="divide-y divide-slate-800/50">
                                 <tr>
                                     <td colspan="6" class="p-10 text-center text-slate-400 text-xs">
-                                        <i class="fas fa-spinner fa-spin mr-2 text-emerald-500 text-base"></i> Chargement des listes de picking...
+                                        <i class="fas fa-info-circle mr-2 text-emerald-500 text-base"></i> Veuillez saisir ou scanner un document de vente pour afficher les lignes.
                                     </td>
                                 </tr>
                             </tbody>
@@ -160,7 +153,26 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             await Navigation.init();
-            await loadPickingData();
+
+            const docVenteInput = document.getElementById("docVenteInput");
+            const searchDocBtn = document.getElementById("searchDocBtn");
+
+            if (docVenteInput) {
+                docVenteInput.focus();
+                docVenteInput.addEventListener("keydown", async (e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        await fetchCommandesByDocument(docVenteInput.value.trim());
+                    }
+                });
+            }
+
+            if (searchDocBtn) {
+                searchDocBtn.addEventListener("click", async () => {
+                    const docVal = docVenteInput ? docVenteInput.value.trim() : "";
+                    await fetchCommandesByDocument(docVal);
+                });
+            }
 
             const logoutBtn = document.getElementById("logoutBtn");
             if (logoutBtn) {
@@ -171,40 +183,58 @@
             }
         });
 
-        async function loadPickingData() {
+        async function fetchCommandesByDocument(docVente) {
             const tbody = document.getElementById("pickingTableBody");
+            if (!docVente) {
+                alert("Veuillez saisir ou scanner un document de vente !");
+                return;
+            }
+
+            tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-slate-400 text-xs">
+                <i class="fas fa-spinner fa-spin mr-2 text-emerald-500 text-base"></i> Recherche du document ${docVente}...
+            </td></tr>`;
+
             try {
-                // Exemple de récupération (à adapter selon les tables de commandes/picking de ta base de données)
-                const { data, error } = await supabase.from('vw_commandes_kg').select('*').limit(50);
+                const { data, error } = await supabase
+                    .from('commandes_excel')
+                    .select('*')
+                    .eq('document_vente', docVente)
+                    .order('ligne_commande', { ascending: true });
 
                 if (error) {
-                    console.error("Erreur chargement:", error);
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-400 text-xs"><i class="fas fa-exclamation-triangle mr-2"></i> Erreur de chargement des données.</td></tr>`;
+                    console.error("Erreur Supabase:", error);
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-400 text-xs">Erreur lors de la récupération des données.</td></tr>`;
                     return;
                 }
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 text-xs"><i class="fas fa-folder-open mr-2"></i> Aucune commande en attente de picking.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-amber-400 text-xs"><i class="fas fa-exclamation-circle mr-2"></i> Aucun article trouvé pour le document : <strong>${docVente}</strong></td></tr>`;
                     return;
                 }
 
                 let html = "";
-                data.forEach((item, index) => {
+                data.forEach((item) => {
+                    const qteCmd = Number(item.quantite_commandee || 0);
+                    const qtePrep = Number(item.quantite_preparee || 0);
+                    
                     html += `
-                        <tr class="hover:bg-slate-800/35 transition">
-                            <td class="p-4 font-semibold text-emerald-400 text-xs">${item.bon || item.id || 'BON-' + (index + 1)}</td>
-                            <td class="p-4 text-slate-200 font-medium text-xs">${item.client || 'Client Divers'}</td>
-                            <td class="p-4 text-slate-400 text-xs">${item.date || '2026-07-28'}</td>
-                            <td class="p-4 text-center text-slate-300 font-mono text-xs">${item.quantite || item.qte || '-'}</td>
+                        <tr class="hover:bg-slate-800/35 transition" data-id="${item.id}">
+                            <td class="p-4 font-semibold text-emerald-400 text-xs">
+                                ${item.document_vente} <span class="text-slate-500 font-normal">#${item.ligne_commande}</span>
+                            </td>
+                            <td class="p-4 text-slate-200 font-medium text-xs">
+                                <div class="text-slate-100">${item.designation_article}</div>
+                                <div class="text-[10px] text-slate-400 font-mono">Art: ${item.article} | Magasin: ${item.magasin_source || '-'}</div>
+                            </td>
+                            <td class="p-4 text-slate-300 font-medium text-xs">${item.client || '-'}</td>
+                            <td class="p-4 text-center text-emerald-300 font-mono font-bold text-xs">${qteCmd.toLocaleString()} ${item.unite || 'KG'}</td>
                             <td class="p-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                    EN COURS
-                                </span>
+                                <input type="number" value="${qtePrep}" class="qte-prep-input bg-slate-950 border border-slate-800 rounded-lg w-24 text-center py-1.5 text-xs text-emerald-400 font-mono focus:outline-none focus:border-emerald-500 shadow-inner" data-id="${item.id}">
                             </td>
                             <td class="p-4 text-center">
-                                <button onclick="alert('Lancer la préparation')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
-                                    <i class="fas fa-check-circle mr-1"></i> Préparer
-                                </button>
+                                <span class="px-3 py-1 rounded-full text-[10px] font-semibold bg-slate-950 text-slate-300 border border-slate-800">
+                                    ${item.statut || 'IMPORTEE'}
+                                </span>
                             </td>
                         </tr>
                     `;
