@@ -25,9 +25,10 @@ class SidebarManager {
         this.sidebar = document.getElementById("sidebar");
         this.toggle = document.getElementById("sidebarToggle");
 
-        // 1. Charger les pages mn Supabase w tqadhoum f la Sidebar otomatikan
+        // 1. Jib les pages mn Supabase w rmihoum f la Sidebar awalan
         await this.loadPagesIntoSidebar();
 
+        // 2. Jama3 les liens morama t-bnawo
         this.links = [
             ...document.querySelectorAll(".nav-item")
         ];
@@ -46,8 +47,17 @@ class SidebarManager {
      * ============================================================ */
 
     async loadPagesIntoSidebar() {
-        const navContainer = document.getElementById("sidebarNav") || this.sidebar?.querySelector("nav");
-        if (!navContainer) return;
+        // Lawal, qleb 3la l'container fin khasshom y-t-7etto (ila makanch sidebarNav, khdm b sidebar)
+        let navContainer = document.getElementById("sidebarNav");
+        
+        if (!navContainer && this.sidebar) {
+            navContainer = this.sidebar.querySelector("nav") || this.sidebar.querySelector(".sidebar-nav");
+        }
+
+        if (!navContainer) {
+            console.error("Container dyal navigation (sidebarNav) ma t-l9ach f l'HTML!");
+            return;
+        }
 
         try {
             const { data: pages, error } = await supabase
@@ -57,13 +67,17 @@ class SidebarManager {
                 .order('ordre_affichage', { ascending: true });
 
             if (error) {
-                console.error("Erreur chargement pages sidebar:", error);
+                console.error("Erreur chargement pages sidebar Supabase:", error);
+                navContainer.innerHTML = `<div style="color: #ef4444; font-size: 11px; padding: 10px;">Erreur de chargement</div>`;
                 return;
             }
 
-            if (!pages || pages.length === 0) return;
+            if (!pages || pages.length === 0) {
+                navContainer.innerHTML = `<div style="color: #94a3b8; font-size: 11px; padding: 10px;">Aucune page configurée</div>`;
+                return;
+            }
 
-            // Mapping dyal les icônes 3la hsab l'code dyal la page
+            // Mapping dyal les icônes 3la hsab l'code dyal la page f Supabase
             const iconsMap = {
                 'dashboard': 'fa-chart-pie',
                 'import_stock': 'fa-file-import',
@@ -80,12 +94,16 @@ class SidebarManager {
                 'permissions': 'fa-lock'
             };
 
-            // Générer le HTML dyal les liens dynamiquement
+            // Générer les liens dyal la sidebar otomatikan
             navContainer.innerHTML = pages.map(page => {
                 const codeKey = (page.code || '').toLowerCase();
                 const iconClass = iconsMap[codeKey] || 'fa-folder';
-                let pageUrl = page.url || '#';
                 
+                let pageUrl = page.url || '#';
+                if (!pageUrl.startsWith('http') && !pageUrl.startsWith('/') && !pageUrl.startsWith('./')) {
+                    pageUrl = '/' + pageUrl;
+                }
+
                 return `
                     <a href="${pageUrl}" class="nav-item" data-page="${page.code}" data-permission="${page.code}">
                         <i class="fas ${iconClass}"></i>
@@ -95,7 +113,7 @@ class SidebarManager {
             }).join('');
 
         } catch (err) {
-            console.error("Erreur technique lors du chargement de la sidebar:", err);
+            console.error("Erreur technique f loadPagesIntoSidebar:", err);
         }
     }
 
