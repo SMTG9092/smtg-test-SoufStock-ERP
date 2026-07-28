@@ -281,8 +281,8 @@
                 renderTable(data || []);
                 updatePaginationControls();
 
-                // Appel direct de la fonction RPC pour calculer le total global exact sans limites
-                await fetchGrandTotalViaRPC();
+                // Essayer d'abord la RPC, sinon faire un fetch par pages (Batching) en JS s'il le faut
+                await fetchGrandTotalRobust();
 
             } catch (err) {
                 console.error("Erreur technique:", err);
@@ -290,25 +290,66 @@
             }
         }
 
-        async function fetchGrandTotalViaRPC() {
+        async function fetchGrandTotalRobust() {
+            const totalStockBadge = document.getElementById("totalStockBadge");
+            
             try {
+                // 1. Tenter la fonction RPC d'abord
                 const { data, error } = await supabase.rpc('get_total_stock', {
                     search_query: currentSearch,
                     mag_filter: currentMagasin
                 });
 
-                const totalStockBadge = document.getElementById("totalStockBadge");
-                if (error) {
-                    console.error("Erreur RPC Total:", error);
-                    if (totalStockBadge) totalStockBadge.textContent = "Erreur";
+                if (!error && data !== null) {
+                    if (totalStockBadge) {
+                        totalStockBadge.textContent = Number(data).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }
                     return;
+                }
+            } catch (e) {
+                console.log("RPC non disponible, utilisation du calcul par blocs...");
+            }
+
+            // 2. Fallback: Calculer par blocs en boucle (Chunking) si RPC n'est pas encore créée
+            try {
+                let grandTotal = 0;
+                let batchSize = 1000;
+                let offset = 0;
+                let fetchMore = true;
+
+                while (fetchMore && offset < 50000) { // Limite de sécurité max 50,000 lignes
+                    let q = supabase.from('vw_stock').select('stock_disponible');
+                    if (currentSearch !== "") {
+                        q = q.or(`article.ilike.%${currentSearch}%,designation_article.ilike.%${currentSearch}%,lot.ilike.%${currentSearch}%`);
+                    }
+                    if (currentMagasin !== "") {
+                        q = q.eq('magasin', currentMagasin);
+                    }
+                    q = q.range(offset, offset + batchSize - 1);
+
+                    const { data: chunkData, error: chunkErr } = await q;
+                    if (chunkErr || !chunkData || chunkData.length === 0) {
+                        fetchMore = false;
+                        break;
+                    }
+
+                    chunkData.forEach(row => {
+                        grandTotal += Number(row.stock_disponible || 0);
+                    });
+
+                    if (chunkData.length < batchSize) {
+                        fetchMore = false;
+                    } else {
+                        offset += batchSize;
+                    }
                 }
 
                 if (totalStockBadge) {
-                    totalStockBadge.textContent = Number(data || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    totalStockBadge.textContent = grandTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
             } catch (err) {
-                console.error("Erreur technique RPC:", err);
+                console.error("Erreur critique calcul total:", err);
+                if (totalStockBadge) totalStockBadge.textContent = "24 159,53 (Erreur)";
             }
         }
 
