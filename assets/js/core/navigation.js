@@ -83,7 +83,7 @@ class NavigationManager {
         try {
             const { data: pages, error } = await supabase
                 .from('pages')
-                .select('code, url, label, icon')
+                .select('code, url')
                 .eq('actif', true);
 
             if (error) {
@@ -94,8 +94,8 @@ class NavigationManager {
             if (pages) {
                 let html = '';
                 pages.forEach(page => {
-                    const pageLabel = page.label || this.format(page.code);
-                    const pageIcon = page.icon || 'fas fa-file';
+                    const pageLabel = this.format(page.code);
+                    const pageIcon = 'fas fa-file'; // Icon par défaut
                     
                     html += `
                         <a href="${page.url}" class="sidebar-item ${this.currentPage === page.code ? 'active' : ''}" data-page="${page.code}">
