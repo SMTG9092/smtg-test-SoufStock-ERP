@@ -5,11 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion Stock - SoufStock Enterprise</title>
     
-    <!-- CSS Styles -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/output.css">
+    
+    <!-- Tailwind CSS Play CDN (Kay-dir CSS kamel dyal Tailwind otomatikan f l-metra) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#020617',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                            400: '#94a3b8',
+                            300: '#cbd5e1',
+                            100: '#f1f5f9'
+                        },
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669',
+                            400: '#34d399',
+                            300: '#6ee7b7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        body { background-color: #020617; color: #f1f5f9; font-family: ui-sans-serif, system-ui, sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex">
+<body class="min-h-screen flex antialiased">
 
     <!-- SIDEBAR -->
     <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col p-4">
@@ -20,7 +57,7 @@
         
         <!-- Navigation Container -->
         <nav id="sidebarNav" class="flex-1 overflow-y-auto">
-            <!-- Les liens kaytsetaw hna otomatikan -->
+            <!-- Les liens kaytsetaw hna otomatikan mn navigation.js -->
         </nav>
     </aside>
 
@@ -87,13 +124,13 @@
         import supabase from './assets/js/core/supabase.js';
 
         document.addEventListener("DOMContentLoaded", async () => {
-            // 1. Initialiser la navigation et les permissions
+            // 1. Initialiser la navigation et les permissions (vérification 444.html)
             await Navigation.init();
 
             // 2. Charger les données depuis vw_stock
             await loadStockData();
 
-            // 3. Activer la recherche
+            // 3. Activer la recherche dynamique
             const searchInput = document.getElementById("searchInput");
             if (searchInput) {
                 searchInput.addEventListener("input", (e) => {
