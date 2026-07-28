@@ -48,7 +48,7 @@
 <body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex overflow-hidden">
 
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen p-4 select-none">
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen p-4 select-none shrink-0">
         <div class="flex items-center gap-3 px-2 mb-6">
             <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
                 <i class="fas fa-snowflake text-lg"></i>
@@ -100,69 +100,70 @@
 
         <!-- PAGE BODY -->
         <main class="flex-1 p-8 overflow-y-auto">
-            <div class="max-w-7xl mx-auto">
+            <div class="max-w-7xl mx-auto flex flex-col gap-6">
                 
-                <!-- Welcome Banner with Stats Cards -->
-                <div class="bg-gradient-to-r from-slate-900 to-slate-900/80 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl flex flex-col gap-6">
-                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-                                <i class="fas fa-warehouse text-emerald-400"></i> État Global du Stock
-                            </h2>
-                            <p class="text-xs text-slate-400 mt-1">
-                                Consultation en direct et analyses globales du stock.
-                            </p>
+                <!-- TOP HEADER & FILTERS BAR -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fas fa-warehouse text-emerald-400"></i> État Global du Stock
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Consultation en direct et analyses globales du stock.
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- Magasin Filter Select -->
+                        <div class="relative">
+                            <i class="fas fa-store absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <select id="magasinFilter" class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition shadow-inner appearance-none cursor-pointer">
+                                <option value="">Tous les magasins</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] pointer-events-none"></i>
                         </div>
-                        
-                        <div class="flex items-center gap-3 flex-wrap">
-                            <!-- Magasin Filter Select -->
-                            <div class="relative">
-                                <i class="fas fa-store absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                                <select id="magasinFilter" class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition shadow-inner appearance-none cursor-pointer">
-                                    <option value="">Tous les magasins</option>
-                                </select>
-                                <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] pointer-events-none"></i>
-                            </div>
 
-                            <!-- Search Input -->
-                            <div class="relative">
-                                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                                <input type="text" id="searchInput" placeholder="Rechercher article, lot..." 
-                                    class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-64 transition shadow-inner">
-                            </div>
+                        <!-- Search Input -->
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="text" id="searchInput" placeholder="Rechercher article, lot..." 
+                                class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-64 transition shadow-inner">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STATS CARDS GRID -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Total Stock Card -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[11px] text-slate-400 uppercase font-semibold tracking-wider block">Total Quantité Disponible</span>
+                            <span id="totalStockBadge" class="text-xl font-bold text-emerald-400 font-mono mt-1 block">Chargement...</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
+                            <i class="fas fa-boxes"></i>
                         </div>
                     </div>
 
-                    <!-- STATS CARDS GRID -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-800/80">
-                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
-                            <div>
-                                <span class="text-[11px] text-slate-400 uppercase font-semibold block">Total Quantité Disponible</span>
-                                <span id="totalStockBadge" class="text-lg font-bold text-emerald-400 font-mono mt-0.5 block">Chargement...</span>
-                            </div>
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                                <i class="fas fa-boxes"></i>
-                            </div>
+                    <!-- Total Articles Card -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[11px] text-slate-400 uppercase font-semibold tracking-wider block">Nombre d'Articles</span>
+                            <span id="totalArticlesBadge" class="text-xl font-bold text-sky-400 font-mono mt-1 block">Chargement...</span>
                         </div>
-
-                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
-                            <div>
-                                <span class="text-[11px] text-slate-400 uppercase font-semibold block">Nombre d'Articles</span>
-                                <span id="totalArticlesBadge" class="text-lg font-bold text-sky-400 font-mono mt-0.5 block">Chargement...</span>
-                            </div>
-                            <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
-                                <i class="fas fa-tags"></i>
-                            </div>
+                        <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-lg">
+                            <i class="fas fa-tags"></i>
                         </div>
+                    </div>
 
-                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
-                            <div>
-                                <span class="text-[11px] text-slate-400 uppercase font-semibold block">Nombre de Lots</span>
-                                <span id="totalLotsBadge" class="text-lg font-bold text-amber-400 font-mono mt-0.5 block">Chargement...</span>
-                            </div>
-                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                                <i class="fas fa-barcode"></i>
-                            </div>
+                    <!-- Total Lots Card -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[11px] text-slate-400 uppercase font-semibold tracking-wider block">Nombre de Lots</span>
+                            <span id="totalLotsBadge" class="text-xl font-bold text-amber-400 font-mono mt-1 block">Chargement...</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-lg">
+                            <i class="fas fa-barcode"></i>
                         </div>
                     </div>
                 </div>
@@ -316,7 +317,7 @@
                 renderTable(data || []);
                 updatePaginationControls();
 
-                // Calculer les statistiques globales (Total Stock, Nombre d'articles uniques, Nombre de lots uniques)
+                // Calculer les statistiques globales
                 await calculateGlobalStats();
 
             } catch (err) {
