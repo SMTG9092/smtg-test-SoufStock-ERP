@@ -1,265 +1,61 @@
-/**
- * ============================================================
- * SoufStock Enterprise ERP
- * assets/js/core/navigation.js
- * ============================================================
- */
+import supabase from "./supabase.js";
 
-import { Loader, Toast } from "./utils.js";
-import Sidebar from "./sidebar.js";
+const Navigation = {
+    async init() {
+        const navContainer = document.getElementById('sidebarNav');
+        if (!navContainer) return;
 
-class NavigationManager {
+        // Jib les pages actifs mn la table public.pages
+        const { data: pages, error } = await supabase
+            .from('pages')
+            .select('code, nom, url, ordre_affichage')
+            .eq('actif', true)
+            .order('ordre_affichage', { ascending: true });
 
-    constructor() {
-
-        this.currentPage = "";
-
-        this.routes = {
-
-            dashboard: "dashboard.html",
-
-            stock: "stock.html",
-
-            mouvements: "mouvements.html",
-
-            commandes: "commandes.html",
-
-            picking: "picking.html",
-
-            reservations: "reservations.html",
-
-            expeditions: "expeditions.html",
-
-            utilisateurs: "users.html",
-
-            roles: "roles.html",
-
-            permissions: "permissions.html",
-
-            parametres: "settings.html"
-
-        };
-
-    }
-
-    /* ============================================================
-     * INIT
-     * ============================================================
-     */
-
-    init() {
-
-        this.detectCurrentPage();
-
-        this.bindEvents();
-
-        Sidebar.setActive(this.currentPage);
-
-        this.updateTitle();
-
-        this.updateBreadcrumb();
-
-    }
-
-    /* ============================================================
-     * EVENTS
-     * ============================================================
-     */
-
-    bindEvents() {
-
-        window.addEventListener(
-
-            "navigate",
-
-            e => {
-
-                this.navigate(
-
-                    e.detail.page
-
-                );
-
-            }
-
-        );
-
-    }
-
-    /* ============================================================
-     * NAVIGATE
-     * ============================================================
-     */
-
-    async navigate(page) {
-
-        if (!page) return;
-
-        if (page === this.currentPage)
-
+        if (error) {
+            console.error("Erreur chargement navigation:", error);
+            navContainer.innerHTML = `<div style="color: #ef4444; font-size: 11px; padding: 10px;">Erreur de chargement du menu</div>`;
             return;
-
-        const route = this.routes[page];
-
-        if (!route) {
-
-            Toast.error(
-
-                "Navigation",
-
-                "Page introuvable."
-
-            );
-
-            return;
-
         }
 
-        Loader.show(
+        if (!pages || pages.length === 0) {
+            navContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 11px; padding: 10px;">Aucune page configurée</div>`;
+            return;
+        }
 
-            "Chargement...",
+        // 3raf l'URL dyal la page li nta fiha daba bash t-ban "active"
+        const currentPath = window.location.pathname;
 
-            "Ouverture de " + page
+        // Mapping dyal les icônes 3la hsab l'code wla l'nom dyal la page
+        const iconsMap = {
+            'dashboard': 'fa-chart-pie',
+            'mouvements': 'fa-exchange-alt',
+            'articles': 'fa-boxes',
+            'stocks': 'fa-warehouse',
+            'commandes': 'fa-file-invoice',
+            'picking': 'fa-dolly',
+            'expeditions': 'fa-truck',
+            'utilisateurs': 'fa-users',
+            'pages': 'fa-sitemap',
+            'parametres': 'fa-cog'
+        };
 
-        );
+        // Génération dynamique dyal HTML dyal la navigation
+        navContainer.innerHTML = pages.map(page => {
+            // Khod l'icône wla ddiro default (fa-circle)
+            const iconClass = iconsMap[page.code.toLowerCase()] || 'fa-folder';
+            
+            // Wesh had la page hiya lli mftouha daba?
+            const isActive = currentPath.includes(page.url) ? 'active' : '';
 
-        window.location.href = route;
-
+            return `
+                <a href="${page.url}" class="nav-item ${isActive}">
+                    <i class="fas ${iconClass}"></i>
+                    <span>${page.nom}</span>
+                </a>
+            `;
+        }).join('');
     }
+};
 
-    /* ============================================================
-     * DETECT CURRENT PAGE
-     * ============================================================
-     */
-
-    detectCurrentPage() {
-
-        const file =
-
-            window.location.pathname
-
-                .split("/")
-
-                .pop()
-
-                .replace(".html", "");
-
-        this.currentPage =
-
-            file || "dashboard";
-
-    }
-
-    /* ============================================================
-     * TITLE
-     * ============================================================
-     */
-
-    updateTitle() {
-
-        const title =
-
-            document.getElementById(
-
-                "pageTitle"
-
-            );
-
-        if (!title) return;
-
-        title.textContent =
-
-            this.format(
-
-                this.currentPage
-
-            );
-
-    }
-
-    /* ============================================================
-     * BREADCRUMB
-     * ============================================================
-     */
-
-    updateBreadcrumb() {
-
-        const breadcrumb =
-
-            document.getElementById(
-
-                "breadcrumb"
-
-            );
-
-        if (!breadcrumb) return;
-
-        breadcrumb.innerHTML =
-
-        `
-
-            <span>
-
-                Accueil
-
-            </span>
-
-            <span>
-
-                /
-
-            </span>
-
-            <strong>
-
-                ${this.format(
-
-                    this.currentPage
-
-                )}
-
-            </strong>
-
-        `;
-
-    }
-
-    /* ============================================================
-     * FORMAT
-     * ============================================================
-     */
-
-    format(text) {
-
-        return text
-
-            .replace(/-/g, " ")
-
-            .replace(
-
-                /\b\w/g,
-
-                c => c.toUpperCase()
-
-            );
-
-    }
-
-    /* ============================================================
-     * GET CURRENT PAGE
-     * ============================================================
-     */
-
-    getCurrentPage() {
-
-        return this.currentPage;
-
-    }
-
-}
-
-const Navigation = new NavigationManager();
-
-// Export par défaut + Named exports pour éviter les erreurs d'import (navigationManager / Navigation)
-export { NavigationManager, Navigation as navigationManager };
 export default Navigation;
