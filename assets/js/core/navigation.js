@@ -1,66 +1,282 @@
+/**
+ * ============================================================
+ * SoufStock Enterprise ERP
+ * assets/js/core/navigation.js
+ * ============================================================
+ */
+
+import { Loader, Toast } from "./utils.js";
+import Sidebar from "./sidebar.js";
 import supabase from "./supabase.js";
 
-const Navigation = {
+class NavigationManager {
+
+    constructor() {
+        this.currentPage = "";
+        this.routes = {}; // Ghadi t-3mmar otomatikan mn Supabase
+        this.initialized = false;
+    }
+
+    /* ============================================================
+     * INIT
+     * ============================================================
+     */
     async init() {
-        const navContainer = document.getElementById('sidebarNav');
-        if (!navContainer) return;
+        this.detectCurrentPage();
+        
+        // Jib les routes mn la base de données awalan
+        await this.loadRoutesFromDatabase();
 
-        const { data: pages, error } = await supabase
-            .from('pages')
-            .select('*')
-            .order('ordre_affichage', { ascending: true });
+        this.bindEvents();
 
-        if (error) {
-            console.error("Erreur chargement navigation Supabase:", error);
-            navContainer.innerHTML = `<div style="color: #ef4444; font-size: 11px; padding: 10px;">Erreur: ${error.message}</div>`;
-            return;
-        }
+        Sidebar.setActive(this.currentPage);
 
-        if (!pages || pages.length === 0) {
-            navContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 11px; padding: 10px;">Aucune page trouvée</div>`;
-            return;
-        }
+        this.updateTitle();
 
-        const currentPath = window.location.pathname;
+        this.updateBreadcrumb();
 
-        const iconsMap = {
-            'dashboard': 'fa-chart-pie',
-            'import_stock': 'fa-file-import',
-            'import_commandes_kg': 'fa-file-excel',
-            'import_commandes_pieces': 'fa-file-excel',
-            'stock': 'fa-warehouse',
-            'commandes': 'fa-file-invoice',
-            'picking': 'fa-dolly',
-            'ab10': 'fa-box-open',
-            'expeditions': 'fa-truck',
-            'utilisateurs': 'fa-users',
-            'parametres': 'fa-cog',
-            'roles': 'fa-user-shield'
-        };
+        this.initialized = true;
+    }
 
-        navContainer.innerHTML = pages.map(page => {
-            if (page.actif === false) return '';
+    /* ============================================================
+     * LOAD ROUTES FROM SUPABASE
+     * ============================================================
+     */
+    async loadRoutesFromDatabase() {
+        try {
+            const { data: pages, error } = await supabase
+                .from('pages')
+                .select('code, url')
+                .eq('actif', true);
 
-            const codeKey = (page.code || '').toLowerCase();
-            const iconClass = iconsMap[codeKey] || 'fa-folder';
-            
-            // Traitement dyal l'URL bach ykoun flexible (m3a wla bla /pages/)
-            let pageUrl = page.url || '#';
-            if (!pageUrl.startsWith('http') && !pageUrl.startsWith('/')) {
-                pageUrl = '/' + pageUrl;
+            if (error) {
+                console.error("Erreur chargement routes Supabase:", error);
+                return;
             }
 
-            // Vérification wach la page hiya li mftouha daba
-            const isActive = currentPath.endsWith(page.url) || currentPath.includes(page.code);
-
-            return `
-                <a href="${pageUrl}" class="nav-item ${isActive ? 'active' : ''}">
-                    <i class="fas ${iconClass}"></i>
-                    <span>${page.nom}</span>
-                </a>
-            `;
-        }).join('');
+            if (pages) {
+                this.routes = {};
+                pages.forEach(page => {
+                    // Kay-dir mapping mabin code w url (mithal: dashboard: "dashboard.html")
+                    if (page.code && page.url) {
+                        // Nettoyer l'url ila kan fih slash l-qdam
+                        let cleanUrl = page.url;
+                        if (cleanUrl.startsWith('/')) {
+                            cleanUrl = cleanUrl.substring(1);
+                        }
+                        this.routes[page.code] = cleanUrl;
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Erreur de connexion base de données pour les routes:", err);
+        }
     }
-};
 
+    /* ============================================================
+     * EVENTS
+     * ============================================================
+     */
+
+    bindEvents() {
+
+        window.addEventListener(
+
+            "navigate",
+
+            e => {
+
+                this.navigate(
+
+                    e.detail.page
+
+                );
+
+            }
+
+        );
+
+    }
+
+    /* ============================================================
+     * NAVIGATE
+     * ============================================================
+     */
+
+    async navigate(page) {
+
+        if (!page) return;
+
+        if (page === this.currentPage)
+
+            return;
+
+        // Ila baqi ma t-chargawch les routes, n-tsnawhoum
+        if (Object.keys(this.routes).length === 0) {
+            await this.loadRoutesFromDatabase();
+        }
+
+        const route = this.routes[page];
+
+        if (!route) {
+
+            Toast.error(
+
+                "Navigation",
+
+                "Page introuvable."
+
+            );
+
+            return;
+
+        }
+
+        Loader.show(
+
+            "Chargement...",
+
+            "Ouverture de " + page
+
+        );
+
+        window.location.href = route;
+
+    }
+
+    /* ============================================================
+     * DETECT CURRENT PAGE
+     * ============================================================
+     */
+
+    detectCurrentPage() {
+
+        const file =
+
+            window.location.pathname
+
+                .split("/")
+
+                .pop()
+
+                .replace(".html", "");
+
+        this.currentPage =
+
+            file || "dashboard";
+
+    }
+
+    /* ============================================================
+     * TITLE
+     * ============================================================
+     */
+
+    updateTitle() {
+
+        const title =
+
+            document.getElementById(
+
+                "pageTitle"
+
+            );
+
+        if (!title) return;
+
+        title.textContent =
+
+            this.format(
+
+                this.currentPage
+
+            );
+
+    }
+
+    /* ============================================================
+     * BREADCRUMB
+     * ============================================================
+     */
+
+    updateBreadcrumb() {
+
+        const breadcrumb =
+
+            document.getElementById(
+
+                "breadcrumb"
+
+            );
+
+        if (!breadcrumb) return;
+
+        breadcrumb.innerHTML =
+
+        `
+
+            <span>
+
+                Accueil
+
+            </span>
+
+            <span>
+
+                /
+
+            </span>
+
+            <strong>
+
+                ${this.format(
+
+                    this.currentPage
+
+                )}
+
+            </strong>
+
+        `;
+
+    }
+
+    /* ============================================================
+     * FORMAT
+     * ============================================================
+     */
+
+    format(text) {
+
+        return text
+
+            .replace(/-/g, " ")
+
+            .replace(
+
+                /\b\w/g,
+
+                c => c.toUpperCase()
+
+            );
+
+    }
+
+    /* ============================================================
+     * GET CURRENT PAGE
+     * ============================================================
+     */
+
+    getCurrentPage() {
+
+        return this.currentPage;
+
+    }
+
+}
+
+const Navigation = new NavigationManager();
+
+// Export par défaut + Named exports pour éviter les erreurs d'import
+export { NavigationManager, Navigation as navigationManager };
 export default Navigation;
