@@ -117,7 +117,7 @@
                     <div class="flex items-center gap-3 flex-wrap">
                         <div class="relative flex items-center">
                             <i class="fas fa-file-invoice absolute left-3.5 text-slate-500 text-sm"></i>
-                            <input type="text" id="documentInput" placeholder="N° Document (Ex: BL-...)" 
+                            <input type="text" id="documentInput" placeholder="N° Document (Ex: 4000795424)" value="4000795424"
                                 class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-64 transition shadow-inner">
                         </div>
                         <button id="searchDocBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 shadow-sm">
@@ -225,15 +225,17 @@
             tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-slate-400 text-xs"><i class="fas fa-spinner fa-spin mr-2 text-emerald-500"></i> Recherche de la commande...</td></tr>`;
 
             try {
-                // Fetching lines from commandes_excel table based on document reference
+                // Utilisation de .eq ou .ilike sur document_vente selon la structure exacte
                 const { data, error } = await supabase
                     .from('commandes_excel')
                     .select('*')
-                    .eq('document_vente', docNum)
+                    .ilike('document_vente', `%${docNum}%`)
                     .order('ligne_commande', { ascending: true });
 
+                console.log("Résultat Supabase:", { data, error });
+
                 if (error || !data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-red-400 text-xs"><i class="fas fa-exclamation-triangle mr-2"></i> Aucune commande trouvée pour ce numéro.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-red-400 text-xs"><i class="fas fa-exclamation-triangle mr-2"></i> Aucune ligne trouvée pour le document "${docNum}". Vérifiez que le numéro existe dans Supabase.</td></tr>`;
                     clearHeaderInfo();
                     return;
                 }
@@ -253,7 +255,7 @@
             document.getElementById("infoCreation").textContent = firstRow.date_creation || '-';
             document.getElementById("infoLivraison").textContent = firstRow.date_livraison || '-';
             document.getElementById("infoTournee").textContent = firstRow.itineraire || '-';
-            document.getElementById("infoStatut").textContent = "EN COURS";
+            document.getElementById("infoStatut").textContent = firstRow.statut || "EN COURS";
         }
 
         function clearHeaderInfo() {
@@ -277,7 +279,7 @@
                             <span class="text-slate-400 text-[11px] block mt-0.5">${item.designation_article || '-'}</span>
                         </td>
                         <td class="p-4 text-center font-bold text-slate-200 text-xs">${qteCmd.toLocaleString()}</td>
-                        <td class="p-4 text-center font-mono font-semibold text-sky-400 text-xs" id="total_prep_${index}">0.00</td>
+                        <td class="p-4 text-center font-mono font-semibold text-sky-400 text-xs" id="total_prep_${index}">${Number(item.quantite_preparee || 0).toFixed(2)}</td>
                         <td class="p-4 text-center">
                             <div class="relative">
                                 <input type="text" placeholder="Saisir Lot..." oninput="searchLots(this, '${item.article}', ${index})"
@@ -302,7 +304,6 @@
         }
 
         window.calculatePrepared = function(index) {
-            // Simple calculation placeholder for row totals
             const row = document.querySelector(`tr[data-index="${index}"]`);
             if (!row) return;
             const qtyInput = row.querySelector(".qty-input");
@@ -365,7 +366,7 @@
         }
 
         window.validatePicking = function() {
-            alert("Préparation validée et validée dans le stock !");
+            alert("Préparation validée et enregistrée dans le stock !");
         }
     </script>
 </body>
