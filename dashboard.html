@@ -225,14 +225,6 @@
             margin-top: 2px;
         }
 
-        .stat-box .trend {
-            font-size: 11px;
-            margin-top: 6px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
         .trend.up { color: #10b981; }
         .trend.down { color: #ef4444; }
 
@@ -270,6 +262,24 @@
             font-size: 14px;
             font-weight: 600;
             color: #fff;
+        }
+
+        /* --- Custom Select Filter Style --- */
+        .week-filter-select {
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--primary-glow);
+            border: 1px solid var(--card-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .week-filter-select:hover, .week-filter-select:focus {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
         }
 
         .table-pro {
@@ -361,7 +371,7 @@
                 <h1 id="welcomeTitle">Bienvenue, Chargement...</h1>
                 <p>Voici l'état général de votre activité aujourd'hui.</p>
             </div>
-            <!-- TARIKH W L-WAQTSHAH 100% (Real-time live update) -->
+            <!-- REAL-TIME CLOCK & DATE -->
             <div style="text-align: right; font-size: 12px; color: var(--text-muted);">
                 <i class="fas fa-calendar-alt"></i> <span id="currentDateBanner">--</span> &nbsp;|&nbsp; 
                 <i class="fas fa-clock"></i> <span id="currentTimeBanner">--:--:--</span>
@@ -432,9 +442,13 @@
         </div>
 
         <div class="dashboard-grid-pro">
+            <!-- ENTRÉES VS SORTIES B L-FILTER DYL S-SIMANAT -->
             <div class="pro-card">
                 <div class="pro-card-header">
-                    <h3>Entrées vs Sorties (7 derniers jours)</h3>
+                    <h3>Entrées vs Sorties</h3>
+                    <select id="weekFilterSelect" class="week-filter-select">
+                        <!-- Ghadi t-3mmar otomatikan b s-simanat w l-dates dyalhom -->
+                    </select>
                 </div>
                 <div style="height: 200px; position: relative;">
                     <canvas id="entriesExitsChart"></canvas>
@@ -513,7 +527,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Logique Dashboard & Real-Time Clock & Date -->
+<!-- Logique Dashboard & Real-Time Clock & Week Filter -->
 <script type="module">
     import Navigation from "/assets/js/core/navigation.js";
     import SessionManager from "/assets/js/core/session.js";
@@ -521,18 +535,17 @@
     import supabase from "/assets/js/core/supabase.js";
     import { initPermissions } from "/assets/js/core/permissions.js";
 
+    let entriesExitsChartInstance = null;
+    let globalMouvementsData = [];
+
     // --- Fonction Active Live Date & Time Shah 100% ---
     function startRealTimeClock() {
         const updateClock = () => {
             const now = new Date();
-            
-            // Format Tarikh Bel Français (ex: Mercredi 28 Juin 2026)
             const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             let dateStr = now.toLocaleDateString('fr-FR', optionsDate);
-            // Capitalize first letter of day and month
             dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
             
-            // Format Waqt (HH:MM:SS)
             const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
             const dateEl = document.getElementById('currentDateBanner');
@@ -543,11 +556,10 @@
         };
 
         updateClock();
-        setInterval(updateClock, 1000); // K-t-mdda kol second b dbt
+        setInterval(updateClock, 1000);
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // Start l-waqt w t-tarikh l-an
         startRealTimeClock();
 
         const isAuth = await SessionManager.requireAuth();
@@ -595,10 +607,9 @@
             }
         }
 
-        // Charger toutes les statistiques en direct de la base de données (100% réel)
         await loadDashboardRealData();
-
-        initCharts();
+        await initEntriesExitsWithWeekFilter();
+        initDonutChart();
         await loadDashboardMouvements();
 
         const btnLogout = document.getElementById('btnLogout');
@@ -613,7 +624,6 @@
 
     async function loadDashboardRealData() {
         try {
-            // 1. Stock Total, Articles, Réservations mn la vue vw_dashboard
             const { data: viewData, error: viewError } = await supabase
                 .from('vw_dashboard')
                 .select('*')
@@ -630,7 +640,6 @@
                 document.getElementById('statReservations').textContent = stockReserve.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             }
 
-            // 2. Commandes (en cours / total mn table commandes)
             const { count: countCommandes, error: errCmd } = await supabase
                 .from('commandes')
                 .select('*', { count: 'exact', head: true });
@@ -639,7 +648,6 @@
                 document.getElementById('statCommandes').textContent = (countCommandes || 0).toLocaleString('fr-FR');
             }
 
-            // 3. Picking (en cours mn la vue v_picking)
             const { count: countPicking, error: errPick } = await supabase
                 .from('v_picking')
                 .select('*', { count: 'exact', head: true });
@@ -648,7 +656,6 @@
                 document.getElementById('statPicking').textContent = (countPicking || 0).toLocaleString('fr-FR');
             }
 
-            // 4. Expéditions (aujourd'hui mn la vue v_expeditions)
             const todayStr = new Date().toISOString().split('T')[0];
             const { count: countExpeditions, error: errExp } = await supabase
                 .from('v_expeditions')
@@ -664,44 +671,201 @@
         }
     }
 
-    function initCharts() {
-        const ctxLines = document.getElementById('entriesExitsChart');
-        if (ctxLines) {
-            new Chart(ctxLines, {
-                type: 'line',
-                data: {
-                    labels: ['19/06', '20/06', '21/06', '22/06', '23/06', '24/06', '25/06'],
-                    datasets: [
-                        {
-                            label: 'Entrées (KG)',
-                            data: [150000, 110000, 180000, 100000, 160000, 90000, 120000],
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Sorties (KG)',
-                            data: [50000, 130000, 80000, 60000, 40000, 110000, 130000],
-                            borderColor: '#ef4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.03)' } },
-                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.03)' } }
-                    }
-                }
+    // --- System Filter Semaines b Dates (ex: 1 = 15-06-2026 / 21-06-2026) ---
+    async function initEntriesExitsWithWeekFilter() {
+        try {
+            // Jbed ga3 l-mouvements mn la base de données bach n-grouppiwihm simna b simna
+            const { data, error } = await supabase
+                .from('mouvements_stock')
+                .select('date_mouvement, type_mouvement, quantite')
+                .order('date_mouvement', { ascending: true });
+
+            if (error || !data) {
+                console.error("Erreurfetch mouvements pour graph:", error);
+                renderEmptyChart();
+                return;
+            }
+
+            globalMouvementsData = data;
+
+            // Ila makanoch data, ndiro simanat taqribiya wla dial l-waqt l-hali
+            const weeksMap = generateWeeksMap(data);
+            const selectEl = document.getElementById('weekFilterSelect');
+            if (!selectEl) return;
+
+            selectEl.innerHTML = '';
+            let keys = Object.keys(weeksMap);
+
+            if (keys.length === 0) {
+                selectEl.innerHTML = `<option value="">Aucune donnée disponible</option>`;
+                renderEmptyChart();
+                return;
+            }
+
+            // Trteb s-simanat mn l-jdid l l-qdim wla l-3ks
+            keys.sort().reverse();
+
+            keys.forEach((weekKey, index) => {
+                const weekInfo = weeksMap[weekKey];
+                const opt = document.createElement('option');
+                opt.value = weekKey;
+                // Format libikhdm b dbt: 1 = 15-06-2026 / 21-06-2026
+                opt.textContent = `${index + 1} = ${weekInfo.startDateFormatted} / ${weekInfo.endDateFormatted}`;
+                selectEl.appendChild(opt);
             });
+
+            // Afficher s-simana l-lwla (l-hadra/l-jdida)
+            updateChartForWeek(keys[0], weeksMap);
+
+            //ila bdl l-utilisateur s-simana mn l-select
+            selectEl.addEventListener('change', (e) => {
+                updateChartForWeek(e.target.value, weeksMap);
+            });
+
+        } catch (err) {
+            console.error("Erreur initEntriesExitsWithWeekFilter:", err);
+        }
+    }
+
+    // Fonction t-qssem les dates l simanat (Lundi -> Dimanche)
+    function generateWeeksMap(mouvements) {
+        const weeks = {};
+
+        mouvements.forEach(m => {
+            if (!m.date_mouvement) return;
+            const d = new Date(m.date_mouvement);
+            if (isNaN(d.getTime())) return;
+
+            // Jab l-lundi dyal s-simana
+            const dayOfWeek = d.getDay();
+            const diffToMonday = d.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const monday = new Date(d.setDate(diffToMonday));
+            monday.setHours(0, 0, 0, 0);
+
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23, 59, 59, 999);
+
+            const weekKey = monday.toISOString().split('T')[0]; // Key unique ex: 2026-06-15
+
+            if (!weeks[weekKey]) {
+                weeks[weekKey] = {
+                    startDate: new Date(monday),
+                    endDate: new Date(sunday),
+                    startDateFormatted: formatDateFR(monday),
+                    endDateFormatted: formatDateFR(sunday),
+                    days: {}
+                };
+                // Initialiser 7 jours dyal s-simana (Lundi tal Dimanche)
+                for (let i = 0; i < 7; i++) {
+                    let currDay = new Date(monday);
+                    currDay.setDate(monday.getDate() + i);
+                    let dayKey = currDay.toISOString().split('T')[0];
+                    weeks[weekKey].days[dayKey] = { entrees: 0, sorties: 0, label: formatDateShort(currDay) };
+                }
+            }
+
+            let dayKey = d.toISOString().split('T')[0];
+            if (weeks[weekKey].days[dayKey]) {
+                const q = Number(m.quantite) || 0;
+                const isEntree = ['AJOUT', 'IMPORT', 'RETOUR', 'ENTREE'].includes((m.type_mouvement || '').toUpperCase());
+                if (isEntree) {
+                    weeks[weekKey].days[dayKey].entrees += q;
+                } else {
+                    weeks[weekKey].days[dayKey].sorties += q;
+                }
+            }
+        });
+
+        return weeks;
+    }
+
+    function formatDateFR(dateObj) {
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const year = dateObj.getFullYear();
+        return `${day}-${month}-${year}`;
+    }
+
+    function formatDateShort(dateObj) {
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        return `${day}/${month}`;
+    }
+
+    function updateChartForWeek(weekKey, weeksMap) {
+        const weekData = weeksMap[weekKey];
+        if (!weekData) return;
+
+        let labels = [];
+        let entreesData = [];
+        let sortiesData = [];
+
+        Object.keys(weekData.days).sort().forEach(dayKey => {
+            const dayObj = weekData.days[dayKey];
+            labels.push(dayObj.label);
+            entreesData.push(dayObj.entrees);
+            sortiesData.push(dayObj.sorties);
+        });
+
+        const ctx = document.getElementById('entriesExitsChart');
+        if (!ctx) return;
+
+        if (entriesExitsChartInstance) {
+            entriesExitsChartInstance.destroy();
         }
 
+        entriesExitsChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Entrées (KG)',
+                        data: entreesData,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Sorties (KG)',
+                        data: sortiesData,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.03)' } }
+                }
+            }
+        });
+    }
+
+    function renderEmptyChart() {
+        const ctx = document.getElementById('entriesExitsChart');
+        if (!ctx) return;
+        if (entriesExitsChartInstance) entriesExitsChartInstance.destroy();
+
+        entriesExitsChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                datasets: [{ label: 'Aucune donnée', data: [0,0,0,0,0,0,0], borderColor: '#94a3b8' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function initDonutChart() {
         const ctxDonut = document.getElementById('stockMagasinChart');
         if (ctxDonut) {
             new Chart(ctxDonut, {
