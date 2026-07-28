@@ -7,7 +7,7 @@
     
     <!-- CSS Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/output.css"> <!-- Awla l-css dyalk -->
+    <link rel="stylesheet" href="assets/css/output.css">
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex">
 
@@ -18,7 +18,7 @@
             <span class="font-bold text-lg tracking-wide">SoufStock</span>
         </div>
         
-        <!-- Navigation Container (Kay-t-généra dynamiquement b navigation.js) -->
+        <!-- Navigation Container -->
         <nav id="sidebarNav" class="flex-1 overflow-y-auto">
             <!-- Les liens kaytsetaw hna otomatikan -->
         </nav>
@@ -38,7 +38,7 @@
             </div>
             
             <div class="flex items-center gap-4">
-                <span id="userName" class="text-sm font-medium">YAHYA SOUFIANE</span>
+                <span id="userName" class="text-sm font-medium">SoufStock Admin</span>
             </div>
         </header>
 
@@ -46,15 +46,36 @@
         <main class="flex-1 p-6 overflow-y-auto">
             <div class="max-w-7xl mx-auto">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-semibold">État Global du Stock</h2>
-                    <button class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                        <i class="fas fa-plus"></i> Ajouter Article
-                    </button>
+                    <h2 class="text-xl font-semibold">État Global du Stock (vw_stock)</h2>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="searchInput" placeholder="Rechercher un article..." 
+                            class="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
                 </div>
 
-                <!-- Contenu dyal la page d stock -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                    <p class="text-slate-400 text-sm">Chargement des données du stock...</p>
+                <!-- TABLE CONTAINER -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-800/50 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800">
+                                    <th class="p-4">Article</th>
+                                    <th class="p-4">Désignation</th>
+                                    <th class="p-4">Lot</th>
+                                    <th class="p-4">Magasin</th>
+                                    <th class="p-4">Unité</th>
+                                    <th class="p-4 text-right">Stock Disponible</th>
+                                    <th class="p-4 text-right">Stock Réservé</th>
+                                    <th class="p-4 text-center">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTableBody" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="8" class="p-6 text-center text-slate-400">Chargement des données du stock...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>
@@ -63,11 +84,77 @@
     <!-- SCRIPTS -->
     <script type="module">
         import Navigation from './assets/js/core/navigation.js';
+        import supabase from './assets/js/core/supabase.js';
 
-        // Init Navigation w Vérification dyal Permissions Otomatikian
         document.addEventListener("DOMContentLoaded", async () => {
+            // 1. Initialiser la navigation et les permissions
             await Navigation.init();
+
+            // 2. Charger les données depuis vw_stock
+            await loadStockData();
+
+            // 3. Activer la recherche
+            const searchInput = document.getElementById("searchInput");
+            if (searchInput) {
+                searchInput.addEventListener("input", (e) => {
+                    loadStockData(e.target.value);
+                });
+            }
         });
+
+        async function loadStockData(search = "") {
+            const tbody = document.getElementById("stockTableBody");
+            
+            try {
+                let query = supabase
+                    .from('vw_stock')
+                    .select('*')
+                    .limit(100);
+
+                if (search.trim() !== "") {
+                    query = query.or(`article.ilike.%${search}%,designation_article.ilike.%${search}%,lot.ilike.%${search}%`);
+                }
+
+                const { data, error } = await query;
+
+                if (error) {
+                    console.error("Erreur chargement stock:", error);
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erreur lors du chargement des données.</td></tr>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">Aucun article trouvé.</td></tr>`;
+                    return;
+                }
+
+                let html = "";
+                data.forEach(item => {
+                    html += `
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="p-4 font-semibold text-emerald-400">${item.article || '-'}</td>
+                            <td class="p-4 text-slate-200">${item.designation_article || '-'}</td>
+                            <td class="p-4 text-slate-400">${item.lot || '-'}</td>
+                            <td class="p-4 text-slate-300">${item.magasin || '-'}</td>
+                            <td class="p-4 text-slate-400">${item.unite || '-'}</td>
+                            <td class="p-4 text-right font-medium text-emerald-300">${item.stock_disponible ?? 0}</td>
+                            <td class="p-4 text-right font-medium text-amber-300">${item.stock_reserve ?? 0}</td>
+                            <td class="p-4 text-center">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                                    ${item.statut || 'N/A'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = html;
+
+            } catch (err) {
+                console.error("Erreur technique:", err);
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erreur de connexion.</td></tr>`;
+            }
+        }
     </script>
 </body>
 </html>
