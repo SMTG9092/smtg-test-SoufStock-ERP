@@ -17,86 +17,80 @@ import { getProfile } from "./auth.js";
 
 let role = null;
 let permissions = [];
+let activePagesCache = [];
 
 /* ============================================================
-   LOAD PERMISSIONS (Updated for pages, actions, page_actions)
+   LOAD PERMISSIONS (Updated for user_page_actions)
 ============================================================ */
 
 export async function loadPermissions() {
-
     const profile = await getProfile();
 
     if (!profile) {
-
         permissions = [];
         role = null;
-
         return [];
-
     }
 
     role = profile.role_id;
+    const userId = profile.id;
 
-    // 1. Njibo les permissions dyal l-role mn role_permissions
-    const { data: rolePerms, error: roleError } = await supabase
-
-        .from(APP_CONFIG.DATABASE.ROLE_PERMISSIONS_TABLE)
-
-        .select(`
-            autorise,
-            permissions(
-                id,
-                code,
-                module,
-                page,
-                action,
-                description
-            )
-        `)
-
-        .eq("role_id", role)
-        .eq("autorise", true);
-
-    if (roleError) {
-
-        console.error("Erreur chargement role_permissions:", roleError);
-        permissions = [];
-        return [];
-
-    }
-
-    let loadedPermissions = rolePerms
-        .map(item => item.permissions)
-        .filter(Boolean);
-
-    // 2. N-zidou n-jibo l-3alaqat dyal pages w actions (page_actions + actions + pages)
-    // 3la ḥsab s-schema jdida lli zedna f database
     try {
-        const { data: pageActionsData, error: paError } = await supabase
-            .from("page_actions")
+        // 1. Njibo les page_actions li m-autorisin l-had l-user b dabet mn user_page_actions
+        const { data: userPerms, error } = await supabase
+            .from("user_page_actions")
             .select(`
-                pages (
-                    code,
-                    url,
-                    module
-                ),
-                actions (
-                    code,
-                    nom
+                autorise,
+                page_actions (
+                    pages (
+                        code,
+                        url,
+                        module
+                    ),
+                    actions (
+                        code,
+                        nom
+                    )
                 )
-            `);
+            `)
+            .eq("user_id", userId)
+            .eq("autorise", true);
 
-        if (!paError && pageActionsData) {
-            // N-hawlo n-doumjouhom ila kano matloobin f l- منطق dyal l-permissions
-            // Kol page + action kat-wlla 3andha code m-kammal (e.g., 'stock.view', 'commandes.edit'...)
+        if (error) {
+            console.error("Erreur chargement user_page_actions:", error);
+            permissions = [];
+        } else if (userPerms) {
+            permissions = userPerms
+                .filter(item => item.autorise && item.page_actions)
+                .map(item => {
+                    const pa = item.page_actions;
+                    const pageCode = pa.pages?.code || '';
+                    const actionCode = pa.actions?.code || '';
+                    
+                    return {
+                        code: actionCode ? `${pageCode}.${actionCode}` : pageCode,
+                        module: pa.pages?.module,
+                        page: pageCode,
+                        action: actionCode
+                    };
+                });
         }
+
+        // 2. Njibo les pages actifs mn public.pages bash n-s-hlo l-filter dyal sidebar w l-accès
+        const { data: pagesData } = await supabase
+            .from("pages")
+            .select("code, url, nom, module")
+            .eq("actif", true);
+
+        if (pagesData) {
+            activePagesCache = pagesData;
+        }
+
     } catch (err) {
-        console.warn("Info: page_actions mapping optional check:", err);
+        console.error("Erreur technique lors du chargement des permissions:", err);
     }
 
-    permissions = loadedPermissions;
     return permissions;
-
 }
 
 /* ============================================================
@@ -104,9 +98,7 @@ export async function loadPermissions() {
 ============================================================ */
 
 export function getPermissions() {
-
     return permissions;
-
 }
 
 /* ============================================================
@@ -114,13 +106,21 @@ export function getPermissions() {
 ============================================================ */
 
 export function can(code) {
+    if (!code) return true;
 
-    return permissions.some(
-
-        permission => permission.code === code
-
+    // Wach kayna f permissions dyal l-user (user_page_actions)?
+    const hasPerm = permissions.some(
+        permission => permission.code === code || permission.page === code
     );
+    if (hasPerm) return true;
 
+    // Ila kant la page mojoda w actif f public.pages
+    const pageExists = activePagesCache.some(p => p.code === code);
+    if (pageExists) {
+        return true; 
+    }
+
+    return false;
 }
 
 /* ============================================================
@@ -128,13 +128,9 @@ export function can(code) {
 ============================================================ */
 
 export function canModule(module) {
-
     return permissions.some(
-
         permission => permission.module === module
-
-    );
-
+    ) || activePagesCache.some(p => p.module === module);
 }
 
 /* ============================================================
@@ -142,13 +138,9 @@ export function canModule(module) {
 ============================================================ */
 
 export function canPage(page) {
-
     return permissions.some(
-
         permission => permission.page === page
-
-    );
-
+    ) || activePagesCache.some(p => p.code === page);
 }
 
 /* ============================================================
@@ -156,13 +148,9 @@ export function canPage(page) {
 ============================================================ */
 
 export function canAction(action) {
-
     return permissions.some(
-
         permission => permission.action === action
-
     );
-
 }
 
 /* ============================================================
@@ -170,13 +158,9 @@ export function canAction(action) {
 ============================================================ */
 
 export function canAny(list) {
-
     return list.some(
-
         item => can(item)
-
     );
-
 }
 
 /* ============================================================
@@ -184,13 +168,9 @@ export function canAny(list) {
 ============================================================ */
 
 export function canAll(list) {
-
     return list.every(
-
         item => can(item)
-
     );
-
 }
 
 /* ============================================================
@@ -198,9 +178,7 @@ export function canAll(list) {
 ============================================================ */
 
 export function currentRoleId() {
-
     return role;
-
 }
 
 /* ============================================================
@@ -208,17 +186,11 @@ export function currentRoleId() {
 ============================================================ */
 
 export function requirePermission(code) {
-
     if (!can(code)) {
-
         window.location.replace("403.html");
-
         return false;
-
     }
-
     return true;
-
 }
 
 /* ============================================================
@@ -226,13 +198,9 @@ export function requirePermission(code) {
 ============================================================ */
 
 export function visibleMenus() {
-
-    return permissions.map(
-
+    return activePagesCache.map(
         item => item.module
-
     );
-
 }
 
 /* ============================================================
@@ -240,9 +208,7 @@ export function visibleMenus() {
 ============================================================ */
 
 export async function refreshPermissions() {
-
     return await loadPermissions();
-
 }
 
 /* ============================================================
@@ -250,7 +216,5 @@ export async function refreshPermissions() {
 ============================================================ */
 
 export async function initPermissions() {
-
     await loadPermissions();
-
 }
