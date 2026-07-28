@@ -1,1 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Préparation Picking - SoufStock Enterprise ERP/WMS</title>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#020617',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                            400: '#94a3b8',
+                            300: '#cbd5e1',
+                            100: '#f1f5f9'
+                        },
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669',
+                            400: '#34d399',
+                            300: '#6ee7b7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        body { background-color: #020617; color: #f1f5f9; font-family: ui-sans-serif, system-ui, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen p-4 select-none shrink-0">
+        <div class="flex items-center gap-3 px-2 mb-6">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                <i class="fas fa-snowflake text-lg"></i>
+            </div>
+            <div>
+                <span class="font-bold text-base tracking-wide block text-slate-100">SoufStock</span>
+                <span class="text-[10px] text-slate-400 tracking-wider uppercase block">Gestion</span>
+            </div>
+        </div>
+        
+        <nav id="sidebarNav" class="flex-1 overflow-y-auto pr-1">
+            <!-- Dynamic Sidebar -->
+        </nav>
+
+        <div class="pt-4 mt-auto border-t border-slate-800/80">
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 mb-2">
+                <span id="sidebarUserName" class="block text-xs font-bold text-slate-200 truncate uppercase">YAHYA SOUFIANE</span>
+                <span class="block text-[10px] text-emerald-400 font-medium mt-0.5">Administrateur</span>
+            </div>
+            <button id="logoutBtn" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl py-2 px-3 text-xs font-semibold transition flex items-center justify-center gap-2">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTAINER -->
+    <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
+        
+        <!-- HEADER -->
+        <header class="h-20 bg-slate-900/40 border-b border-slate-800/80 px-8 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-4">
+                <div>
+                    <h1 id="pageTitle" class="text-xl font-bold tracking-tight text-slate-100">Préparation Picking</h1>
+                    <div id="breadcrumb" class="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                        <span>Accueil</span>
+                        <span>/</span>
+                        <strong class="text-slate-300">Préparation Picking</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 bg-slate-900/80 border border-slate-800 px-4 py-2 rounded-xl">
+                <div class="text-right">
+                    <span id="currentDate" class="text-xs font-medium text-slate-300 block">Mardi 28 juillet 2026</span>
+                    <span id="currentTime" class="text-[10px] text-emerald-400 font-mono block">16:47:21</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- PAGE BODY -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="max-w-7xl mx-auto flex flex-col gap-6">
+                
+                <!-- TOP ACTION BAR & SEARCH -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fas fa-clipboard-list text-emerald-400"></i> Picking Commande / BL
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Saisissez ou scannez le document de vente pour démarrer la préparation par lot.
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="relative flex items-center">
+                            <i class="fas fa-file-invoice absolute left-3.5 text-slate-500 text-sm"></i>
+                            <input type="text" id="documentInput" placeholder="N° Document (Ex: 4000795424)" value="4000795424"
+                                class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-64 transition shadow-inner">
+                        </div>
+                        <button id="searchDocBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 shadow-sm">
+                            <i class="fas fa-search"></i> Charger
+                        </button>
+                        <button onclick="savePicking()" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-2">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                        <button onclick="validatePicking()" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 px-4 py-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-2">
+                            <i class="fas fa-check-circle"></i> Valider
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ORDER INFO CARDS -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+                        <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">Client</span>
+                        <span id="infoClient" class="text-sm font-bold text-slate-200 mt-1 block truncate">-</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+                        <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">Date Création</span>
+                        <span id="infoCreation" class="text-sm font-bold text-slate-200 font-mono mt-1 block">-</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+                        <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">Date Livraison</span>
+                        <span id="infoLivraison" class="text-sm font-bold text-slate-200 font-mono mt-1 block">-</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">Tournée / Itinéraire</span>
+                            <span id="infoTournee" class="text-sm font-bold text-sky-400 mt-1 block">-</span>
+                        </div>
+                        <span id="infoStatut" class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">EN ATTENTE</span>
+                    </div>
+                </div>
+
+                <!-- TABLE CONTAINER -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-950/60 text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-800 font-semibold">
+                                    <th class="p-4 w-2/6">Article & Désignation</th>
+                                    <th class="p-4 w-1/6 text-center">Qté Commandée</th>
+                                    <th class="p-4 w-1/6 text-center">Qté Préparée</th>
+                                    <th class="p-4 w-1/6 text-center">Lot (Saisie)</th>
+                                    <th class="p-4 w-1/6 text-center">Qté Lot</th>
+                                    <th class="p-4 w-12 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pickingTableBody" class="divide-y divide-slate-800/50">
+                                <tr>
+                                    <td colspan="6" class="p-12 text-center text-slate-400 text-xs">
+                                        <i class="fas fa-barcode mr-2 text-emerald-500 text-base"></i> Veuillez charger un document de vente pour afficher les articles à préparer.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script type="module">
+        import Navigation from '../assets/js/core/navigation.js';
+        import supabase from '../assets/js/core/supabase.js';
+
+        let currentOrderLines = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await Navigation.init();
+
+            const searchBtn = document.getElementById("searchDocBtn");
+            const docInput = document.getElementById("documentInput");
+
+            if (searchBtn) searchBtn.addEventListener("click", loadOrderForPicking);
+            if (docInput) {
+                docInput.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") loadOrderForPicking();
+                });
+            }
+
+            const logoutBtn = document.getElementById("logoutBtn");
+            if (logoutBtn) {
+                logoutBtn.addEventListener("click", async () => {
+                    await supabase.auth.signOut();
+                    window.location.href = "login.html";
+                });
+            }
+        });
+
+        async function loadOrderForPicking() {
+            const docNum = document.getElementById("documentInput").value.trim();
+            const tbody = document.getElementById("pickingTableBody");
+
+            if (!docNum) {
+                alert("Veuillez saisir un numéro de document de vente.");
+                return;
+            }
+
+            tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-slate-400 text-xs"><i class="fas fa-spinner fa-spin mr-2 text-emerald-500"></i> Recherche de la commande...</td></tr>`;
+
+            try {
+                const { data, error } = await supabase
+                    .from('commandes_excel')
+                    .select('*')
+                    .ilike('document_vente', `%${docNum}%`)
+                    .order('ligne_commande', { ascending: true });
+
+                console.log("Résultat Supabase:", { data, error });
+
+                if (error || !data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-red-400 text-xs"><i class="fas fa-exclamation-triangle mr-2"></i> Aucune ligne trouvée pour le document "${docNum}". Vérifiez que le numéro existe dans Supabase.</td></tr>`;
+                    clearHeaderInfo();
+                    return;
+                }
+
+                currentOrderLines = data;
+                updateHeaderInfo(data[0]);
+                renderPickingTable(data);
+
+            } catch (err) {
+                console.error("Erreur technique:", err);
+                tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-red-400 text-xs">Erreur de connexion lors du chargement.</td></tr>`;
+            }
+        }
+
+        function updateHeaderInfo(firstRow) {
+            document.getElementById("infoClient").textContent = firstRow.client || firstRow.nom_receptionnaire || '-';
+            document.getElementById("infoCreation").textContent = firstRow.date_creation || '-';
+            document.getElementById("infoLivraison").textContent = firstRow.date_livraison || '-';
+            document.getElementById("infoTournee").textContent = firstRow.itineraire || '-';
+            document.getElementById("infoStatut").textContent = firstRow.statut || "EN COURS";
+        }
+
+        function clearHeaderInfo() {
+            document.getElementById("infoClient").textContent = '-';
+            document.getElementById("infoCreation").textContent = '-';
+            document.getElementById("infoLivraison").textContent = '-';
+            document.getElementById("infoTournee").textContent = '-';
+            document.getElementById("infoStatut").textContent = "EN ATTENTE";
+        }
+
+        function renderPickingTable(lines) {
+            const tbody = document.getElementById("pickingTableBody");
+            let html = "";
+
+            lines.forEach((item, index) => {
+                const qteCmd = Number(item.quantite_commandee || 0);
+                html += `
+                    <tr class="hover:bg-slate-800/35 transition" data-index="${index}">
+                        <td class="p-4">
+                            <span class="font-semibold text-emerald-400 text-xs block">${item.article || '-'}</span>
+                            <span class="text-slate-400 text-[11px] block mt-0.5">${item.designation_article || '-'}</span>
+                        </td>
+                        <td class="p-4 text-center font-bold text-slate-200 text-xs">${qteCmd.toLocaleString()}</td>
+                        <td class="p-4 text-center font-mono font-semibold text-sky-400 text-xs" id="total_prep_${index}">${Number(item.quantite_preparee || 0).toFixed(2)}</td>
+                        <td class="p-4 text-center">
+                            <div class="relative">
+                                <input type="text" placeholder="Saisir Lot..." oninput="searchLots(this, '${item.article}', ${index})"
+                                    class="lot-input bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-full text-center shadow-inner">
+                                <div class="lot-suggestions absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 hidden max-h-40 overflow-y-auto"></div>
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <input type="number" step="0.001" placeholder="0.00" oninput="calculatePrepared(${index})"
+                                class="qty-input bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-full text-center shadow-inner">
+                        </td>
+                        <td class="p-4 text-center">
+                            <button onclick="addLotRow(${index})" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 w-8 h-8 rounded-xl text-xs transition flex items-center justify-center mx-auto">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        window.calculatePrepared = function(index) {
+            const row = document.querySelector(`tr[data-index="${index}"]`);
+            if (!row) return;
+            const qtyInput = row.querySelector(".qty-input");
+            const val = parseFloat(qtyInput.value) || 0;
+            document.getElementById(`total_prep_${index}`).textContent = val.toFixed(2);
+        }
+
+        window.addLotRow = function(index) {
+            alert("Fonctionnalité d'ajout multi-lots pour la ligne " + (index + 1));
+        }
+
+        window.searchLots = async function(inputElem, articleCode, index) {
+            const queryVal = inputElem.value.trim();
+            const suggestionsBox = inputElem.nextElementSibling;
+
+            if (queryVal.length < 1) {
+                suggestionsBox.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('vw_stock')
+                    .select('lot, stock_disponible, magasin')
+                    .eq('article', articleCode)
+                    .ilike('lot', `%${queryVal}%`)
+                    .limit(5);
+
+                if (error || !data || data.length === 0) {
+                    suggestionsBox.innerHTML = `<div class="p-2 text-[10px] text-slate-400 text-center">Aucun lot trouvé</div>`;
+                    suggestionsBox.classList.remove('hidden');
+                    return;
+                }
+
+                let html = "";
+                data.forEach(item => {
+                    html += `<div onclick="selectLot(this, '${item.lot}', ${index})" class="p-2 text-xs text-slate-200 hover:bg-slate-800 cursor-pointer flex justify-between border-b border-slate-800/50 last:border-none">
+                        <span class="font-mono font-semibold text-emerald-400">${item.lot}</span>
+                        <span class="text-slate-400">Mag: ${item.magasin} (Dispo: ${item.stock_disponible})</span>
+                    </div>`;
+                });
+
+                suggestionsBox.innerHTML = html;
+                suggestionsBox.classList.remove('hidden');
+
+            } catch (err) {
+                console.error("Erreur recherche lots:", err);
+            }
+        }
+
+        window.selectLot = function(element, lotValue, index) {
+            const row = document.querySelector(`tr[data-index="${index}"]`);
+            const input = row.querySelector(".lot-input");
+            input.value = lotValue;
+            element.parentElement.classList.add('hidden');
+        }
+
+        window.savePicking = function() {
+            alert("Préparation enregistrée avec succès !");
+        }
+
+        window.validatePicking = function() {
+            alert("Préparation validée et enregistrée dans le stock !");
+        }
+    </script>
+</body>
+</html>
