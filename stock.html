@@ -62,27 +62,6 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-6 font-sans">
 
-    <!-- Modal / Alerte dyal Ɛadam S-Ṣalaḥiyya (Mkhabbé f l-aṣl) -->
-    <div id="access-denied-modal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 border border-red-600 p-8 rounded-xl shadow-2xl text-center max-w-md w-full mx-4 space-y-4">
-            <div class="text-red-500 text-5xl">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <h2 class="text-xl font-bold text-white">Accès Refusé</h2>
-            <p class="text-gray-300 text-sm">
-                Désolé, vous n'avez pas les privilèges nécessaires pour accéder à cette page de gestion des stocks.
-            </p>
-            <div class="text-indigo-400 text-xs font-semibold">
-                Redirection automatique vers le Dashboard dans <span id="countdown-timer" class="text-white font-bold text-sm">3</span> secondes...
-            </div>
-            <div>
-                <a href="dashboard.html" class="inline-block bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-xs font-semibold transition">
-                    Retourner immédiatement
-                </a>
-            </div>
-        </div>
-    </div>
-
     <!-- Header -->
     <header class="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-md mb-6">
         <div class="flex items-center gap-3">
@@ -168,7 +147,7 @@
                     <i class="fa-solid fa-list mr-1"></i> Vue Globale du Stock (<span id="total-count">0</span> lignes)
                 </h2>
                 
-                <!-- Les Filtres & Boutons d'export et Impression m-rabtin b data-permission -->
+                <!-- Les Filtres & Boutons d'export et Impression -->
                 <div class="flex flex-wrap items-center gap-2 w-full xl:w-auto">
                     <!-- Filtre Magasins -->
                     <select id="filter-magasin" class="bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
@@ -242,8 +221,6 @@
         const btnExportExcel = document.getElementById("btn-export-excel");
         const btnExportPdf = document.getElementById("btn-export-pdf");
         const btnPrint = document.getElementById("btn-print");
-        const accessDeniedModal = document.getElementById("access-denied-modal");
-        const countdownTimer = document.getElementById("countdown-timer");
 
         let allStockData = [];
         let filteredStockData = [];
@@ -252,7 +229,7 @@
             const user = await getUser();
             
             if (!user) {
-                window.location.href = "index.html";
+                window.location.href = "444.html";
                 return;
             }
 
@@ -260,10 +237,9 @@
             await loadUserProfileName(user);
 
             // 2. TAḤAQQOQ SARIM (STRICT CHECK) MIN Ṣ-ṢALAḤIYYA DYAL S-SAFHA
-            // Kan-t-checkiw wach l-user 3ndo s-salhiyyat 'view' 3la safha 'stock'
             const canView = await hasPermission("stock", "view");
             if (canView === false) {
-                showAccessDeniedModal();
+                window.location.href = "444.html";
                 return;
             }
 
@@ -273,26 +249,13 @@
             // 4. Vérification wach l-user active f profiles
             const isActive = await checkUserActiveStatus(user.id);
             if (!isActive) {
-                showAccessDeniedModal();
+                window.location.href = "444.html";
                 return;
             }
 
             // Ila daz kolchi bikhir, chargi l-data d stock
             loadAllStockView();
         });
-
-        function showAccessDeniedModal() {
-            accessDeniedModal.classList.remove("hidden");
-            let timeLeft = 3;
-            const timerInterval = setInterval(() => {
-                timeLeft--;
-                countdownTimer.textContent = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    window.location.href = "dashboard.html";
-                }
-            }, 1000);
-        }
 
         async function checkUserActiveStatus(userId) {
             try {
