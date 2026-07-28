@@ -8,6 +8,7 @@
 import { Loader, Toast } from "./utils.js";
 import Sidebar from "./sidebar.js";
 import supabase from "./supabase.js";
+import { hasPermission } from "./auth-guard.js";
 
 class NavigationManager {
 
@@ -112,7 +113,6 @@ class NavigationManager {
                 pages.forEach(page => {
                     const pageKey = (page.code || '').toLowerCase();
                     
-                    // Jib smiya w icône mn dictionnaire, wla gaddhoum otomatikan ila tzadate page jdida
                     let config = this.pageConfig[pageKey];
                     if (!config) {
                         let formattedName = page.code.replace(/_/g, ' ');
@@ -171,7 +171,7 @@ class NavigationManager {
     }
 
     /* ============================================================
-     * NAVIGATE
+     * NAVIGATE (M3a Vérification dyal Ṣ-Ṣalḥiyya)
      * ============================================================
      */
     async navigate(page) {
@@ -192,6 +192,21 @@ class NavigationManager {
                 "Navigation",
                 "Page introuvable."
             );
+            return;
+        }
+
+        try {
+            // Vérification wach l-user 3ndo ṣ-ṣalḥiyya bash y-chof had la page (view)
+            const canView = await hasPermission(pageKey, "view");
+
+            if (canView === false) {
+                // Ila ma3ndouch ṣ-ṣalḥiyya, twajjah otomatikian l 444.html
+                window.location.href = "444.html";
+                return;
+            }
+        } catch (err) {
+            console.error("Erreur vérification permission navigation:", err);
+            window.location.href = "444.html";
             return;
         }
 
