@@ -1,298 +1,186 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Préparation Picking - SoufStock Enterprise ERP/WMS</title>
-    
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Tailwind CSS Play CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        slate: {
-                            950: '#020617',
-                            900: '#0f172a',
-                            800: '#1e293b',
-                            700: '#334155',
-                            400: '#94a3b8',
-                            300: '#cbd5e1',
-                            100: '#f1f5f9'
-                        },
-                        emerald: {
-                            500: '#10b981',
-                            600: '#059669',
-                            400: '#34d399',
-                            300: '#6ee7b7'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
+    <title>SoufStock - Bon de Picking</title>
+    <link rel="stylesheet" href="/assets/css/picking.css">
     <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #090d16; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
-        body { background-color: #020617; color: #f1f5f9; font-family: ui-sans-serif, system-ui, sans-serif; }
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            table-layout: fixed;
+        }
+        .table-custom th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            padding: 12px 8px;
+            border-bottom: 2px solid #dee2e6;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .table-custom td {
+            padding: 12px 8px;
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .article-group-body {
+            border-bottom: 2px solid #ced4da;
+        }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-warning { background-color: #ffeeba; color: #856404; }
+        .badge-success { background-color: #d4edda; color: #155724; }
+        .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 6px 12px;
+            width: 100%;
+            height: 38px;
+        }
+        .col-article { width: 35%; }
+        .col-qte { width: 12%; text-align: center; }
+        .col-prepare { width: 12%; text-align: center; }
+        .col-lot { width: 18%; position: relative; }
+        .col-qteprepare { width: 15%; text-align: center; }
+        .col-action { width: 8%; text-align: center; }
+        
+        .btn-add-lot-icon {
+            background: #1cc88a;
+            color: #fff;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .btn-remove {
+            background: #e74a3b;
+            color: #fff;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex overflow-hidden">
+<body>
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen p-4 select-none shrink-0">
-        <div class="flex items-center gap-3 px-2 mb-6">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-                <i class="fas fa-snowflake text-lg"></i>
-            </div>
-            <div>
-                <span class="font-bold text-base tracking-wide block text-slate-100">SoufStock</span>
-                <span class="text-[10px] text-slate-400 tracking-wider uppercase block">Gestion</span>
+    <div class="container-fluid py-4">
+        <!-- Barre de recherche et actions principales -->
+        <div class="card card-custom mb-4">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 500px;">
+                    <input type="text" id="commandeInput" class="form-control" placeholder="Saisir le document de vente (Ex: BL-2026...)">
+                    <button type="button" id="btnSearch" class="btn btn-primary d-flex align-items-center gap-1">
+                        <span>🔍</span> Rechercher
+                    </button>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="hidden" id="pickingId">
+                    <input type="hidden" id="suiviId">
+                    <button type="button" id="btnSave" class="btn btn-success d-flex align-items-center gap-1">
+                        <span>💾</span> Enregistrer
+                    </button>
+                    <button type="button" id="btnValidate" class="btn btn-warning d-flex align-items-center gap-1">
+                        <span>✔</span> Valider définitivement
+                    </button>
+                </div>
             </div>
         </div>
-        
-        <nav id="sidebarNav" class="flex-1 overflow-y-auto pr-1">
-            <!-- Dynamic Sidebar -->
-        </nav>
 
-        <div class="pt-4 mt-auto border-t border-slate-800/80">
-            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 mb-2">
-                <span id="sidebarUserName" class="block text-xs font-bold text-slate-200 truncate uppercase">YAHYA SOUFIANE</span>
-                <span class="block text-[10px] text-emerald-400 font-medium mt-0.5">Administrateur</span>
+        <!-- Informations de la commande -->
+        <div class="card card-custom mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary">📋 Informations Commande</h5>
+                <span id="statutCommande" class="badge badge-warning">EN PRÉPARATION</span>
             </div>
-            <button id="logoutBtn" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl py-2 px-3 text-xs font-semibold transition flex items-center justify-center gap-2">
-                <i class="fas fa-sign-out-alt"></i> Déconnexion
-            </button>
+            <div class="card-body">
+                <div class="row text-muted small mb-2">
+                    <div class="col-md-3"><strong>CLIENT</strong></div>
+                    <div class="col-md-2"><strong>DATE CRÉATION</strong></div>
+                    <div class="col-md-2"><strong>DATE LIVRAISON</strong></div>
+                    <div class="col-md-3"><strong>TOURNÉE</strong></div>
+                    <div class="col-md-2"><strong>CHAUFFEUR</strong></div>
+                </div>
+                <div class="row fw-bold text-dark">
+                    <div class="col-md-3 text-truncate" id="clientName">-</div>
+                    <div class="col-md-2" id="dateCreation">-</div>
+                    <div class="col-md-2" id="dateLivraison">-</div>
+                    <div class="col-md-3 text-truncate" id="tournee">-</div>
+                    <div class="col-md-2" id="chauffeur">-</div>
+                </div>
+            </div>
         </div>
-    </aside>
 
-    <!-- MAIN CONTAINER -->
-    <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
-        
-        <!-- HEADER -->
-        <header class="h-20 bg-slate-900/40 border-b border-slate-800/80 px-8 flex items-center justify-between shrink-0">
-            <div class="flex items-center gap-4">
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight text-slate-100">Préparation Picking</h1>
-                    <div class="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-                        <span>Accueil</span>
-                        <span>/</span>
-                        <strong class="text-slate-300">Préparation Picking</strong>
+        <!-- Section Articles à Préparer -->
+        <div class="card card-custom">
+            <div class="card-header">
+                <h5 class="mb-0 text-primary">📦 Articles à Préparer (Tableau Commandes Excel)</h5>
+            </div>
+            <div class="card-body">
+                <!-- Barre d'avancement -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Avancement du Picking</span>
+                        <span id="progressText" class="fw-bold">0%</span>
                     </div>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-4 bg-slate-900/80 border border-slate-800 px-4 py-2 rounded-xl">
-                <div class="text-right">
-                    <span id="currentDate" class="text-xs font-medium text-slate-300 block">Mardi 28 juillet 2026</span>
-                    <span id="currentTime" class="text-[10px] text-emerald-400 font-mono block">18:16:00</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- PAGE BODY -->
-        <main class="flex-1 p-8 overflow-y-auto">
-            <div class="max-w-7xl mx-auto flex flex-col gap-6">
-                
-                <!-- SCANNER / SAISIE DOCUMENT DE VENTE -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                        <i class="fas fa-barcode text-emerald-400 mr-1.5"></i> Scanner ou Saisir le Document de Vente
-                    </label>
-                    <div class="flex items-center gap-3">
-                        <input type="text" id="docVenteInput" placeholder="Ex: BL-2026-00123 (Appuyez sur Entrée)" 
-                            class="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 w-full max-w-md transition shadow-inner font-mono">
-                        <button id="searchDocBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2 shadow-lg cursor-pointer">
-                            <i class="fas fa-search"></i> Charger le Bon
-                        </button>
+                    <div class="progress" style="height: 10px; background-color: #e9ecef; border-radius: 5px; overflow: hidden;">
+                        <div id="pickingProgress" class="progress-bar bg-success" style="width: 0%; height: 10px; transition: width 0.3s ease;"></div>
                     </div>
                 </div>
 
-                <!-- TABLE CONTAINER -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-                    <div class="overflow-x-auto flex-1">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-slate-950/60 text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-800 font-semibold">
-                                    <th class="p-4">Ligne / Document</th>
-                                    <th class="p-4">Article & Désignation</th>
-                                    <th class="p-4 text-center">Quantité Commandée</th>
-                                    <th class="p-4 text-center">Lot (Saisie)</th>
-                                    <th class="p-4 text-center">Quantité Préparée</th>
-                                    <th class="p-4 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pickingTableBody" class="divide-y divide-slate-800/50">
-                                <tr>
-                                    <td colspan="6" class="p-10 text-center text-slate-400 text-xs">
-                                        <i class="fas fa-info-circle mr-2 text-emerald-500 text-base"></i> Veuillez saisir ou scanner un document de vente pour afficher les lignes.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th class="col-article">Article & Désignation</th>
+                                <th class="col-qte">Quantité Commandée</th>
+                                <th class="col-prepare">Qté Préparée Totale</th>
+                                <th class="col-lot">Lot (Saisie)</th>
+                                <th class="col-qteprepare">Quantité Préparée</th>
+                                <th class="col-action">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="pickingBody">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    Veuillez saisir un document de vente pour charger les articles.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
+                <!-- Footer résumé et actions -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center border-top pt-3 mt-3 gap-3">
+                    <div class="d-flex gap-4 text-muted small fw-bold">
+                        <div>Articles distincts: <span id="totalArticles" class="text-dark">0</span></div>
+                        <div>Total Commandé: <span id="totalQuantity" class="text-dark">0.000</span> KG</div>
+                        <div>Total Préparé: <span id="preparedQuantity" class="text-dark">0.000</span> KG</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btnRefresh" class="btn btn-secondary">🔄 Actualiser</button>
+                        <button type="button" id="btnSaveFooter" class="btn btn-success">💾 Enregistrer</button>
+                        <button type="button" id="btnValidateFooter" class="btn btn-warning">✔ Valider</button>
+                    </div>
+                </div>
             </div>
-        </main>
+        </div>
     </div>
 
-    <!-- SCRIPTS -->
-    <script type="module">
-        import Navigation from './assets/js/core/navigation.js';
-        import supabase from './assets/js/core/supabase.js';
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            await Navigation.init();
-
-            const docVenteInput = document.getElementById("docVenteInput");
-            const searchDocBtn = document.getElementById("searchDocBtn");
-
-            if (docVenteInput) {
-                docVenteInput.focus();
-                docVenteInput.addEventListener("keydown", async (e) => {
-                    if (e.key === "Enter") {
-                        e.preventDefault();
-                        await fetchCommandesByDocument(docVenteInput.value.trim());
-                    }
-                });
-            }
-
-            if (searchDocBtn) {
-                searchDocBtn.addEventListener("click", async () => {
-                    const docVal = docVenteInput ? docVenteInput.value.trim() : "";
-                    await fetchCommandesByDocument(docVal);
-                });
-            }
-
-            const logoutBtn = document.getElementById("logoutBtn");
-            if (logoutBtn) {
-                logoutBtn.addEventListener("click", async () => {
-                    await supabase.auth.signOut();
-                    window.location.href = "login.html";
-                });
-            }
-        });
-
-        async function fetchCommandesByDocument(docVente) {
-            const tbody = document.getElementById("pickingTableBody");
-            if (!docVente) {
-                alert("Veuillez saisir ou scanner un document de vente !");
-                return;
-            }
-
-            tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-slate-400 text-xs">
-                <i class="fas fa-spinner fa-spin mr-2 text-emerald-500 text-base"></i> Recherche du document ${docVente}...
-            </td></tr>`;
-
-            try {
-                const { data, error } = await supabase
-                    .from('commandes_excel')
-                    .select('*')
-                    .eq('document_vente', docVente)
-                    .order('ligne_commande', { ascending: true });
-
-                if (error) {
-                    console.error("Erreur Supabase:", error);
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-400 text-xs">Erreur lors de la récupération des données.</td></tr>`;
-                    return;
-                }
-
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-amber-400 text-xs"><i class="fas fa-exclamation-circle mr-2"></i> Aucun article trouvé pour le document : <strong>${docVente}</strong></td></tr>`;
-                    return;
-                }
-
-                let html = "";
-                data.forEach((item) => {
-                    const qteCmd = Number(item.quantite_commandee || 0);
-                    const qtePrep = Number(item.quantite_preparee || 0);
-                    const currentLot = item.magasin_source || ''; // Utilisé ici pour stocker/afficher le lot
-                    
-                    html += `
-                        <tr class="hover:bg-slate-800/35 transition" data-id="${item.id}">
-                            <td class="p-4 font-semibold text-emerald-400 text-xs">
-                                ${item.document_vente} <span class="text-slate-500 font-normal">#${item.ligne_commande}</span>
-                            </td>
-                            <td class="p-4 text-slate-200 font-medium text-xs">
-                                <div class="text-slate-100 font-semibold">${item.designation_article}</div>
-                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">Code Art: ${item.article}</div>
-                            </td>
-                            <td class="p-4 text-center text-emerald-300 font-mono font-bold text-xs">${qteCmd.toLocaleString()} ${item.unite || 'KG'}</td>
-                            <td class="p-4 text-center">
-                                <input type="text" id="lot-${item.id}" value="${currentLot}" placeholder="Saisir Lot..." 
-                                    class="bg-slate-950 border border-slate-800 rounded-lg w-28 text-center py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500 shadow-inner">
-                            </td>
-                            <td class="p-4 text-center">
-                                <input type="number" id="qte-${item.id}" value="${qtePrep}" placeholder="0.00" 
-                                    class="bg-slate-950 border border-slate-800 rounded-lg w-24 text-center py-1.5 text-xs text-emerald-400 font-mono focus:outline-none focus:border-emerald-500 shadow-inner">
-                            </td>
-                            <td class="p-4 text-center">
-                                <button onclick="savePickingLine('${item.id}')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1 mx-auto">
-                                    <i class="fas fa-check"></i> Valider
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-
-            } catch (err) {
-                console.error("Erreur technique:", err);
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-400 text-xs">Erreur de connexion au serveur.</td></tr>`;
-            }
-        }
-
-        // Fonction globale pour valider et enregistrer la ligne de picking dans Supabase
-        window.savePickingLine = async function(id) {
-            const lotInput = document.getElementById(`lot-${id}`);
-            const qteInput = document.getElementById(`qte-${id}`);
-
-            const lotVal = lotInput ? lotInput.value.trim() : "";
-            const qteVal = qteInput ? parseFloat(qteInput.value) || 0 : 0;
-
-            try {
-                const { error } = await supabase
-                    .from('commandes_excel')
-                    .update({
-                        magasin_source: lotVal,       // Enregistrement du Lot
-                        quantite_preparee: qteVal,    // Enregistrement de la Quantité Préparée
-                        statut: 'EN_PICKING',         // Mise à jour du statut
-                        updated_at: new Date()
-                    })
-                    .eq('id', id);
-
-                if (error) {
-                    console.error("Erreur mise à jour:", error);
-                    alert("Erreur lors de l'enregistrement !");
-                    return;
-                }
-
-                // Petit feedback visuel de succès sur le bouton
-                const btn = event.target.closest('button');
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = `<i class="fas fa-check-circle text-emerald-400"></i> Enregistré`;
-                btn.classList.add('bg-emerald-500/30');
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    btn.classList.remove('bg-emerald-500/30');
-                }, 1500);
-
-            } catch (err) {
-                console.error("Erreur technique:", err);
-                alert("Erreur de connexion lors de la sauvegarde.");
-            }
-        }
-    </script>
+    <!-- Script JS -->
+    <script type="module" src="/assets/js/picking.js"></script>
 </body>
 </html>
