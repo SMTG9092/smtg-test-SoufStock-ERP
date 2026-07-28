@@ -225,7 +225,6 @@
             tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-slate-400 text-xs"><i class="fas fa-spinner fa-spin mr-2 text-emerald-500"></i> Recherche de la commande...</td></tr>`;
 
             try {
-                // Utilisation de .eq ou .ilike sur document_vente selon la structure exacte
                 const { data, error } = await supabase
                     .from('commandes_excel')
                     .select('*')
