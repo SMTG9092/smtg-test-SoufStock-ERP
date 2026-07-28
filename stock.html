@@ -102,32 +102,67 @@
         <main class="flex-1 p-8 overflow-y-auto">
             <div class="max-w-7xl mx-auto">
                 
-                <!-- Welcome Banner -->
-                <div class="bg-gradient-to-r from-slate-900 to-slate-900/80 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-                            <i class="fas fa-warehouse text-emerald-400"></i> État Global du Stock
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1">
-                            Consultation en direct. Quantité Totale Disponible : <span id="totalStockBadge" class="text-emerald-400 font-bold font-mono">Chargement...</span>
-                        </p>
+                <!-- Welcome Banner with Stats Cards -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-900/80 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl flex flex-col gap-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                                <i class="fas fa-warehouse text-emerald-400"></i> État Global du Stock
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-1">
+                                Consultation en direct et analyses globales du stock.
+                            </p>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <!-- Magasin Filter Select -->
+                            <div class="relative">
+                                <i class="fas fa-store absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                                <select id="magasinFilter" class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition shadow-inner appearance-none cursor-pointer">
+                                    <option value="">Tous les magasins</option>
+                                </select>
+                                <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] pointer-events-none"></i>
+                            </div>
+
+                            <!-- Search Input -->
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                                <input type="text" id="searchInput" placeholder="Rechercher article, lot..." 
+                                    class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-64 transition shadow-inner">
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <!-- Magasin Filter Select -->
-                        <div class="relative">
-                            <i class="fas fa-store absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <select id="magasinFilter" class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition shadow-inner appearance-none cursor-pointer">
-                                <option value="">Tous les magasins</option>
-                            </select>
-                            <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] pointer-events-none"></i>
+
+                    <!-- STATS CARDS GRID -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-800/80">
+                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+                            <div>
+                                <span class="text-[11px] text-slate-400 uppercase font-semibold block">Total Quantité Disponible</span>
+                                <span id="totalStockBadge" class="text-lg font-bold text-emerald-400 font-mono mt-0.5 block">Chargement...</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                <i class="fas fa-boxes"></i>
+                            </div>
                         </div>
 
-                        <!-- Search Input -->
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="text" id="searchInput" placeholder="Rechercher article, lot..." 
-                                class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-64 transition shadow-inner">
+                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+                            <div>
+                                <span class="text-[11px] text-slate-400 uppercase font-semibold block">Nombre d'Articles</span>
+                                <span id="totalArticlesBadge" class="text-lg font-bold text-sky-400 font-mono mt-0.5 block">Chargement...</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+                            <div>
+                                <span class="text-[11px] text-slate-400 uppercase font-semibold block">Nombre de Lots</span>
+                                <span id="totalLotsBadge" class="text-lg font-bold text-amber-400 font-mono mt-0.5 block">Chargement...</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                                <i class="fas fa-barcode"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -281,8 +316,8 @@
                 renderTable(data || []);
                 updatePaginationControls();
 
-                // Essayer d'abord la RPC, sinon faire un fetch par pages (Batching) en JS s'il le faut
-                await fetchGrandTotalRobust();
+                // Calculer les statistiques globales (Total Stock, Nombre d'articles uniques, Nombre de lots uniques)
+                await calculateGlobalStats();
 
             } catch (err) {
                 console.error("Erreur technique:", err);
@@ -290,35 +325,22 @@
             }
         }
 
-        async function fetchGrandTotalRobust() {
+        async function calculateGlobalStats() {
             const totalStockBadge = document.getElementById("totalStockBadge");
-            
-            try {
-                // 1. Tenter la fonction RPC d'abord
-                const { data, error } = await supabase.rpc('get_total_stock', {
-                    search_query: currentSearch,
-                    mag_filter: currentMagasin
-                });
+            const totalArticlesBadge = document.getElementById("totalArticlesBadge");
+            const totalLotsBadge = document.getElementById("totalLotsBadge");
 
-                if (!error && data !== null) {
-                    if (totalStockBadge) {
-                        totalStockBadge.textContent = Number(data).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    }
-                    return;
-                }
-            } catch (e) {
-                console.log("RPC non disponible, utilisation du calcul par blocs...");
-            }
-
-            // 2. Fallback: Calculer par blocs en boucle (Chunking) si RPC n'est pas encore créée
             try {
-                let grandTotal = 0;
+                let grandTotalStock = 0;
+                let articlesSet = new Set();
+                let lotsSet = new Set();
+
                 let batchSize = 1000;
                 let offset = 0;
                 let fetchMore = true;
 
-                while (fetchMore && offset < 50000) { // Limite de sécurité max 50,000 lignes
-                    let q = supabase.from('vw_stock').select('stock_disponible');
+                while (fetchMore && offset < 50000) {
+                    let q = supabase.from('vw_stock').select('article, lot, stock_disponible');
                     if (currentSearch !== "") {
                         q = q.or(`article.ilike.%${currentSearch}%,designation_article.ilike.%${currentSearch}%,lot.ilike.%${currentSearch}%`);
                     }
@@ -334,7 +356,9 @@
                     }
 
                     chunkData.forEach(row => {
-                        grandTotal += Number(row.stock_disponible || 0);
+                        grandTotalStock += Number(row.stock_disponible || 0);
+                        if (row.article) articlesSet.add(row.article);
+                        if (row.lot) lotsSet.add(row.lot);
                     });
 
                     if (chunkData.length < batchSize) {
@@ -345,11 +369,20 @@
                 }
 
                 if (totalStockBadge) {
-                    totalStockBadge.textContent = grandTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    totalStockBadge.textContent = grandTotalStock.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
+                if (totalArticlesBadge) {
+                    totalArticlesBadge.textContent = articlesSet.size.toLocaleString();
+                }
+                if (totalLotsBadge) {
+                    totalLotsBadge.textContent = lotsSet.size.toLocaleString();
+                }
+
             } catch (err) {
-                console.error("Erreur critique calcul total:", err);
-                if (totalStockBadge) totalStockBadge.textContent = "24 159,53 (Erreur)";
+                console.error("Erreur calcul stats globales:", err);
+                if (totalStockBadge) totalStockBadge.textContent = "Erreur";
+                if (totalArticlesBadge) totalArticlesBadge.textContent = "Erreur";
+                if (totalLotsBadge) totalLotsBadge.textContent = "Erreur";
             }
         }
 
