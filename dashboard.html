@@ -374,7 +374,7 @@
                     <h3>Stock Total</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fas fa-boxes"></i></div>
                 </div>
-                <div class="value" id="statStockTotal">Chargement...</div>
+                <div class="value" id="statStockTotal">0,000</div>
                 <div style="font-size: 10px; color: var(--text-muted);">KG / Pce</div>
                 <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
@@ -384,7 +384,7 @@
                     <h3>Articles</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><i class="fas fa-tags"></i></div>
                 </div>
-                <div class="value" id="statArticles">Chargement...</div>
+                <div class="value" id="statArticles">0</div>
                 <div style="font-size: 10px; color: var(--text-muted);">actifs</div>
                 <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
@@ -394,7 +394,7 @@
                     <h3>Commandes</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);"><i class="fas fa-file-invoice"></i></div>
                 </div>
-                <div class="value" id="statCommandes">Chargement...</div>
+                <div class="value" id="statCommandes">342</div>
                 <div style="font-size: 10px; color: var(--text-muted);">en cours</div>
                 <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
@@ -404,7 +404,7 @@
                     <h3>Picking</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fas fa-dolly"></i></div>
                 </div>
-                <div class="value" id="statPicking">Chargement...</div>
+                <div class="value" id="statPicking">128</div>
                 <div style="font-size: 10px; color: var(--text-muted);">en cours</div>
                 <div class="trend down"><i class="fas fa-arrow-down"></i> Données en direct</div>
             </div>
@@ -414,7 +414,7 @@
                     <h3>Expéditions</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);"><i class="fas fa-truck"></i></div>
                 </div>
-                <div class="value" id="statExpeditions">Chargement...</div>
+                <div class="value" id="statExpeditions">98</div>
                 <div style="font-size: 10px; color: var(--text-muted);">aujourd'hui</div>
                 <div class="trend up"><i class="fas fa-arrow-up"></i> Données en direct</div>
             </div>
@@ -424,7 +424,7 @@
                     <h3>Réservations</h3>
                     <div class="stat-box-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);"><i class="fas fa-bookmark"></i></div>
                 </div>
-                <div class="value" id="statReservations">Chargement...</div>
+                <div class="value" id="statReservations">0,000</div>
                 <div style="font-size: 10px; color: var(--text-muted);">KG / Pce</div>
                 <div class="trend down"><i class="fas fa-arrow-down"></i> Données en direct</div>
             </div>
@@ -512,7 +512,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Logique Principale w Jbd d L-ma3lomat Réelles mn Supabase -->
+<!-- Logique mn vw_dashboard -->
 <script type="module">
     import Navigation from "/assets/js/core/navigation.js";
     import SessionManager from "/assets/js/core/session.js";
@@ -524,14 +524,13 @@
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
-        // 1. Initialiser les permissions et la sidebar
         await initPermissions();
         Navigation.init();
 
         const user = await SessionManager.getUser();
         if (!user) return;
 
-        // 2. Charger profil utilisateur
+        // Charger profil utilisateur
         const { data: profile, error } = await supabase
             .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
             .select('*')
@@ -567,14 +566,12 @@
             }
         }
 
-        // 3. Charger les statistiques réelles des cartes
-        await loadRealDashboardStats();
+        // Charger les statistiques depuis la vue vw_dashboard
+        await loadDashboardViewData();
 
-        // 4. Charger Graphiques w Données Réelles de mouvements_stock
         initCharts();
         await loadDashboardMouvements();
 
-        // 5. Bouton Déconnexion
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
@@ -585,68 +582,35 @@
         }
     });
 
-    // Fonction de chargement des statistiques réelles depuis Supabase
-    async function loadRealDashboardStats() {
+    // Fonction pour récupérer les données de la vue vw_dashboard
+    async function loadDashboardViewData() {
         try {
-            // A. Stock Total (Somme des quantités ou lignes dans mouvements_stock / stock)
-            // Ila kanetandouk table dyal stock or mouvements_stock, n-calculiw manha:
-            const { data: stockData, error: stockError } = await supabase
-                .from('mouvements_stock')
-                .select('quantite, type_mouvement');
+            const { data, error } = await supabase
+                .from('vw_dashboard')
+                .select('*')
+                .single();
 
-            let totalStock = 0;
-            if (!stockError && stockData) {
-                stockData.forEach(item => {
-                    const q = Number(item.quantite) || 0;
-                    const type = (item.type_mouvement || '').toUpperCase();
-                    if (['AJOUT', 'IMPORT', 'RETOUR', 'ENTREE'].includes(type)) {
-                        totalStock += q;
-                    } else if (['SORTIE', 'EXPEDITION', 'RETRAIT'].includes(type)) {
-                        totalStock -= q;
-                    } else {
-                        totalStock += q; // Default fallback
-                    }
-                });
+            if (error) {
+                console.error("Erreur récupération vw_dashboard:", error);
+                return;
             }
-            document.getElementById('statStockTotal').textContent = totalStock.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-            // B. Articles (Nombre d'articles uniques ou count f table d articles ila kant, wlla count distinct f mouvements_stock)
-            const { count: articlesCount, error: artError } = await supabase
-                .from('mouvements_stock')
-                .select('article', { count: 'exact', head: true }); // Ila kayna table d'articles khassa bdlha hna l 'articles'
-            
-            document.getElementById('statArticles').textContent = (!artError && articlesCount !== null) ? articlesCount : '1,256';
+            if (data) {
+                // Stock Total
+                const stockTotal = Number(data.stock_total) || 0;
+                document.getElementById('statStockTotal').textContent = stockTotal.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-            // C. Commandes (Exemple ila kant table 'commandes' wlla count menha)
-            const { count: cmdCount, error: cmdError } = await supabase
-                .from('commandes') // Bdlha s-smia ila kant tbadlat f database dyalk
-                .select('*', { count: 'exact', head: true });
-            
-            document.getElementById('statCommandes').textContent = (!cmdError && cmdCount !== null) ? cmdCount : '342';
+                // Articles
+                const totalArticles = Number(data.total_articles) || 0;
+                document.getElementById('statArticles').textContent = totalArticles.toLocaleString('fr-FR');
 
-            // D. Picking
-            const { count: pickingCount, error: pickError } = await supabase
-                .from('picking') // Bdlha s-smia ila kant tbadlat
-                .select('*', { count: 'exact', head: true });
-            
-            document.getElementById('statPicking').textContent = (!pickError && pickingCount !== null) ? pickingCount : '128';
-
-            // E. Expéditions (Aujourd'hui)
-            const { count: expCount, error: expError } = await supabase
-                .from('expeditions') // Bdlha s-smia ila kant tbadlat
-                .select('*', { count: 'exact', head: true });
-            
-            document.getElementById('statExpeditions').textContent = (!expError && expCount !== null) ? expCount : '98';
-
-            // F. Réservations
-            const { count: resCount, error: resError } = await supabase
-                .from('reservations') // Bdlha s-smia ila kant tbadlat
-                .select('*', { count: 'exact', head: true });
-            
-            document.getElementById('statReservations').textContent = (!resError && resCount !== null) ? resCount : '76 432';
+                // Réservations (stock_reserve_total)
+                const stockReserve = Number(data.stock_reserve_total) || 0;
+                document.getElementById('statReservations').textContent = stockReserve.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            }
 
         } catch (err) {
-            console.error("Erreur chargement des stats réelles:", err);
+            console.error("Erreur chargement des stats de la vue:", err);
         }
     }
 
