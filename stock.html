@@ -233,8 +233,7 @@
 
         async function populateMagasinFilterDropdown() {
             try {
-                // Get unique magasins without strict row limits
-                const { data, error } = await supabase.from('vw_stock').select('magasin').limit(5000);
+                const { data, error } = await supabase.from('vw_stock').select('magasin').limit(10000);
                 if (error || !data) return;
 
                 const magasins = [...new Set(data.map(item => item.magasin).filter(Boolean))].sort();
@@ -282,8 +281,8 @@
                 renderTable(data || []);
                 updatePaginationControls();
 
-                // Solution robuste pour récupérer le total global exact même avec plus de 1000 lignes (par blocs de 1000)
-                await calculateExactTotalGlobalQuantity();
+                // Appel direct de la fonction RPC pour calculer le total global exact sans limites
+                await fetchGrandTotalViaRPC();
 
             } catch (err) {
                 console.error("Erreur technique:", err);
@@ -291,50 +290,25 @@
             }
         }
 
-        async function calculateExactTotalGlobalQuantity() {
+        async function fetchGrandTotalViaRPC() {
             try {
-                let grandTotal = 0;
-                let step = 1000;
-                let rangeStart = 0;
-                let hasMore = true;
-
-                while (hasMore) {
-                    let query = supabase.from('vw_stock').select('stock_disponible');
-
-                    if (currentSearch !== "") {
-                        query = query.or(`article.ilike.%${currentSearch}%,designation_article.ilike.%${currentSearch}%,lot.ilike.%${currentSearch}%`);
-                    }
-                    if (currentMagasin !== "") {
-                        query = query.eq('magasin', currentMagasin);
-                    }
-
-                    query = query.range(rangeStart, rangeStart + step - 1);
-                    const { data, error } = await query;
-
-                    if (error || !data || data.length === 0) {
-                        hasMore = false;
-                        break;
-                    }
-
-                    data.forEach(item => {
-                        grandTotal += Number(item.stock_disponible || 0);
-                    });
-
-                    if (data.length < step) {
-                        hasMore = false;
-                    } else {
-                        rangeStart += step;
-                    }
-                }
+                const { data, error } = await supabase.rpc('get_total_stock', {
+                    search_query: currentSearch,
+                    mag_filter: currentMagasin
+                });
 
                 const totalStockBadge = document.getElementById("totalStockBadge");
+                if (error) {
+                    console.error("Erreur RPC Total:", error);
+                    if (totalStockBadge) totalStockBadge.textContent = "Erreur";
+                    return;
+                }
+
                 if (totalStockBadge) {
-                    totalStockBadge.textContent = grandTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    totalStockBadge.textContent = Number(data || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
             } catch (err) {
-                console.error("Erreur calcul total global exact:", err);
-                const totalStockBadge = document.getElementById("totalStockBadge");
-                if (totalStockBadge) totalStockBadge.textContent = "Erreur calcul";
+                console.error("Erreur technique RPC:", err);
             }
         }
 
