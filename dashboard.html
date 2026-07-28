@@ -560,6 +560,7 @@
     import Navigation from "/assets/js/core/navigation.js";
     import SessionManager from "/assets/js/core/session.js";
     import APP_CONFIG from "/assets/js/core/config.js";
+    import supabase from "/assets/js/core/supabase.js";
 
     document.addEventListener("DOMContentLoaded", async () => {
         const isAuth = await SessionManager.requireAuth();
@@ -571,10 +572,10 @@
         if (!user) return;
 
         // 1. Jib user_profiles
-        const { data: profile, error } = await SessionManager.supabase
-            .from('user_profiles')
+        const { data: profile, error } = await supabase
+            .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
             .select('*')
-            .eq('id', user.id)
+            .eq(APP_CONFIG.PROFILE.ID, user.id)
             .single();
 
         if (error || !profile) {
@@ -584,22 +585,22 @@
 
         // 2. Jib l-role b ṭariqa mofassala mn la table roles
         let roleNom = "";
-        if (profile.role_id) {
-            const { data: roleData, error: roleError } = await SessionManager.supabase
-                .from('roles')
-                .select('nom, code')
-                .eq('id', profile.role_id)
+        if (profile[APP_CONFIG.PROFILE.ROLE_ID]) {
+            const { data: roleData, error: roleError } = await supabase
+                .from(APP_CONFIG.DATABASE.ROLES_TABLE)
+                .select(`${APP_CONFIG.ROLE.NOM}, ${APP_CONFIG.ROLE.CODE}`)
+                .eq(APP_CONFIG.ROLE.ID, profile[APP_CONFIG.PROFILE.ROLE_ID])
                 .single();
 
             if (!roleError && roleData) {
-                roleNom = roleData.nom || roleData.code || "";
+                roleNom = roleData[APP_CONFIG.ROLE.NOM] || roleData[APP_CONFIG.ROLE.CODE] || "";
             }
         }
 
         // 3. Extraire le nom complet
-        const nomComplet = profile.nom_complet || 
-                           `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 
-                           profile[APP_CONFIG.PROFILE?.NOM_COMPLET] ||
+        const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
+                           profile.nom_complet || 
+                           `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
                            "Utilisateur";
 
         // 4. Affichage dynamique
