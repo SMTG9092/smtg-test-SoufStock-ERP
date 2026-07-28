@@ -361,9 +361,10 @@
                 <h1 id="welcomeTitle">Bienvenue, Chargement...</h1>
                 <p>Voici l'état général de votre activité aujourd'hui.</p>
             </div>
+            <!-- TARIKH W L-WAQTSHAH 100% (Real-time live update) -->
             <div style="text-align: right; font-size: 12px; color: var(--text-muted);">
-                <i class="fas fa-calendar-alt"></i> <span id="currentDateBanner">Mercredi 25 Juin 2026</span> &nbsp;|&nbsp; 
-                <i class="fas fa-clock"></i> <span id="currentTimeBanner">10:24:35</span>
+                <i class="fas fa-calendar-alt"></i> <span id="currentDateBanner">--</span> &nbsp;|&nbsp; 
+                <i class="fas fa-clock"></i> <span id="currentTimeBanner">--:--:--</span>
             </div>
         </div>
 
@@ -512,7 +513,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Logique Dashboard 100% Réel mn Supabase (avec v_expeditions et v_picking) -->
+<!-- Logique Dashboard & Real-Time Clock & Date -->
 <script type="module">
     import Navigation from "/assets/js/core/navigation.js";
     import SessionManager from "/assets/js/core/session.js";
@@ -520,7 +521,35 @@
     import supabase from "/assets/js/core/supabase.js";
     import { initPermissions } from "/assets/js/core/permissions.js";
 
+    // --- Fonction Active Live Date & Time Shah 100% ---
+    function startRealTimeClock() {
+        const updateClock = () => {
+            const now = new Date();
+            
+            // Format Tarikh Bel Français (ex: Mercredi 28 Juin 2026)
+            const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            let dateStr = now.toLocaleDateString('fr-FR', optionsDate);
+            // Capitalize first letter of day and month
+            dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+            
+            // Format Waqt (HH:MM:SS)
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            const dateEl = document.getElementById('currentDateBanner');
+            const timeEl = document.getElementById('currentTimeBanner');
+
+            if (dateEl) dateEl.textContent = dateStr;
+            if (timeEl) timeEl.textContent = timeStr;
+        };
+
+        updateClock();
+        setInterval(updateClock, 1000); // K-t-mdda kol second b dbt
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
+        // Start l-waqt w t-tarikh l-an
+        startRealTimeClock();
+
         const isAuth = await SessionManager.requireAuth();
         if (!isAuth) return;
 
@@ -582,7 +611,6 @@
         }
     });
 
-    // Fonction globale bach tjib les statistiques 100% réel mn views w tables
     async function loadDashboardRealData() {
         try {
             // 1. Stock Total, Articles, Réservations mn la vue vw_dashboard
