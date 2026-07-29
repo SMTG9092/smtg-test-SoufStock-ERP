@@ -1,407 +1,603 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoufStock Enterprise ERP - Gestion des Pages</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <title>Gestion des Pages - SoufStock Enterprise ERP/WMS</title>
     
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- SheetJS pour Export Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- jsPDF pour Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#020617',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                            400: '#94a3b8',
+                            300: '#cbd5e1',
+                            100: '#f1f5f9'
+                        },
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669',
+                            400: '#34d399',
+                            300: '#6ee7b7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        :root {
-            --bg-main: #0b131b;
-            --sidebar-bg: #070d13;
-            --card-bg: rgba(17, 24, 39, 0.85);
-            --card-border: rgba(16, 185, 129, 0.2);
-            --card-border-hover: rgba(16, 185, 129, 0.5);
-            --primary-glow: #10b981;
-            --danger-glow: #ef4444;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-        }
-
-        .app {
-            display: flex;
-            width: 100%;
-            min-height: 100vh;
-        }
-
-        /* --- Sidebar Pro Styling --- */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--card-border);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .sidebar-logo {
-            font-size: 24px;
-            color: var(--primary-glow);
-        }
-
-        .sidebar-brand h2 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .sidebar-brand span {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .sidebar-nav {
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item i {
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
-            color: var(--primary-glow);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .sidebar-footer {
-            padding: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .sidebar-user-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .sidebar-user-box h4 {
-            font-size: 13px;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-
-        .sidebar-user-box span {
-            font-size: 11px;
-            color: var(--primary-glow);
-            font-weight: 600;
-        }
-
-        .btn-logout {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-logout:hover {
-            background: var(--danger-glow);
-            color: #fff;
-            border-color: var(--danger-glow);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-        }
-
-        /* --- Main Content Area --- */
-        .main {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.04), transparent 40%);
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 20px 24px;
-            backdrop-filter: blur(12px);
-        }
-
-        .page-header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #fff;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.2s;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .pro-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(12px);
-        }
-
-        .table-pro {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .table-pro th {
-            text-align: left;
-            color: var(--text-muted);
-            padding: 12px 10px;
-            font-weight: 500;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .table-pro td {
-            padding: 14px 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            color: #e2e8f0;
-        }
-
-        .badge-actif {
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-        }
-
-        .badge-inactif {
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        body { background-color: #020617; color: #f1f5f9; font-family: ui-sans-serif, system-ui, sans-serif; }
     </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex overflow-hidden">
 
-<div class="app">
-
-    <!-- SIDEBAR PRO -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-snowflake sidebar-logo"></i>
-            <div class="sidebar-brand">
-                <h2>SoufStock</h2>
-                <span>Gestion Congelé</span>
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen p-4 select-none shrink-0">
+        <div class="flex items-center gap-3 px-2 mb-6">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                <i class="fas fa-snowflake text-lg"></i>
+            </div>
+            <div>
+                <span class="font-bold text-base tracking-wide block text-slate-100">SoufStock</span>
+                <span class="text-[10px] text-slate-400 tracking-wider uppercase block">Enterprise ERP</span>
             </div>
         </div>
-
-        <nav class="sidebar-nav" id="sidebarNav">
-            <!-- Dynamic Navigation via script -->
+        
+        <nav id="sidebarNav" class="flex-1 overflow-y-auto pr-1">
+            <!-- Dynamic Sidebar -->
         </nav>
 
-        <div class="sidebar-footer">
-            <div class="sidebar-user-box">
-                <h4 id="userNameSidebar">Chargement...</h4>
-                <span id="userRoleSidebar" style="display: none;"></span>
+        <div class="pt-4 mt-auto border-t border-slate-800/80">
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 mb-2">
+                <span id="sidebarUserName" class="block text-xs font-bold text-slate-200 truncate uppercase">...</span>
+                <span id="sidebarUserRole" class="block text-[10px] text-emerald-400 font-medium mt-0.5">Chargement...</span>
             </div>
-            <button id="btnLogout" class="btn-logout">
+            <button id="logoutBtn" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl py-2 px-3 text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
                 <i class="fas fa-sign-out-alt"></i> Déconnexion
             </button>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="main">
-        <div class="page-header">
-            <div>
-                <h1>Gestion des Pages</h1>
-                <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">Configuration et administration des routes de l'application</p>
+    <!-- MAIN CONTAINER -->
+    <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden relative">
+        
+        <!-- HEADER -->
+        <header class="h-20 bg-slate-900/40 border-b border-slate-800/80 px-8 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-4">
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-100">Gestion des Pages System</h1>
+                    <div class="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                        <span>Accueil</span>
+                        <span>/</span>
+                        <strong class="text-slate-300">Pages</strong>
+                    </div>
+                </div>
             </div>
-            <button class="btn-primary" id="btnAddNewPage">
-                <i class="fas fa-plus"></i> Ajouter une Page
-            </button>
-        </div>
-
-        <div class="pro-card">
-            <table class="table-pro">
-                <thead>
-                    <tr>
-                        <th>Ordre</th>
-                        <th>Code</th>
-                        <th>Nom de la Page</th>
-                        <th>URL</th>
-                        <th>Module</th>
-                        <th>Statut</th>
-                        <th style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="pagesTableBody">
-                    <tr>
-                        <td colspan="7" style="text-align: center; color: var(--text-muted);">Chargement des pages...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
-</div>
-
-<!-- Scripts -->
-<script type="module">
-    import Navigation from "/assets/js/core/navigation.js";
-    import SessionManager from "/assets/js/core/session.js";
-    import APP_CONFIG from "/assets/js/core/config.js";
-    import supabase from "/assets/js/core/supabase.js";
-
-    document.addEventListener("DOMContentLoaded", async () => {
-        const isAuth = await SessionManager.requireAuth();
-        if (!isAuth) return;
-
-        Navigation.init();
-
-        const user = await SessionManager.getUser();
-        if (!user) return;
-
-        // Profile & Role setup
-        const { data: profile } = await supabase
-            .from(APP_CONFIG.DATABASE.USER_PROFILES_TABLE)
-            .select('*')
-            .eq(APP_CONFIG.PROFILE.ID, user.id)
-            .single();
-
-        if (profile) {
-            const nomComplet = profile[APP_CONFIG.PROFILE.NOM_COMPLET] || 
-                               `${profile[APP_CONFIG.PROFILE.PRENOM] || ''} ${profile[APP_CONFIG.PROFILE.NOM] || ''}`.trim() || 
-                               "Utilisateur";
             
-            document.getElementById('userNameSidebar').textContent = nomComplet;
+            <div class="flex items-center gap-4 bg-slate-900/80 border border-slate-800 px-4 py-2 rounded-xl">
+                <div class="text-right">
+                    <span id="currentDate" class="text-xs font-medium text-slate-300 block">Chargement...</span>
+                    <span id="currentTime" class="text-[10px] text-emerald-400 font-mono block">00:00:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- PAGE BODY -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="w-full flex flex-col gap-6">
+                
+                <!-- CONTROLS & FILTERS BAR -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fas fa-file-lines text-emerald-400"></i> Catalogue des Pages de l'Application
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Configuration des modules, URLs, ordres d'affichage et statuts d'activation.
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- ADD BUTTON -->
+                        <button onclick="openAddModal()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 shadow-lg cursor-pointer">
+                            <i class="fas fa-plus"></i> <span>Nouvelle Page</span>
+                        </button>
+
+                        <!-- EXPORT BUTTONS -->
+                        <button onclick="exportToExcel()" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-sm cursor-pointer">
+                            <i class="fas fa-file-excel"></i> <span>Excel</span>
+                        </button>
+                        
+                        <button onclick="exportToPDF()" class="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-sm cursor-pointer">
+                            <i class="fas fa-file-pdf"></i> <span>PDF</span>
+                        </button>
+
+                        <!-- MODULE FILTER -->
+                        <div class="relative">
+                            <i class="fas fa-filter absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="text" id="searchModuleInput" placeholder="Filtrer par module..." 
+                                class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-40 transition shadow-inner">
+                        </div>
+
+                        <!-- SEARCH: CODE / NOM -->
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-400 text-sm"></i>
+                            <input type="text" id="searchInput" placeholder="Code ou Nom..." 
+                                class="bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-44 transition shadow-inner">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STATS CARDS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[11px] text-slate-400 uppercase font-semibold tracking-wider block">Total Pages</span>
+                            <span id="totalLinesBadge" class="text-xl font-bold text-emerald-400 font-mono mt-1 block">0</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[11px] text-slate-400 uppercase font-semibold tracking-wider block">Pages Actives</span>
+                            <span id="totalActiveBadge" class="text-xl font-bold text-sky-400 font-mono mt-1 block">0</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-lg">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[11px] text-slate-400 uppercase font-semibold tracking-wider block">Modules Distincts</span>
+                            <span id="totalModulesBadge" class="text-xl font-bold text-amber-400 font-mono mt-1 block">0</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-lg">
+                            <i class="fas fa-cubes"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABLE CONTAINER -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-950/60 text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-800 font-semibold">
+                                    <th class="p-4">ID</th>
+                                    <th class="p-4">Code</th>
+                                    <th class="p-4">Nom de la Page</th>
+                                    <th class="p-4">URL</th>
+                                    <th class="p-4">Module</th>
+                                    <th class="p-4 text-center">Ordre</th>
+                                    <th class="p-4 text-center">Statut</th>
+                                    <th class="p-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pagesTableBody" class="divide-y divide-slate-800/50">
+                                <tr>
+                                    <td colspan="8" class="p-10 text-center text-slate-400 text-xs">
+                                        <i class="fas fa-spinner fa-spin mr-2 text-emerald-500 text-base"></i> Chargement des pages...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION -->
+                    <div class="bg-slate-950/40 border-t border-slate-800 px-6 py-4 flex items-center justify-between text-xs text-slate-400">
+                        <div id="paginationInfo">Affichage de 0 à 0 sur 0 entrées</div>
+                        <div class="flex items-center gap-2">
+                            <button id="prevPageBtn" onclick="changePage(-1)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
+                                <i class="fas fa-chevron-left mr-1"></i> Précédent
+                            </button>
+                            <span id="pageIndicator" class="px-3 py-1 font-mono text-emerald-400 font-semibold">Page 1 / 1</span>
+                            <button id="nextPageBtn" onclick="changePage(1)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
+                                Suivant <i class="fas fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL AJOUT / EDITION -->
+    <div id="pageModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 id="modalTitle" class="text-base font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fas fa-file-circle-plus text-emerald-400"></i> Ajouter une Page
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200 transition cursor-pointer">
+                    <i class="fas fa-times text-base"></i>
+                </button>
+            </div>
+            <form id="pageForm" onsubmit="savePage(event)" class="p-6 flex flex-col gap-4">
+                <input type="hidden" id="pageId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Code Unique *</label>
+                        <input type="text" id="pageCode" required placeholder="ex: AB10_STOCK" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nom de la Page *</label>
+                        <input type="text" id="pageNom" required placeholder="ex: Gestion AB10" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">URL / Fichier *</label>
+                    <input type="text" id="pageUrl" required placeholder="ex: ab10.html" 
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Module</label>
+                        <input type="text" id="pageModule" placeholder="ex: Stock" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Ordre d'affichage</label>
+                        <input type="number" id="pageOrdre" value="0" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <input type="checkbox" id="pageActif" checked class="w-4 h-4 rounded bg-slate-950 border-slate-800 text-emerald-500 focus:ring-0 cursor-pointer">
+                    <label for="pageActif" class="text-xs font-semibold text-slate-300 cursor-pointer">Page active</label>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer">
+                        Annuler
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold transition cursor-pointer">
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script type="module">
+        import Navigation from '../assets/js/core/navigation.js';
+        import supabase from '../assets/js/core/supabase.js';
+
+        let currentPage = 1;
+        const pageSize = 50;
+        let totalRecords = 0;
+        let currentSearch = "";
+        let currentModule = "";
+        let allExportData = [];
+
+        window.changePage = async function(direction) {
+            currentPage += direction;
+            await loadPagesData();
         }
 
-        // Logout action
-        document.getElementById('btnLogout').addEventListener('click', async () => {
-            if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
-                await SessionManager.logout();
+        document.addEventListener("DOMContentLoaded", async () => {
+            await Navigation.init();
+            initLiveClock();
+            await loadPagesData();
+
+            const searchInput = document.getElementById("searchInput");
+            const searchModuleInput = document.getElementById("searchModuleInput");
+
+            let timeout;
+            if (searchInput) {
+                searchInput.addEventListener("input", (e) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(async () => {
+                        currentSearch = e.target.value.trim();
+                        currentPage = 1;
+                        await loadPagesData();
+                    }, 300);
+                });
+            }
+
+            if (searchModuleInput) {
+                searchModuleInput.addEventListener("input", (e) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(async () => {
+                        currentModule = e.target.value.trim();
+                        currentPage = 1;
+                        await loadPagesData();
+                    }, 300);
+                });
+            }
+
+            const logoutBtn = document.getElementById("logoutBtn");
+            if (logoutBtn) {
+                logoutBtn.addEventListener("click", async () => {
+                    await supabase.auth.signOut();
+                    window.location.href = "login.html";
+                });
             }
         });
 
-        // Load Pages Data from public.pages
-        async function loadPages() {
-            const { data: pages, error } = await supabase
-                .from('pages')
-                .select('*')
-                .order('ordre_affichage', { ascending: true });
-
-            const tbody = document.getElementById('pagesTableBody');
-            if (error) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ef4444;">Erreur de chargement: ${error.message}</td></tr>`;
-                return;
-            }
-
-            if (!pages || pages.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Aucune page trouvée dans la base de données.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = pages.map(page => `
-                <tr>
-                    <td>${page.ordre_affichage ?? 0}</td>
-                    <td><code>${page.code}</code></td>
-                    <td><strong>${page.nom}</strong></td>
-                    <td><span style="color: var(--primary-glow);">${page.url}</span></td>
-                    <td>${page.module || '-'}</td>
-                    <td>
-                        <span class="${page.actif ? 'badge-actif' : 'badge-inactif'}">
-                            ${page.actif ? 'Actif' : 'Inactif'}
-                        </span>
-                    </td>
-                    <td style="text-align: right;">
-                        <button class="btn-primary" style="padding: 6px 10px; font-size: 11px; display: inline-flex;" onclick="alert('Modifier la page: ${page.code}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+        function initLiveClock() {
+            const updateClock = () => {
+                const now = new Date();
+                const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const dateEl = document.getElementById("currentDate");
+                const timeEl = document.getElementById("currentTime");
+                if (dateEl) dateEl.innerText = now.toLocaleDateString('fr-FR', optionsDate);
+                if (timeEl) timeEl.innerText = now.toTimeString().split(' ')[0];
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
         }
 
-        loadPages();
-    });
-</script>
+        function applyFilters(query) {
+            if (currentSearch !== "") {
+                query = query.or(`code.ilike.%${currentSearch}%,nom.ilike.%${currentSearch}%`);
+            }
+            if (currentModule !== "") {
+                query = query.ilike('module', `%${currentModule}%`);
+            }
+            return query;
+        }
 
+        async function loadPagesData() {
+            const tbody = document.getElementById("pagesTableBody");
+
+            try {
+                let query = supabase.from('pages').select('*', { count: 'exact' });
+                query = applyFilters(query);
+
+                const start = (currentPage - 1) * pageSize;
+                const end = start + pageSize - 1;
+                query = query.range(start, end).order('ordre_affichage', { ascending: true });
+
+                const { data, count, error } = await query;
+
+                if (error) {
+                    console.error("Erreur pages:", error);
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-400 text-xs"><i class="fas fa-exclamation-triangle mr-2"></i> Erreur chargement des pages.</td></tr>`;
+                    return;
+                }
+
+                totalRecords = count || 0;
+                renderTable(data || []);
+                updatePagination();
+                await fetchGlobalStats();
+
+            } catch (err) {
+                console.error("Erreur technique:", err);
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-400 text-xs">Erreur de connexion.</td></tr>`;
+            }
+        }
+
+        async function fetchGlobalStats() {
+            try {
+                let q = supabase.from('pages').select('*');
+                q = applyFilters(q);
+                const { data, error } = await q.limit(10000);
+                if (error || !data) return;
+
+                allExportData = data;
+                let activeCount = 0;
+                let modulesSet = new Set();
+
+                data.forEach(item => {
+                    if (item.actif === true) activeCount++;
+                    if (item.module) modulesSet.add(item.module);
+                });
+
+                document.getElementById("totalLinesBadge").textContent = data.length.toLocaleString();
+                document.getElementById("totalActiveBadge").textContent = activeCount.toLocaleString();
+                document.getElementById("totalModulesBadge").textContent = modulesSet.size.toLocaleString();
+
+            } catch (err) {
+                console.error("Erreur stats:", err);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById("pagesTableBody");
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400 text-xs"><i class="fas fa-folder-open mr-2"></i> Aucune page trouvée.</td></tr>`;
+                return;
+            }
+
+            let html = "";
+            data.forEach(item => {
+                const badgeColor = item.actif 
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    : 'bg-red-500/10 text-red-400 border-red-500/20';
+
+                html += `
+                    <tr class="hover:bg-slate-800/35 transition">
+                        <td class="p-4 font-mono text-slate-400 text-xs">#${item.id}</td>
+                        <td class="p-4 font-mono font-semibold text-emerald-400 text-xs">${item.code || '-'}</td>
+                        <td class="p-4 text-slate-100 font-semibold text-xs">${item.nom || '-'}</td>
+                        <td class="p-4 font-mono text-sky-300 text-xs">${item.url || '-'}</td>
+                        <td class="p-4 text-slate-300 text-xs">${item.module || '-'}</td>
+                        <td class="p-4 text-center font-mono text-amber-300 text-xs">${item.ordre_affichage ?? 0}</td>
+                        <td class="p-4 text-center">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${badgeColor}">
+                                ${item.actif ? 'Actif' : 'Inactif'}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center flex items-center justify-center gap-2">
+                            <button onclick='openEditModal(${JSON.stringify(item)})' class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 px-3 py-1.5 rounded-lg text-xs transition cursor-pointer" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deletePage(${item.id})" class="bg-slate-800 hover:bg-slate-700 text-red-400 border border-slate-700 px-3 py-1.5 rounded-lg text-xs transition cursor-pointer" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            const startItem = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const endItem = Math.min(currentPage * pageSize, totalRecords);
+
+            document.getElementById("paginationInfo").textContent = `Affichage de ${startItem} à ${endItem} sur ${totalRecords} entrées`;
+            document.getElementById("pageIndicator").textContent = `Page ${currentPage} / ${totalPages}`;
+            document.getElementById("prevPageBtn").disabled = currentPage <= 1;
+            document.getElementById("nextPageBtn").disabled = currentPage >= totalPages;
+        }
+
+        window.openAddModal = function() {
+            document.getElementById("modalTitle").innerHTML = `<i class="fas fa-file-circle-plus text-emerald-400"></i> Ajouter une Page`;
+            document.getElementById("pageForm").reset();
+            document.getElementById("pageId").value = "";
+            document.getElementById("pageActif").checked = true;
+            document.getElementById("pageModal").classList.remove("hidden");
+        }
+
+        window.openEditModal = function(item) {
+            document.getElementById("modalTitle").innerHTML = `<i class="fas fa-file-pen text-emerald-400"></i> Modifier la Page`;
+            document.getElementById("pageId").value = item.id;
+            document.getElementById("pageCode").value = item.code || '';
+            document.getElementById("pageNom").value = item.nom || '';
+            document.getElementById("pageUrl").value = item.url || '';
+            document.getElementById("pageModule").value = item.module || '';
+            document.getElementById("pageOrdre").value = item.ordre_affichage ?? 0;
+            document.getElementById("pageActif").checked = item.actif ?? true;
+            document.getElementById("pageModal").classList.remove("hidden");
+        }
+
+        window.closeModal = function() {
+            document.getElementById("pageModal").classList.add("hidden");
+        }
+
+        window.savePage = async function(event) {
+            event.preventDefault();
+            const id = document.getElementById("pageId").value;
+            const payload = {
+                code: document.getElementById("pageCode").value.trim(),
+                nom: document.getElementById("pageNom").value.trim(),
+                url: document.getElementById("pageUrl").value.trim(),
+                module: document.getElementById("pageModule").value.trim() || null,
+                ordre_affichage: parseInt(document.getElementById("pageOrdre").value) || 0,
+                actif: document.getElementById("pageActif").checked
+            };
+
+            let error;
+            if (id) {
+                const res = await supabase.from('pages').update(payload).eq('id', id);
+                error = res.error;
+            } else {
+                const res = await supabase.from('pages').insert([payload]);
+                error = res.error;
+            }
+
+            if (error) {
+                alert("Erreur lors de l'enregistrement: " + error.message);
+            } else {
+                closeModal();
+                await loadPagesData();
+            }
+        }
+
+        window.deletePage = async function(id) {
+            if (!confirm("Voulez-vous vraiment supprimer cette page ?")) return;
+            const { error } = await supabase.from('pages').delete().eq('id', id);
+            if (error) {
+                alert("Erreur lors de la suppression: " + error.message);
+            } else {
+                await loadPagesData();
+            }
+        }
+
+        window.exportToExcel = function() {
+            if (!allExportData || allExportData.length === 0) {
+                alert("Aucune donnée à exporter.");
+                return;
+            }
+            const dataToExport = allExportData.map(item => ({
+                "ID": item.id,
+                "Code": item.code,
+                "Nom": item.nom,
+                "URL": item.url,
+                "Module": item.module,
+                "Ordre": item.ordre_affichage,
+                "Actif": item.actif ? "Oui" : "Non"
+            }));
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Pages System");
+            XLSX.writeFile(workbook, `Pages_System_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        window.exportToPDF = function() {
+            if (!allExportData || allExportData.length === 0) {
+                alert("Aucune donnée à exporter.");
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+
+            doc.setFontSize(16);
+            doc.text("SoufStock Enterprise - Catalogue des Pages", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Date d'export : ${new Date().toLocaleDateString('fr-FR')}`, 14, 22);
+
+            const columns = ["ID", "Code", "Nom", "URL", "Module", "Ordre", "Actif"];
+            const rows = allExportData.map(item => [
+                item.id,
+                item.code || '',
+                item.nom || '',
+                item.url || '',
+                item.module || '',
+                item.ordre_affichage ?? 0,
+                item.actif ? 'Oui' : 'Non'
+            ]);
+
+            doc.autoTable({
+                head: [columns],
+                body: rows,
+                startY: 28,
+                theme: 'grid',
+                styles: { fontSize: 8, cellPadding: 3 },
+                headStyles: { fillColor: [15, 23, 42] }
+            });
+
+            doc.save(`Pages_System_${new Date().toISOString().slice(0,10)}.pdf`);
+        }
+    </script>
 </body>
 </html>
